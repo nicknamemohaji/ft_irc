@@ -2,6 +2,7 @@
 #define TCPSERVER_HPP
 
 #include <string>
+#include <set>
 
 #include "TCPConnection.hpp"
 
@@ -20,7 +21,7 @@ class TCPServer
 		virtual TCPConnection* AcceptConnection
 			(bool& shouldRead, bool& shouldWrite) = 0;
 		virtual void ReadEvent(TCPConnection* conn,
-			bool& shouldEndRead, bool& shouldWrite) = 0;
+			bool& shouldEndRead, std::set<int> &shouldWriteFDs) = 0;
 		virtual void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite) = 0;
 

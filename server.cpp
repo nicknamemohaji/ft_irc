@@ -10,7 +10,7 @@ int main(void)
 {
 
 	std::cout << "===== Simple IRC Server =====" << std::endl;
-	IRCServer* server1 = new IRCServer("6667", "ft_irc");
+	IRCServer* server1 = new IRCServer("6667", "ft_irc", "verystrongpassword");
 
 	std::vector<TCPServer*> servers;
 	servers.push_back(server1);

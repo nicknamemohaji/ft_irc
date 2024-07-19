@@ -16,7 +16,7 @@ INCLUDES :=	-I TCPServer/includes \
 			-I IRCServer/includes
 
 C++ := c++
-CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) # -D DEBUG 
+CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -D DEBUG -fsanitize=address
 
 all: $(NAME)
 

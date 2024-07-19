@@ -43,12 +43,12 @@ class TCPConnection
 		static std::string BufferToString(const Buffer& buf);
 	
 	protected:
-		
-	private:
 		// buffer
 		Buffer _recvBuf;
+		
+	private:
+		// buffer 
 		Buffer _sendBuf;
-
 		// connection socket
 		const int _clientSocket;
 		std::string _clientIP;
@@ -59,5 +59,8 @@ class TCPConnection
 		TCPConnection(const TCPConnection& other);
 		TCPConnection& operator=(const TCPConnection& other);	
 };
+
+// for debug
+std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer);
 
 #endif

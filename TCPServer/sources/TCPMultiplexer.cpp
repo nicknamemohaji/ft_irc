@@ -2,6 +2,7 @@
 #include <sys/event.h>
 
 #include <map>
+#include <set>
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -266,13 +267,13 @@ void TCPMultiplexer::WaitEvent(void)
 			connection->Recv();
 			if (connection->CheckRecvEnd())
 			{
-				bool shouldWrite;
+				std::set<int> shouldWriteFDs;
 				bool shouldEndRead;
-				server->ReadEvent(connection, shouldEndRead, shouldWrite);
+				server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
 				if (shouldEndRead)
 					RemoveKevent(connection->GetFD(), EVFILT_READ);
-				if (shouldWrite)
-					AddKevent(connection->GetFD(), EVFILT_WRITE);
+				for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)
+					AddKevent(*it, EVFILT_WRITE);
 			}
 		}
 		else

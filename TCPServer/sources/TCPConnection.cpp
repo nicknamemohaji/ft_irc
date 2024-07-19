@@ -181,12 +181,13 @@ void TCPConnection::SendBuffer(void)
 		0					// flags: 0
 							// (MSG_NOSIGNAL is not available in mac)
 	);
-
-	// TODO check for error but no errno? wtf
+	// error occured
 	if (err == -1)
 		throw TCPErrors::SystemCallError("send(2)");
+	// sent succesfully
 	else if (err == (int) _sendBuf.size())
 		_sendBuf.clear();
+	// short count
 	else
 		_sendBuf.erase(_sendBuf.begin(), _sendBuf.end());
 
@@ -222,4 +223,13 @@ std::string TCPConnection::BufferToString(const Buffer& buf)
 	std::string ret;
 	ret.assign(buf.begin(), buf.end());
 	return ret;
+}
+
+std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer)
+{
+	std::string ret;
+	ret.assign(buffer.begin(), buffer.end());
+
+	ostream << ret;
+	return ostream;
 }

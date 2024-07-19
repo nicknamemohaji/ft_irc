@@ -13,42 +13,48 @@ class IRCServer: public TCPServer
 {
 	public:
 		// constructor
-		IRCServer(const std::string& port, const std::string& servername);
+		IRCServer(const std::string& port,
+			const std::string& servername, const std::string& password);
 		~IRCServer(void);
 
 		// event callback
 		IRCClient* AcceptConnection(bool& shouldRead, bool& shouldWrite);
 		void ReadEvent(TCPConnection* conn,
-			bool& shouldEndRead, bool& shouldWrite);
+			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
 		
-		static std::string MakeNumericResponse(IRCContext& context);
 	protected:
 
 	private:
 		// ==== attribute ====
-		// server name
+		// server settings
 		std::string _serverName;
+		std::string _serverPass;
 		// channels
 
 		// clients
+		std::map<std::string, IRCClient*> _clients;
 
 		// ==== methods ====
 		// request
-		IRCContext RequestParser(const Buffer& buf);
+		bool RequestParser(Buffer& buf, IRCContext& context);
+		std::string MakeResponse(IRCContext& context);
+		/*
+		notes on IRCServer::MakeResponse
+
+		when message is sent to a channel, server should broadcast message.
+		making message for command `PRIVMSG` should be done in IRCChannel instance.
+		*/
 
 		// context actions
 		void Context(IRCContext& context);
 		// 1. register new client
-		void AcceptClientCAP(IRCContext& context);
-		void AcceptClientPASS(IRCContext& context);
-		void AcceptClientNICK(IRCContext& context);
-		void AcceptClientUSER(IRCContext& context);
-		void AcceptClientMOTD(IRCContext& context);
+		void AcceptClient(IRCContext& context);
 		// 2. manage existing client
-		void ManageClientPing(IRCContext& context);
-		void ManageClientPong(IRCContext& context);
+		std::string ManageMOTD(IRCContext& context);
+		void ManagePing(IRCContext& context);
+		void ManagePong(IRCContext& context);
 
 		// disable this constructors
 		IRCServer(void);
