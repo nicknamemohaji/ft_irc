@@ -20,7 +20,8 @@ enum IRCCommand
 	NICK,
 	// server informatin
 	MOTD,
-	PING
+	PING,
+	JOIN,
 };
 
 struct IRCContext

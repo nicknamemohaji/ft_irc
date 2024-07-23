@@ -132,8 +132,10 @@ bool IRCServer::RequestParser(Buffer& message, IRCContext& context)
 		message.erase(message.begin(), it);
 		_BufferRemoveSpace(message);
 
+		# ifdef DEBUG
 		std::cout << "param [" << param << "]\n";
 		std::cout << "[" << message << "]\n";
+		# endif
 	}
 	// remove CRLF from buffer so that next message does not get deleted...
 	message.erase(message.begin(), message.begin() + 2);

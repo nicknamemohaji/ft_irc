@@ -37,11 +37,14 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 		switch (context.numericResult)
 		{
 
-			// ERR_NOTREGISTERED
+			// ERR_NICKNAMEINUSE
 			case 433:
+				result << clientNickname << " :Nickname is already in use";
+				break ;
+			// ERR_NOTREGISTERED
+			case 451:
 				result << clientNickname << " :You have not registered";
 				break ;
-
 			// ERR_NEEDMOREPARAMS
 			case 461:
 				result << clientNickname << " " << command << " :Not enough parameters";

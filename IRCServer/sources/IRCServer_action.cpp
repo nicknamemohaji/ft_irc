@@ -11,7 +11,6 @@
 
 void IRCServer::Context(IRCContext& context)
 {
-	std::cout << "status : " << context.client->GetStatus() << std::endl;
 	// registration
 	if (context.client->GetStatus() != REGISTERED)
 	{
@@ -26,9 +25,14 @@ void IRCServer::Context(IRCContext& context)
 						return context.client->Context(context);
 				case CAP:
 					return ;
-				default:
+				case USER:
+					// FALLTHROUGH
+				case NICK:
 					// registration without PASS
 					throw IRCError::WrongPassword();
+				default:
+					// not registered
+					throw IRCError::NotRegistered();
 			}
 		}
 		else
@@ -49,11 +53,11 @@ void IRCServer::Context(IRCContext& context)
 					context.client->Context(context);
 					break ;
 				default:
-					// non-registration command 
+					// not registered
 					throw IRCError::NotRegistered();
 			}
 
-			if (context.client->GetStatus() == REGISTERED)
+			// if (context.client->GetStatus() == REGISTERED)
 				AcceptClient(context);
 			return ;
 		}
