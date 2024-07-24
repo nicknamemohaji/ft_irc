@@ -12,7 +12,7 @@ class IRCClient;
 
 enum IRCCommand
 {
-	UNKNOWN,
+	UNKNOWN = -1,
 	// registration
 	CAP,
 	PASS,
@@ -33,24 +33,16 @@ struct IRCContext
 		enum IRCCommand command;
 		std::deque<std::string> params;
 		std::string rawMessage;
-		/*
-		notes on IRCContext.source:
-
-		클라이언트 요청에는 source 정보가 없지만, 서버가 클라이언트로 보내는 정보에는 source가 포함될 수 있습니다.
-		(ex. PRIVMSG: 발신자 정보를 source로 포함)
-
-		IRCContext.source 정보는 IRCServer::Context에서 등록됩니다
-		*/
 
 		// context
 		IRCServer* server;
 		IRCChannel* channel;
 		IRCClient* client;
+		std::set<int>& FDsPendingWrite;
 
 		// result
 		int numericResult;
 		std::string stringResult;
-		std::set<int>& FDsPendingWrite;
 		
 		// initialize struct... 
 		IRCContext(std::set<int>& FDset);

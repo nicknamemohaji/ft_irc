@@ -116,8 +116,8 @@ void TCPMultiplexer::RemoveServer(TCPServer* server)
 	{
 		# ifdef DEBUG
 		std::cout << "[ERROR] TCPMultiplexer: RemoveServer: server " << server << "is not registered" << std::endl;
-		return ;
 		# endif
+		return ;
 	}
 	// remove TCPServer
 	_servers.erase(it);

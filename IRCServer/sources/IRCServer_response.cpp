@@ -10,14 +10,6 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-# ifndef BUILDDATE
-# define BUILDDATE "2024-07-19"
-# endif
-# ifndef VERSION
-# define VERSION "42.42"
-# endif
-
-
 std::string IRCServer::MakeResponse(IRCContext& context)
 {
 	std::string command;
@@ -27,16 +19,22 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 		command = IRCContext::ConvertCommandToStr(context.command);
 	std::string clientNickname = context.client->GetNickname();
 	std::stringstream result;
-	result << std::setw(3) << std::setfill('0');
-	// TODO use tag
 
 	// error response
 	if (400 <= context.numericResult && context.numericResult < 600)
 	{
-		result << ":" + _serverName + " " << context.numericResult << " ";
+		result << ":" + _serverName + " "  << std::setw(3) << std::setfill('0') 
+			<< context.numericResult << " ";
 		switch (context.numericResult)
 		{
-
+			// ERR_NONICKNAMEGIVEN
+			case 431:
+				result << clientNickname << " :No nickname given";
+				break ;
+			// ERR_ERRONEUSNICKNAME
+			case 432:
+				result << clientNickname << " :Erroneus nickname";
+				break ;
 			// ERR_NICKNAMEINUSE
 			case 433:
 				result << clientNickname << " :Nickname is already in use";
@@ -68,49 +66,22 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 	// normal result
 	else
 	{
-		// normal non-numeric result
-		if (context.numericResult == -1)
-		{
-			switch (context.command)
-			{
-				case MOTD:
-					return ManageMOTD(context);
-				default:
-					result << clientNickname << " " << command << " :Unknown command";
-					break ;
-			}
-		}
-		// normal numeric result
+		// source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
+		// can omit username and hostname for client source
+		if (context.source.size() == 0)
+			result << ":" << _serverName << " ";
 		else
-		{
-			switch (context.numericResult)
-			{
-				// TODO RPL_MYINFO, RPL_ISUPPORT
-				// RPL_WELCOME
-				case 1:
-					result << clientNickname
-						<< " ::Welcome to the "<< _serverName << " Network, "
-						<< clientNickname << "!" << context.client->GetHostName();
-					break ;
-				// RPL_YOURHOST
-				case 2:
-					result << clientNickname
-						<< " :Your host is "<< _serverName <<", running version " VERSION;
-					break ;
-				// RPL_CREATED
-				case 3:
-					result << clientNickname << " :This server was created " BUILDDATE;
-					break ;
-				// RPL_MYINFO
-				case 4:
-					result << clientNickname << " :";
-					break ;
-				// RPL_ISUPPORT
-				case 5:
-					result << clientNickname << " :";
-					break ;
-			}
-		}
+			result << ":" << context.source << " ";
+		
+		/*
+		notes on IRCContext, IRCServer::MakeResponse
+
+		MakeResponse를 호출하는 메소드는 IRCContext의 stringResult 필드에 
+		올바른 응답 메시지를 모두 작성해놔야 합니다. (예외상황 제외)
+		*/ 
+		if (context.numericResult > 0)
+			result << std::setw(3) << std::setfill('0') << context.numericResult << " ";
+		result << context.stringResult;
 	}
 
 	# ifdef DEBUG

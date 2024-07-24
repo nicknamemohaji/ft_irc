@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <deque>
 #include <algorithm>
 
 #include "IRCServer.hpp"
@@ -9,121 +10,136 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-void IRCServer::Context(IRCContext& context)
-{
-	// registration
-	if (context.client->GetStatus() != REGISTERED)
-	{
-		if (context.client->GetStatus() == REGISTER_PENDING)
-		{
-			switch (context.command)
-			{
-				case PASS:
-					if (context.params[0] != _serverPass)
-						throw IRCError::WrongPassword();
-					else
-						return context.client->Context(context);
-				case CAP:
-					return ;
-				case USER:
-					// FALLTHROUGH
-				case NICK:
-					// registration without PASS
-					throw IRCError::WrongPassword();
-				default:
-					// not registered
-					throw IRCError::NotRegistered();
-			}
-		}
-		else
-		{
-			switch (context.command)
-			{
-				case PASS:
-					// already validated command
-					throw IRCError::AlreadyRegistered();
-				case CAP:
-					// do nothing for CAP negotiation
-					return ;
-				case USER:
-					context.client->Context(context);
-					break ;
-				case NICK:
-					// TODO validate nickname
-					context.client->Context(context);
-					break ;
-				default:
-					// not registered
-					throw IRCError::NotRegistered();
-			}
+# ifndef VERSION
+# define VERSION "42.42"
+# endif
 
-			// if (context.client->GetStatus() == REGISTERED)
-				AcceptClient(context);
-			return ;
-		}
+void IRCServer::ActionAcceptClient(IRCContext& context)
+{
+	if (context.command == CAP)
+		return ;
+	
+	if (context.client->GetStatus() == REGISTER_PENDING)
+	{
+		if (context.command == NICK || context.command == USER
+			|| context.params.size() != 1 || context.params[0] != _serverPass)
+			throw IRCError::WrongPassword();
+		if (context.command == PASS)
+			context.client->SetStatus(REGISTER_ONGOING);
+		return ;
 	}
 
-	// other...
-	switch (context.command)
+	if (context.command == PASS)
+		throw IRCError::NotRegistered();
+	if (context.command == NICK)
 	{
-		case PASS:
-			// FALLTHROUGH
-		case CAP:
-			// FALLTHROUGH
-		case USER:
-			// FALLTHROUGH
-		case NICK:
-			// FALLTHROUGH
-			throw IRCError::AlreadyRegistered();
-		case MOTD:
-			context.client->Send(ManageMOTD(context));
-			break ;
-		default:
-			context.client->Send(":" + _serverName + " 465 :You are banned\r\n");
+		if (context.params.size() == 0)
+			throw IRCError::NoNickname();
+		else if (context.params.size() > 1)
+			throw IRCError::WrongNickname();
+		// TODO validate nickname
+		context.client->SetNickName(context.params[0]);
 	}
-	context.FDsPendingWrite.insert(context.client->GetFD());
-}
+	if (context.command == USER)
+	{
+		// TODO USER command
+		context.client->SetHostName(context.params[0]);
+	}
 
-/**************/
+	if (context.client->GetStatus() == REGISTERED)
+	{
+		if (context.command == NICK)
+		{
+			// TODO broadcast nickname change
+		}
 
-void IRCServer::AcceptClient(IRCContext& context)
-{
+		return ;
+	}
+
+	context.client->SetStatus(REGISTERED);
+	std::stringstream stringresult;
+	std::string clientNickname = context.client->GetNickname();
+
 	// RPL_WELCOME
+	stringresult.str("");
+	context.stringResult.clear();
+	stringresult << clientNickname
+		<< " :Welcome to the "<< _serverName << " Network, " << clientNickname << "!";
 	context.numericResult = 1;
+	context.stringResult = stringresult.str();
 	context.client->Send(MakeResponse(context));
+
 	// RPL_YOURHOST
+	stringresult.str("");
+	context.stringResult.clear();
+	stringresult << clientNickname
+		<< " :Your host is "<< _serverName << ", running version " << VERSION;
 	context.numericResult = 2;
+	context.stringResult = stringresult.str();
 	context.client->Send(MakeResponse(context));
+
 	// RPL_CREATED
+	stringresult.str("");
+	context.stringResult.clear();
+	stringresult << clientNickname
+		<< " :This server was created "<< _startDate;
 	context.numericResult = 3;
+	context.stringResult = stringresult.str();
 	context.client->Send(MakeResponse(context));
+
 	// RPL_MYINFO
+	// TODO set RPL_MYINFO
+	stringresult.str("");
+	context.stringResult.clear();
+	stringresult << clientNickname << " " << _serverName << " " << VERSION << " r oitlk";
+	context.stringResult = stringresult.str();
 	context.numericResult = 4;
 	context.client->Send(MakeResponse(context));
+
 	// RPL_ISUPPORT
+	// TODO set RPL_ISUPPORT
+	stringresult.str("");
+	context.stringResult.clear();
+	stringresult << clientNickname << " CHANTYPES=# CASEMAPPING=ascii CHANMODES=o,kl,,it  :are supported by this server";
+	context.stringResult = stringresult.str();
 	context.numericResult = 5;
 	context.client->Send(MakeResponse(context));
+
 	// MOTD
-	context.client->Send(ManageMOTD(context));
+	ActionMOTD(context);
 
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }
 
 /**************/
 
-std::string IRCServer::ManageMOTD(IRCContext& context)
+void IRCServer::ActionMOTD(IRCContext& context)
 {
 	std::string clientNickname = context.client->GetNickname();
 	std::stringstream result;
 
-	result << ":" + _serverName + " 375 " 
+	result << "375 " 
 		<< clientNickname << " : -- Welcome to " << _serverName << "-- \r\n";
 	result << ":" + _serverName + " 372 " 
 		<< clientNickname << " :Mesasge of the day:\r\n";
 	result << ":" + _serverName + " 372 " 
-		<< clientNickname << " :do irc than webserv.\r\n";
+		<< clientNickname << " :do ft_irc not webserv.\r\n";
 	result << ":" + _serverName + " 376 " 
-		<< clientNickname << " :end of MOTD\r\n";
+		<< clientNickname << " :end of MOTD";
 	
-	return result.str();
+	context.numericResult = -1;
+	context.stringResult = result.str();
+	context.client->Send(MakeResponse(context));
+	context.FDsPendingWrite.insert(context.client->GetFD());
+}
+
+void IRCServer::ActionPING(IRCContext& context)
+{
+	std::stringstream result;
+
+	result << ":" + _serverName << " PONG " << _serverName;
+	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
+	{
+
+	}
 }

@@ -14,6 +14,7 @@ namespace IRCError
 	class AlreadyRegistered;
 
 	class NoNickname;
+	class WrongNickname;
 	class ExitstingNickname;
 };
 
@@ -55,6 +56,16 @@ class IRCError::NoNickname: public IRCNumeric
 	public:
 		NoNickname(void):
 			IRCNumeric(431)
+		{
+		}
+};
+
+// ERR_ERRONEUSNICKNAME
+class IRCError::WrongNickname: public IRCNumeric
+{
+	public:
+		WrongNickname(void):
+			IRCNumeric(432)
 		{
 		}
 };

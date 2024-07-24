@@ -31,30 +31,6 @@ void IRCClient::OverwriteRecvBuffer(Buffer newBuffer)
 
 /*************/
 
-void IRCClient::Context(IRCContext& context)
-{
-	switch (context.command)
-	{
-		case PASS:
-			SetStatus(REGISTER_ONGOING);
-			return ;
-		case USER:
-			SetHostName(context.params[0]);
-			if (_nickname.size() != 0)
-				SetStatus(REGISTERED);
-			return ;
-		case NICK:
-			SetNickName(context.params[0]);
-			if (_host.size() != 0)
-				SetStatus(REGISTERED);
-			return;
-		default:
-			throw std::logic_error("NotImplementedError");
-	}
-}
-
-/*************/
-
 void IRCClient::SetStatus(enum IRCClientActiveStatus newStatus)
 {
 	_activeStatus = newStatus;

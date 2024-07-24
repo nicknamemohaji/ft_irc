@@ -37,6 +37,7 @@ class TCPMultiplexer
 	private:
 		// ==== attributes ====
 		// clients
+		// TODO handle "zombie" connections.. how?
 		std::map<int, Client> _clients;
 		// servers
 		std::map<int, TCPServer*> _servers;

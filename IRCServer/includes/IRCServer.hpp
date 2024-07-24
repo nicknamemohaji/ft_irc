@@ -7,6 +7,7 @@
 
 #include "TCPServer.hpp"
 #include "IRCClient.hpp"
+#include "IRCChannel.hpp"
 #include "IRCContext.hpp"
 
 class IRCServer: public TCPServer
@@ -31,30 +32,25 @@ class IRCServer: public TCPServer
 		// server settings
 		std::string _serverName;
 		std::string _serverPass;
+		std::string _startDate;
 		// channels
+		std::map<std::string, IRCChannel*> _channels;
 
 		// clients
 		std::map<std::string, IRCClient*> _clients;
 
 		// ==== methods ====
-		// request
+		// request, response
 		bool RequestParser(Buffer& buf, IRCContext& context);
 		std::string MakeResponse(IRCContext& context);
-		/*
-		notes on IRCServer::MakeResponse
-
-		when message is sent to a channel, server should broadcast message.
-		making message for command `PRIVMSG` should be done in IRCChannel instance.
-		*/
 
 		// context actions
-		void Context(IRCContext& context);
+		void (IRCServer::*Actions[6])(IRCContext& context);
 		// 1. register new client
-		void AcceptClient(IRCContext& context);
+		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
-		std::string ManageMOTD(IRCContext& context);
-		void ManagePing(IRCContext& context);
-		void ManagePong(IRCContext& context);
+		void ActionMOTD(IRCContext& context);
+		void ActionPING(IRCContext& context);
 
 		// disable this constructors
 		IRCServer(void);

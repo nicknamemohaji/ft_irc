@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <iterator>
 
 #include "IRCServer.hpp"
 #include "IRCClient.hpp"
@@ -13,22 +14,28 @@ static void			_BufferRemoveSpace(Buffer& message);
 static std::string _BufferParseUntilSpace(Buffer& message)
 {
 	// find
-	Buffer::iterator it = std::find(message.begin(), message.end(), ' ');
-	if (it == message.begin())
+	Buffer::iterator it_SP = std::find(message.begin(), message.end(), ' ');
+	Buffer::iterator it_CR = std::find(message.begin(), message.end(), '\r');
+	if (it_SP == message.end() && it_CR == message.end())
 		throw IRCError::UnknownCommand();
-	if (it == message.end())
-	{
-		it = std::find(message.begin(), message.end(), '\r');
-		if (it == message.end())
-			throw IRCError::UnknownCommand();
-	}
 	
-	// slice
+	// compare SP and CR position
 	std::string ret;
-	ret.assign(message.begin(), it);
+	
+	std::cout << std::distance(message.begin(), it_SP) << ", " << std::distance(message.begin(), it_CR);
 
-	// remove sliced message from IRCClient::recvBuf
-	message.erase(message.begin(), it);
+	if (std::distance(message.begin(), it_SP) < std::distance(message.begin(), it_CR))
+	{
+		// space is first occurance
+		ret.assign(message.begin(), it_SP);
+		message.erase(message.begin(), it_SP);
+	}
+	else
+	{
+		// carriage return is first occurance
+		ret.assign(message.begin(), it_CR);
+		message.erase(message.begin(), it_CR);
+	}
 
 	return ret;
 }
@@ -39,8 +46,6 @@ static void _BufferRemoveSpace(Buffer& message)
 {
 	while (message.begin() != message.end() && *(message.begin()) == ' ')
 		message.erase(message.begin());
-	if (message.begin() == message.end())
-		throw IRCError::UnknownCommand();
 }
 
 bool IRCServer::RequestParser(Buffer& message, IRCContext& context)
@@ -116,20 +121,16 @@ bool IRCServer::RequestParser(Buffer& message, IRCContext& context)
 			it = std::find(message.begin(), message.end(), '\r');
 			// ignore first `:`
 			param.assign(message.begin() + 1, it);
+			// remove sliced message from IRCClient::recvBuf
+			message.erase(message.begin(), it);
 		}
 		else
 		{
 			// middle parameter
-			it = std::find(message.begin(), message.end(), ' ');
-			// but can have only middle parameters (trailing is optional)
-			if (it == message.end())
-				it = std::find(message.begin(), message.end(), '\r');
-			param.assign(message.begin(), it);
+			param = _BufferParseUntilSpace(message);
 		}
 		// add params to context
 		context.params.push_back(param);
-		// remove sliced message from IRCClient::recvBuf
-		message.erase(message.begin(), it);
 		_BufferRemoveSpace(message);
 
 		# ifdef DEBUG
