@@ -10,7 +10,7 @@
 
 typedef enum ChannelPermition{
 	OPER = 1 << 0, //오퍼레이터 권한
-	NOMAL =1 << 1 //일반 권한
+	NOMAL = 1 << 1 //일반 권한
 };
 
 typedef enum ChannelModeSet{
@@ -27,19 +27,20 @@ class IRCChannel
 	public:
 	IRCChannel(void);
 	IRCChannel(const std::string &_name, const IRCClient &client);
-	void channelModeAdd(ChannelModeSet op);  //없다면 추가 있다면 제거.
-	void channelModeDel(ChannelModeSet op);  //없다면 추가 있다면 제거.
+	void channelModeAdd(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
+	void channelModeDel(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
 	bool channelModeCheck(ChannelModeSet op) const ;  //해당모드인지 확인
-	bool isUserAuthorized(const IRCClient &client ,ChannelPermition op);
-	void setUserAuthorized(const IRCClient &client ,ChannelPermition op);
-	void setPasswd(const IRCClient &client, const std::string &pass);
-	void setTopic(const IRCClient &client, const std::string &topic);
-	void setChannelUser(const IRCClient &client, const unsigned int &num);
-	void addInviteUser(const IRCClient &client);
-	bool isInChannel(const IRCClient &client) const;
-	bool isInInvited(const IRCClient &client) const ;
-	bool matchPasswd(const std::string &passwd) const;
-	void addChannelUser(const IRCClient &client);
+	bool isUserAuthorized(const IRCClient &client ,ChannelPermition op); // clinet가 채널의 op권한 있는지 확인
+	void setUserAuthorized(const IRCClient &client ,ChannelPermition op); // client 가 채널의 op설정
+	void setPasswd(const IRCClient &client, const std::string &pass);  // client 가 channel의 passwd설정
+	void setTopic(const IRCClient &client, const std::string &topic); // client 가 channel의 topic 설정
+	void setChannelUserLimit(const IRCClient &client, const unsigned int &num);  // client 가 channel의 최대 인원 설정
+	void addInviteUser(const IRCClient &client, const IRCClient &target);  // clinet 가 target 유저 초대리스트에 추가
+	bool isInChannel(const IRCClient &client) const; // client가 채널에 있는지 확인
+	bool isInInvited(const IRCClient &client) const ; // client가 초대 목록에 있는지 확인
+	bool matchPasswd(const std::string &passwd) const; // channel의 패스워드와 일치하는지 확인
+	void addChannelUser(const IRCClient &client, const IRCClient &target); // 채널에 client를 추가
+	void manageChannelPermit(const IRCClient &client, const IRCClient &target, ChannelPermition op); //채널의 OP 권한을 해당유저에게 줌
 	private:
 	std::vector<std::string> _userInvited; // 초대된 유저리스트
 	std::map<std::string, ChannelPermition> _userInChannel; // 채널에 있는 유저 리스트
