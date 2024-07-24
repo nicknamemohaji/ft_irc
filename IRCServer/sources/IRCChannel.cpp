@@ -1,17 +1,20 @@
 #include "IRCChannel.hpp"
 
 IRCChannel::IRCChannel(void){
+	_startDate = setStartTime();
 	_channelName = "";
 	_channelLimit = MAX_CHANNEL_USER;
-	_channelMode = 0;
+	_channelMode |= DEFAULT | TOPIC;
 	_channelTopic = "";
 	_channelPasswd = "";
 	_userInvited.clear();
 	_userInChannel.clear();
 }
 IRCChannel::IRCChannel(const std::string &_name, const IRCClient &client) : _channelName(_name){
+
+	_startDate = setStartTime();
 	_channelLimit = MAX_CHANNEL_USER;
-	_channelMode = 0;
+	_channelMode |= DEFAULT | TOPIC;
 	_channelTopic = "";
 	_channelPasswd = "";
 	_userInvited.clear();
@@ -20,6 +23,14 @@ IRCChannel::IRCChannel(const std::string &_name, const IRCClient &client) : _cha
 }
 
 IRCChannel::~IRCChannel(void){
+}
+
+std::string IRCChannel::setStartTime(){
+	std::time_t time = std::time(nullptr);
+	char timeString[20];
+	std::strftime(
+		timeString, 20, "%Y%m%d-%H:%M:%S", std::localtime(&time)
+	);
 }
 
 void IRCChannel::channelModeAdd(const IRCClient &client ,ChannelModeSet op){
@@ -33,9 +44,9 @@ void IRCChannel::channelModeDel(const IRCClient &client ,ChannelModeSet op){
 	if(_channelMode & op)
 	{
 		_channelMode &= op;
-		if(op == LIMIT)
+		if(op & LIMIT)
 			_channelLimit = MAX_CHANNEL_USER;
-		else if(op == PASS)
+		else if(op & PASS)
 			_channelPasswd = "";
 	}
 }
@@ -128,4 +139,30 @@ void IRCChannel::manageChannelPermit(const IRCClient &client, const IRCClient &t
 	if(!isUserAuthorized(client,OPER))
 		return; // 권한이 없음
 	setUserAuthorized(target, op);
+}
+
+std::string IRCChannel::getChannelMode() const{
+	std::string ret;
+	if(_channelMode & LIMIT)
+		ret.push_back('l');
+	if(_channelMode & INVITE)
+		ret.push_back('i');
+	if(_channelMode & TOPIC)
+		ret.push_back('t');
+	if(_channelMode & PASS)
+		ret.push_back('k');
+	if(_channelMode & DEFAULT)
+		ret.push_back('s');
+	return ret;
+}
+
+std::string IRCChannel::getChannelStartTime() const{
+	return _startDate;
+}
+
+std::string IRCChannel::getTopic() const{
+	return _channelTopic;
+}
+std::string IRCChannel::getPasswd() const{
+	return _channelPasswd;
 }
