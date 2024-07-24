@@ -19,6 +19,9 @@ IRCChannel::IRCChannel(const std::string &_name, const IRCClient &client) : _cha
 	_userInChannel.insert({client.GetNickname(), OPER});
 }
 
+IRCChannel::~IRCChannel(void){
+}
+
 void IRCChannel::channelModeAdd(const IRCClient &client ,ChannelModeSet op){
 	if(!isUserAuthorized(client,OPER) || _channelMode & op)
 		return;

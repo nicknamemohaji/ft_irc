@@ -27,6 +27,7 @@ class IRCChannel
 	public:
 	IRCChannel(void);
 	IRCChannel(const std::string &_name, const IRCClient &client);
+	~IRCChannel(void);
 	void channelModeAdd(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
 	void channelModeDel(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
 	bool channelModeCheck(ChannelModeSet op) const ;  //해당모드인지 확인
