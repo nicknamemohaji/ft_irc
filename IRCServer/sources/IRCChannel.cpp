@@ -1,3 +1,8 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <ctime>
+
 #include "IRCChannel.hpp"
 
 IRCChannel::IRCChannel(const std::string& name, const IRCClient& client)
