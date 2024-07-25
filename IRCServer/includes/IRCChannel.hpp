@@ -32,36 +32,30 @@ typedef std::vector<std::string> InvitedUsers;
 
 class IRCChannel {
 public:
-    IRCChannel(const std::string& name, const IRCClient& client);
+    IRCChannel(const std::string& nickname, const std::string& channel_name);
+    IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd);
     ~IRCChannel();
 
-    // Channel mode operations
-    void AddChannelMode(const IRCClient& client, ChannelModeSet option);
-    void RemoveChannelMode(const IRCClient& client, ChannelModeSet option);
-
     // User authorization and presence checks
-    bool IsUserAuthorized(const IRCClient& client, ChannelPermission option);
-    bool IsInChannel(const IRCClient& client) const;
-    bool IsInvited(const IRCClient& client) const;
+    bool IsUserAuthorized(const std::string& nickname, ChannelPermission option);
+    bool IsInChannel(const std::string& nickname) const;
+    bool IsInvited(const std::string& nickname) const;
 
     // Setters
-    void SetUserAuthorization(const IRCClient& client, ChannelPermission option);
-    void SetPassword(const IRCClient& client, const std::string& pass);
-    void SetTopic(const IRCClient& client, const std::string& topic);
-    void SetUserLimit(const IRCClient& client, const unsigned int& num);
+    void SetUserAuthorization(const std::string& nickname, ChannelPermission option);
+    void SetTopic(const std::string& nickname, const std::string& topic);
 
     // User management
-    void AddInvitedUser(const IRCClient& client, const IRCClient& target);
-    void AddChannelUser(const IRCClient& client, const IRCClient& target);
+    void AddInvitedUser(const std::string& nickname, const std::string& target_nickname);
+    void AddChannelUser(const std::string& nickname, const std::string& target_nickname);
 
     // Password verification
     bool MatchPassword(const std::string& password) const;
 
     // Permission management
-    void ManageChannelPermission(const IRCClient& client, const IRCClient& target, ChannelPermission option);
+    void ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option);
 
     // Getters
-    std::string GetChannelMode() const;
     std::string GetChannelStartTime() const;
     std::string GetTopic() const;
     std::string GetPassword() const;
