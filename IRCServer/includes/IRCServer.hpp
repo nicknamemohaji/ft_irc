@@ -51,7 +51,6 @@ class IRCServer: public TCPServer
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
-		void ActionJOIN(IRCContext& context);
 
 		// disable this constructors
 		IRCServer(void);
