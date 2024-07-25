@@ -27,7 +27,6 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[NICK] = &IRCServer::ActionAcceptClient;
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
-	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 
 	// TODO validate server name
 }
