@@ -1,5 +1,5 @@
-#ifndef IRC_CHANNEL_HPP
-#define IRC_CHANNEL_HPP
+#ifndef IRCCHANNEL_HPP
+#define IRCCHANNEL_HPP
 
 #include <string>
 #include <vector>
