@@ -65,10 +65,12 @@ public:
     std::string GetChannelStartTime() const;
     std::string GetTopic() const;
     std::string GetPassword() const;
+	std::vector<std::string> GetMemberNames() const;
+	std::string IRCChannel::GetTopicEditDate() const;
 
 private:
     IRCChannel();
-	std::string SetStartTime();
+	std::string SetTime();
     bool CheckChannelMode(ChannelModeSet option) const;
  
     std::vector<std::string> invited_users_;
@@ -78,6 +80,7 @@ private:
     unsigned int channel_limit_;
     std::string channel_name_;
     std::string channel_topic_;
+    std::string channel_topic_edit_date_;
     std::string channel_password_;
     std::string start_date_;
     
