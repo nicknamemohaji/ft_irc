@@ -20,6 +20,11 @@ namespace IRCError
 	class ChangeNoPrivesneed;
 	class NoSuchChannel;
 	class TooManyChannel;
+	class BadChannelKey;
+	class BandedUser;
+	class ChannelIsFull;
+	class InviteOnly;
+	class BadChannelName;
 };
 
 // base error
@@ -155,19 +160,52 @@ class IRCError::TooManyChannel: public IRCNumeric
 };
 
 
-// //ERR_BADCHANNELKEY* (475) 비밀번호 다름
-// class IRCError::: public IRCNumeric
-// {
-// 	public:
-// 		TooManyChannel(void):
-// 			IRCNumeric(475)
-// 		{
-// 		}
-// };
+//ERR_BADCHANNELKEY* (475) 비밀번호 다름
+class IRCError::BadChannelKey: public IRCNumeric
+{
+	public:
+		BadChannelKey(void):
+			IRCNumeric(475)
+		{
+		}
+};
 
 // *ERR_BANNEDFROMCHAN* (474) 벤된 사용자
+class IRCError::BandedUser: public IRCNumeric
+{
+	public:
+		BandedUser(void):
+			IRCNumeric(474)
+		{
+		}
+};
+
 // *ERR_CHANNELISFULL* (471) 채널 포화상태
+class IRCError::ChannelIsFull: public IRCNumeric
+{
+	public:
+		ChannelIsFull(void):
+			IRCNumeric(471)
+		{
+		}
+};
 // *ERR_INVITEONLYCHAN* (473) 인바이트 전용채널, 인바이트 안된상태
+class IRCError::InviteOnly: public IRCNumeric
+{
+	public:
+		InviteOnly(void):
+			IRCNumeric(473)
+		{
+		}
+};
 // *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
+class IRCError::BadChannelName: public IRCNumeric
+{
+	public:
+		BadChannelName(void):
+			IRCNumeric(476)
+		{
+		}
+};
 
 #endif
