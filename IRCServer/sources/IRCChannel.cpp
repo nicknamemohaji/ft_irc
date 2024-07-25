@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <ctime>
+#include <utility>
 
 #include "IRCChannel.hpp"
 
@@ -14,7 +15,7 @@ IRCChannel::IRCChannel(const std::string& name, const IRCClient& client)
     channel_password_ = "";
     invited_users_.clear();
     users_in_channel_.clear();
-    users_in_channel_.insert({client.GetNickname(), kOperator});
+    users_in_channel_.insert(make_pair(client.GetNickname(), kOperator));
 }
 
 std::string IRCChannel::SetStartTime() {
@@ -123,7 +124,7 @@ void IRCChannel::AddChannelUser(const IRCClient& client, const IRCClient& target
     	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), target.GetNickname());
         invited_users_.erase(it);
     }
-    users_in_channel_.insert({target.GetNickname(), kNormal});
+    users_in_channel_.insert(make_pair(target.GetNickname(), kNormal));
 }
 
 void IRCChannel::ManageChannelPermission(const IRCClient& client, const IRCClient& target, ChannelPermission option) {
