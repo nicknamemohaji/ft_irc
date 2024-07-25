@@ -143,3 +143,29 @@ void IRCServer::ActionPING(IRCContext& context)
 
 	}
 }
+
+void IRCServer::ActionJOIN(IRCContext& context){
+	if(context.params.size() < 1)
+		return ; // ERR_NEEDMOREPARAMS (461)
+	//채널이 서버에 있는지 확인하는 구간. server에 channel확인 메소드 추가.
+	std::string clientNickname = context.client->GetNickname();
+	std::stringstream result;
+	result << ":" << clientNickname << std::endl;
+	for(unsigned int i = 0; i < context.params.size(); i++)
+	{
+		std::cout << context.params[i] << std::endl;
+	}
+}
+
+/*
+notes on IRCServer::Actions:
+
+Actions는 멤버 함수 배열입니다. Actions에 저장되는 순서는 enum IRCCommand를 사용합니다.
+
+각 메소드는 필요시 IRCContext::client를 참조해 클라이언트에게 메시지를 보낼 수 있는데(IRCClient::Send),
+이 때 IRCContext::FDsPendingWrite에 IRCClient->GetFD의 결과를 추가해야만 정상적으로 메시지가 전송됩니다.
+
+ex)
+context.client->Send(MakeResponse(context));
+context.FDsPendingWrite.insert(context.client->GetFD());
+*/

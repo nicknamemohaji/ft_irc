@@ -45,12 +45,13 @@ class IRCServer: public TCPServer
 		std::string MakeResponse(IRCContext& context);
 
 		// context actions
-		void (IRCServer::*Actions[6])(IRCContext& context);
+		void (IRCServer::*Actions[7])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
+		void ActionJOIN(IRCContext& context);
 
 		// disable this constructors
 		IRCServer(void);

@@ -66,7 +66,7 @@ public:
     std::string GetTopic() const;
     std::string GetPassword() const;
 	std::vector<std::string> GetMemberNames() const;
-	std::string IRCChannel::GetTopicEditDate() const;
+	std::string GetTopicEditDate() const;
 
 private:
     IRCChannel();

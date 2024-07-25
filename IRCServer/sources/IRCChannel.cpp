@@ -32,7 +32,6 @@ void IRCChannel::AddChannelMode(const IRCClient& client, ChannelModeSet option) 
     }
     channel_mode_ |= option;
 }
-
 void IRCChannel::RemoveChannelMode(const IRCClient& client, ChannelModeSet option) {
     if (!IsUserAuthorized(client, kOperator)) {
         return;
