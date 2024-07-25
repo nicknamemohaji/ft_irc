@@ -1,168 +1,151 @@
 #include "IRCChannel.hpp"
 
-IRCChannel::IRCChannel(void){
-	_startDate = setStartTime();
-	_channelName = "";
-	_channelLimit = MAX_CHANNEL_USER;
-	_channelMode |= DEFAULT | TOPIC;
-	_channelTopic = "";
-	_channelPasswd = "";
-	_userInvited.clear();
-	_userInChannel.clear();
-}
-IRCChannel::IRCChannel(const std::string &_name, const IRCClient &client) : _channelName(_name){
-
-	_startDate = setStartTime();
-	_channelLimit = MAX_CHANNEL_USER;
-	_channelMode |= DEFAULT | TOPIC;
-	_channelTopic = "";
-	_channelPasswd = "";
-	_userInvited.clear();
-	_userInChannel.clear();
-	_userInChannel.insert({client.GetNickname(), OPER});
+IRCChannel::IRCChannel(const std::string& name, const IRCClient& client)
+    : channel_name_(name) {
+    start_date_ = SetStartTime();
+    channel_limit_ = kMaxChannelUsers;
+    channel_mode_ |= kDefault | kTopic;
+    channel_topic_ = "";
+    channel_password_ = "";
+    invited_users_.clear();
+    users_in_channel_.clear();
+    users_in_channel_.insert({client.GetNickname(), kOperator});
 }
 
-IRCChannel::~IRCChannel(void){
+std::string IRCChannel::SetStartTime() {
+    std::time_t time = std::time(nullptr);
+    char time_string[20];
+    std::strftime(time_string, 20, "%Y%m%d-%H:%M:%S", std::localtime(&time));
+    return std::string(time_string);
 }
 
-std::string IRCChannel::setStartTime(){
-	std::time_t time = std::time(nullptr);
-	char timeString[20];
-	std::strftime(
-		timeString, 20, "%Y%m%d-%H:%M:%S", std::localtime(&time)
-	);
+void IRCChannel::AddChannelMode(const IRCClient& client, ChannelModeSet option) {
+    if (!IsUserAuthorized(client, kOperator) || channel_mode_ & option) {
+        return;
+    }
+    channel_mode_ |= option;
 }
 
-void IRCChannel::channelModeAdd(const IRCClient &client ,ChannelModeSet op){
-	if(!isUserAuthorized(client,OPER) || _channelMode & op)
-		return;
-	_channelMode |= op;
-}
-void IRCChannel::channelModeDel(const IRCClient &client ,ChannelModeSet op){
-	if(!isUserAuthorized(client, OPER))
-		return;
-	if(_channelMode & op)
-	{
-		_channelMode &= op;
-		if(op & LIMIT)
-			_channelLimit = MAX_CHANNEL_USER;
-		else if(op & PASS)
-			_channelPasswd = "";
-	}
-}
-bool IRCChannel::channelModeCheck(ChannelModeSet op) const {
-	if(_channelMode & op)
-		return true;
-	return false;
+void IRCChannel::RemoveChannelMode(const IRCClient& client, ChannelModeSet option) {
+    if (!IsUserAuthorized(client, kOperator)) {
+        return;
+    }
+    if (channel_mode_ & option) {
+        channel_mode_ &= ~option;
+        if (option & kLimit) {
+            channel_limit_ = kMaxChannelUsers;
+        } else if (option & kPassword) {
+            channel_password_ = "";
+        }
+    }
 }
 
-bool IRCChannel::isUserAuthorized(const IRCClient &client ,ChannelPermition op) {
-	UserInChannel it = _userInChannel.find(client.GetNickname());
-	if(it == _userInChannel.end())
-		return false;
-	if(it->second & op)
-		return true;
-	return false;
+bool IRCChannel::CheckChannelMode(ChannelModeSet op) const {
+    return channel_mode_ & op;
 }
 
-void IRCChannel::setUserAuthorized(const IRCClient &client ,ChannelPermition op){
-	if(!isUserAuthorized(client,OPER))
-		return; // 권한ㅇ벗음.
-	UserInChannel it = _userInChannel.find(client.GetNickname());
-	if(it == _userInChannel.end() && it->second & op)
-		return ; // 유저가 채널에 없음
-	it->second = op;
+bool IRCChannel::IsUserAuthorized(const IRCClient& client, ChannelPermission option) {
+    UserInChannel::iterator it = users_in_channel_.find(client.GetNickname());
+    if (it == users_in_channel_.end()) {
+        return false;
+    }
+    return it->second & option;
 }
 
-void IRCChannel::setPasswd(const IRCClient &client, const std::string &pass){
-	if(!isUserAuthorized(client,OPER))
-		return;  // error msg ? 권한없음
-	_channelPasswd = pass;
-}
-void IRCChannel::setTopic(const IRCClient &client, const std::string &topic){
-	if(channelModeCheck(TOPIC) && isUserAuthorized(client,OPER))
-	{
-		_channelTopic = topic;
-		return;
-	}
-	else if(!channelModeCheck(TOPIC))
-	{
-		_channelTopic = topic;
-		return;
-	}
-}
-void IRCChannel::setChannelUserLimit(const IRCClient &client, const unsigned int &num){
-	channelModeAdd(client, LIMIT);
-	_channelLimit = num;
-}
-void IRCChannel::addInviteUser(const IRCClient &client, const IRCClient &target){
-	if(isInChannel(client) && !isInInvited(target))
-		_userInvited.push_back(target.GetNickname());
-}
-bool IRCChannel::isInChannel(const IRCClient &client) const {
-	if(_userInChannel.find(client.GetNickname()) == _userInChannel.end())
-		return false;
-	return true;
-}
-bool IRCChannel::isInInvited(const IRCClient &client) const {
-	if(std::find(_userInvited.begin(),_userInvited.end(),client.GetNickname()) == _userInvited.end())
-		return false;
-	return true;
+void IRCChannel::SetUserAuthorization(const IRCClient& client, ChannelPermission option) {
+    if (!IsUserAuthorized(client, kOperator)) {
+        return;  // No permission
+    }
+    UserInChannel::iterator it = users_in_channel_.find(client.GetNickname());
+    if (it == users_in_channel_.end() || it->second & option) {
+        return;  // User not in channel or already has the permission
+    }
+    it->second = option;
 }
 
-bool IRCChannel::matchPasswd(const std::string &passwd) const {
-	if(channelModeCheck(PASS) && passwd != _channelPasswd)
-		return false;
-	return true;
+void IRCChannel::SetPassword(const IRCClient& client, const std::string& pass) {
+    if (!IsUserAuthorized(client, kOperator)) {
+        return;  // No permission
+    }
+    channel_password_ = pass;
 }
 
-void IRCChannel::addChannelUser(const IRCClient &client, const IRCClient &target){
-	if(!isInChannel(client))
-		return; //초대자가 채널에 없음.
-	if(channelModeCheck(LIMIT) && _userInChannel.size() >= _channelLimit)
-		return; // 채널인원 초과 error??
-	if(channelModeCheck(INVITE) && !isInInvited(target))
-		return; // 초대모드 이지만 초대목록에 없음. error 처리?
-	if(isInChannel(target))
-		return; // 채널에 이미 있음.
-	if(isInInvited(target))
-	{
-		std::vector<std::string>::iterator it = std::find(_userInvited.begin(),_userInvited.end(),target.GetNickname());
-		_userInvited.erase(it);
-		//채널 접속후 초대리스트에서 삭제.
-	}
-	_userInChannel.insert({target.GetNickname(),NOMAL});
-	//초대리스트에 추가
+void IRCChannel::SetTopic(const IRCClient& client, const std::string& topic) {
+    if (CheckChannelMode(kTopic) && IsUserAuthorized(client, kOperator)) {
+        channel_topic_ = topic;
+    } else if (!CheckChannelMode(kTopic)) {
+        channel_topic_ = topic;
+    }
 }
 
-void IRCChannel::manageChannelPermit(const IRCClient &client, const IRCClient &target, ChannelPermition op){
-	if(!isUserAuthorized(client,OPER))
-		return; // 권한이 없음
-	setUserAuthorized(target, op);
+void IRCChannel::SetUserLimit(const IRCClient& client, const unsigned int& num) {
+    AddChannelMode(client, kLimit);
+    channel_limit_ = num;
 }
 
-std::string IRCChannel::getChannelMode() const{
-	std::string ret;
-	if(_channelMode & LIMIT)
-		ret.push_back('l');
-	if(_channelMode & INVITE)
-		ret.push_back('i');
-	if(_channelMode & TOPIC)
-		ret.push_back('t');
-	if(_channelMode & PASS)
-		ret.push_back('k');
-	if(_channelMode & DEFAULT)
-		ret.push_back('s');
-	return ret;
+void IRCChannel::AddInvitedUser(const IRCClient& client, const IRCClient& target) {
+    if (IsInChannel(client) && !IsInvited(target)) {
+        invited_users_.push_back(target.GetNickname());
+    }
 }
 
-std::string IRCChannel::getChannelStartTime() const{
-	return _startDate;
+bool IRCChannel::IsInChannel(const IRCClient& client) const {
+    return users_in_channel_.find(client.GetNickname()) != users_in_channel_.end();
 }
 
-std::string IRCChannel::getTopic() const{
-	return _channelTopic;
+bool IRCChannel::IsInvited(const IRCClient& client) const {
+    return std::find(invited_users_.begin(), invited_users_.end(), client.GetNickname()) != invited_users_.end();
 }
-std::string IRCChannel::getPasswd() const{
-	return _channelPasswd;
+
+bool IRCChannel::MatchPassword(const std::string& password) const {
+    return !CheckChannelMode(kPassword) || password == channel_password_;
+}
+
+void IRCChannel::AddChannelUser(const IRCClient& client, const IRCClient& target) {
+    if (!IsInChannel(client)) {
+        return;  // Inviter not in channel
+    }
+    if (CheckChannelMode(kLimit) && users_in_channel_.size() >= channel_limit_) {
+        return;  // Channel limit exceeded
+    }
+    if (CheckChannelMode(kInvite) && !IsInvited(target)) {
+        return;  // Invite-only mode and user not invited
+    }
+    if (IsInChannel(target)) {
+        return;  // User already in channel
+    }
+    if (IsInvited(target)) {
+    	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), target.GetNickname());
+        invited_users_.erase(it);
+    }
+    users_in_channel_.insert({target.GetNickname(), kNormal});
+}
+
+void IRCChannel::ManageChannelPermission(const IRCClient& client, const IRCClient& target, ChannelPermission option) {
+    if (!IsUserAuthorized(client, kOperator)) {
+        return;  // No permission
+    }
+    SetUserAuthorization(target, option);
+}
+
+std::string IRCChannel::GetChannelMode() const {
+    std::string mode;
+    if (channel_mode_ & kLimit) mode.push_back('l');
+    if (channel_mode_ & kInvite) mode.push_back('i');
+    if (channel_mode_ & kTopic) mode.push_back('t');
+    if (channel_mode_ & kPassword) mode.push_back('k');
+    if (channel_mode_ & kDefault) mode.push_back('s');
+    return mode;
+}
+
+std::string IRCChannel::GetChannelStartTime() const {
+    return start_date_;
+}
+
+std::string IRCChannel::GetTopic() const {
+    return channel_topic_;
+}
+
+std::string IRCChannel::GetPassword() const {
+    return channel_password_;
 }

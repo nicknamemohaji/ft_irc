@@ -1,5 +1,5 @@
-#ifndef IRCCHANNEL_HPP
-#define IRCCHANNEL_HPP
+#ifndef IRC_CHANNEL_HPP
+#define IRC_CHANNEL_HPP
 
 #include <string>
 #include <vector>
@@ -8,71 +8,78 @@
 
 #include "IRCClient.hpp"
 
+// Maximum number of users allowed in a channel
+const int kMaxChannelUsers = 100;
 
-#define MAX_CHANNEL_USER 100
-
-typedef enum ChannelPermition{
-	OPER = 1 << 0, //오퍼레이터 권한
-	NOMAL = 1 << 1 //일반 권한
+// Enum for channel permissions
+enum ChannelPermission {
+    kOperator = 1 << 0,  // Operator permission
+    kNormal = 1 << 1     // Normal user permission
 };
 
-typedef enum ChannelModeSet{
-	LIMIT = 1 << 0,  // l채널의 사용자 리밋 제한설정 -> 설정시 리미트 확인
-	INVITE = 1 << 1,  // i 초대전용채널 설정 -> 설정시 초대 되었는지 확인
-	TOPIC = 1 << 2,  // t topic 명령어 운영자에게만 설정 -> 설정시 운영자만 변경 아니면 모두가능
-	PASS = 1 << 3,  // k 채널 비밀번호 설정 -> 설정시 비밀번호 확인
-	DEFAULT = 1 << 4,
-	//o   // 채널 운영자 권한부여
+// Enum for channel mode settings
+enum ChannelModeSet {
+    kLimit = 1 << 0,    // 'l': Limit the number of users
+    kInvite = 1 << 1,   // 'i': Invite-only channel
+    kTopic = 1 << 2,    // 't': Only operators can change topic
+    kPassword = 1 << 3, // 'k': Channel requires a password
+    kDefault = 1 << 4
 };
 
-typedef std::map<std::string, ChannelPermition>::iterator UserInChannel; 
-class IRCChannel
-{
-	public:
-	IRCChannel(void);
-	IRCChannel(const std::string &_name, const IRCClient &client);
-	~IRCChannel(void);
-	// 채널 모드 설정
-	void channelModeAdd(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
-	void channelModeDel(const IRCClient &client ,ChannelModeSet op);  //없다면 추가 있다면 제거.
-	bool channelModeCheck(ChannelModeSet op) const ;  //해당모드인지 확인
-	// is_ 메소드
-	bool isUserAuthorized(const IRCClient &client ,ChannelPermition op); // clinet가 채널의 op권한 있는지 확인
-	bool isInChannel(const IRCClient &client) const; // client가 채널에 있는지 확인
-	bool isInInvited(const IRCClient &client) const ; // client가 초대 목록에 있는지 확인
+typedef std::map<std::string, ChannelPermission> UserInChannel;
+typedef std::vector<std::string> InvitedUsers;
 
-	// setter
-	void setUserAuthorized(const IRCClient &client ,ChannelPermition op); // client 가 채널의 op설정
-	void setPasswd(const IRCClient &client, const std::string &pass);  // client 가 channel의 passwd설정
-	void setTopic(const IRCClient &client, const std::string &topic); // client 가 channel의 topic 설정
-	void setChannelUserLimit(const IRCClient &client, const unsigned int &num);  // client 가 channel의 최대 인원 설정
-	std::string setStartTime();
+class IRCChannel {
+public:
+    IRCChannel(const std::string& name, const IRCClient& client);
+    ~IRCChannel();
 
-	//add user
-	void addInviteUser(const IRCClient &client, const IRCClient &target);  // clinet 가 target 유저 초대리스트에 추가
-	void addChannelUser(const IRCClient &client, const IRCClient &target); // 채널에 client를 추가
+    // Channel mode operations
+    void AddChannelMode(const IRCClient& client, ChannelModeSet option);
+    void RemoveChannelMode(const IRCClient& client, ChannelModeSet option);
 
-	// passwd macth
-	bool matchPasswd(const std::string &passwd) const; // channel의 패스워드와 일치하는지 확인
+    // User authorization and presence checks
+    bool IsUserAuthorized(const IRCClient& client, ChannelPermission option);
+    bool IsInChannel(const IRCClient& client) const;
+    bool IsInvited(const IRCClient& client) const;
 
-	// permit manage
-	void manageChannelPermit(const IRCClient &client, const IRCClient &target, ChannelPermition op); //채널의 OP 권한을 해당유저에게 줌
+    // Setters
+    void SetUserAuthorization(const IRCClient& client, ChannelPermission option);
+    void SetPassword(const IRCClient& client, const std::string& pass);
+    void SetTopic(const IRCClient& client, const std::string& topic);
+    void SetUserLimit(const IRCClient& client, const unsigned int& num);
 
-	//getter
-	std::string getChannelMode() const;
-	std::string getChannelStartTime() const;
-	std::string getTopic() const;
-	std::string getPasswd() const;
+    // User management
+    void AddInvitedUser(const IRCClient& client, const IRCClient& target);
+    void AddChannelUser(const IRCClient& client, const IRCClient& target);
 
-	private:
-	std::vector<std::string> _userInvited; // 초대된 유저리스트
-	std::map<std::string, ChannelPermition> _userInChannel; // 채널에 있는 유저 리스트
+    // Password verification
+    bool MatchPassword(const std::string& password) const;
 
-	unsigned int _channelMode; // 채널에 설정되어있는 모드. 비트마스킹
-	unsigned int _channelLimit; // 채널 맥시멈 유저수
-	std::string _channelName; // 채널이름 
-	std::string _channelTopic; // 채널토픽
-	std::string _channelPasswd; // 채널 패스워드
-	std::string _startDate; //채널 생성시간
+    // Permission management
+    void ManageChannelPermission(const IRCClient& client, const IRCClient& target, ChannelPermission option);
+
+    // Getters
+    std::string GetChannelMode() const;
+    std::string GetChannelStartTime() const;
+    std::string GetTopic() const;
+    std::string GetPassword() const;
+
+private:
+    IRCChannel();
+	std::string SetStartTime();
+    bool CheckChannelMode(ChannelModeSet option) const;
+ 
+    std::vector<std::string> invited_users_;
+    std::map<std::string, ChannelPermission> users_in_channel_;
+
+    unsigned int channel_mode_;
+    unsigned int channel_limit_;
+    std::string channel_name_;
+    std::string channel_topic_;
+    std::string channel_password_;
+    std::string start_date_;
+    
 };
-#endif
+
+#endif  // IRC_CHANNEL_HPP
