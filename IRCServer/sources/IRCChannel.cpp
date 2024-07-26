@@ -83,20 +83,17 @@ bool IRCChannel::MatchPassword(const std::string& password) const {
     return !CheckChannelMode(kPassword) || password == channel_password_;
 }
 
-void IRCChannel::AddChannelUser(const std::string& nickname, const std::string& target_nickname) {
-    if (!IsInChannel(nickname)) {
-        return;  // Inviter not in channel
-    }
+void IRCChannel::AddChannelUser(const std::string& nickname) {
     if (CheckChannelMode(kLimit) && users_in_channel_.size() >= channel_limit_) {
         return;  // Channel limit exceeded
     }
     if (CheckChannelMode(kInvite) && !IsInvited(nickname)) {
         return;  // Invite-only mode and user not invited
     }
-    if (IsInChannel(target_nickname)) {
+    if (IsInChannel(nickname)) {
         return;  // User already in channel
     }
-    if (IsInvited(target_nickname)) {
+    if (IsInvited(nickname)) {
     	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), target_nickname);
         invited_users_.erase(it);
     }

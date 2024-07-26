@@ -47,7 +47,7 @@ public:
 
     // User management
     void AddInvitedUser(const std::string& nickname, const std::string& target_nickname);
-    void AddChannelUser(const std::string& nickname, const std::string& target_nickname);
+    void AddChannelUser(const std::string& nickname);
 
     // Password verification
     bool MatchPassword(const std::string& password) const;
