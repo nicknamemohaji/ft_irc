@@ -53,6 +53,7 @@ class IRCServer: public TCPServer
 		void ActionPING(IRCContext& context);
 		void ActionKICK(IRCContext& context);
 		void ActionPRIVMSG(IRCContext& context);
+		void ActionJOIN(IRCContext& context);
 
 		// disable this constructors
 		IRCServer(void);
