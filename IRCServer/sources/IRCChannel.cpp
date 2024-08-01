@@ -63,13 +63,13 @@ void IRCChannel::SetUserAuthorization(const std::string& nickname, ChannelPermis
 void IRCChannel::SetChannelInfo(ChannelInfo idx, const std::string& str){
     channel_info_arr_[idx] = str;
 }
-void IRCChannel::SetTopic(const std::string& nickname, const std::string& topic) {
-    /*if ((CheckChannelMode(kTopic) && IsUserAuthorized(nickname, kOperator)) || !CheckChannelMode(kTopic)) {
-        SetChannelInfo(KchannelTopic,topic);
-        SetChannelInfo(KchannelTopicEdituser,nickname);
-        SetChannelInfo(KchannelTopicedittime,std::time(NULL));
-    */
-}
+// void IRCChannel::SetTopic(const std::string& nickname, const std::string& topic) {
+//     /*if ((CheckChannelMode(kTopic) && IsUserAuthorized(nickname, kOperator)) || !CheckChannelMode(kTopic)) {
+//         SetChannelInfo(KchannelTopic,topic);
+//         SetChannelInfo(KchannelTopicEdituser,nickname);
+//         SetChannelInfo(KchannelTopicedittime,std::time(NULL));
+//     */
+// }
 
 bool IRCChannel::IsInChannel(const std::string& nickname) const {
     return users_in_channel_.find(nickname) != users_in_channel_.end();
@@ -79,26 +79,26 @@ bool IRCChannel::IsInvited(const std::string& nickname) const {
     return std::find(invited_users_.begin(), invited_users_.end(), nickname) != invited_users_.end();
 }
 
-bool IRCChannel::MatchPassword(const std::string& password) const {
-    // return !CheckChannelMode(kPassword) || password == GetChannelInfo(kChannelPassword);
-}
+// bool IRCChannel::MatchPassword(const std::string& password) const {
+//     // return !CheckChannelMode(kPassword) || password == GetChannelInfo(kChannelPassword);
+// }
 
-void IRCChannel::AddChannelUser(const std::string& nickname) {
-    if (CheckChannelMode(kLimit) && users_in_channel_.size() >= channel_limit_) {
-        return;  // Channel limit exceeded
-    }
-    if (CheckChannelMode(kInvite) && !IsInvited(nickname)) {
-        return;  // Invite-only mode and user not invited
-    }
-    if (IsInChannel(nickname)) {
-        return;  // User already in channel
-    }
-    if (IsInvited(nickname)) {
-    	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), nickname);
-        invited_users_.erase(it);
-    }
-    users_in_channel_[nickname] =  kNormal;
-}
+// void IRCChannel::AddChannelUser(const std::string& nickname) {
+//     if (CheckChannelMode(kLimit) && users_in_channel_.size() >= channel_limit_) {
+//         return;  // Channel limit exceeded
+//     }
+//     if (CheckChannelMode(kInvite) && !IsInvited(nickname)) {
+//         return;  // Invite-only mode and user not invited
+//     }
+//     if (IsInChannel(nickname)) {
+//         return;  // User already in channel
+//     }
+//     if (IsInvited(nickname)) {
+//     	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), nickname);
+//         invited_users_.erase(it);
+//     }
+//     users_in_channel_[nickname] =  kNormal;
+// }
 
 void IRCChannel::ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option) {
     if (!IsUserAuthorized(nickname, kOperator)) {
