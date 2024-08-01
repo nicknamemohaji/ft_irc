@@ -27,6 +27,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[NICK] = &IRCServer::ActionAcceptClient;
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
+	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 
 	// TODO validate server name
 }
@@ -145,8 +146,10 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 	}
 }
 
-void IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
-	_channels[channel_name] =  new IRCChannel(nick_name,channel_name,channel_password);
+IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
+	IRCChannel *ret = new IRCChannel(nick_name,channel_name,channel_password);
+	_channels[channel_name] =  ret;
+	return ret;
 }
 
 void IRCServer::DelChannel(const std::string &channel_name){
@@ -156,6 +159,58 @@ void IRCServer::DelChannel(const std::string &channel_name){
 	_channels.erase(it);
 }
 
+IRCChannel* IRCServer::GetChannel(const std::string& channel_name) {
+	std::map<std::string, IRCChannel*>::const_iterator it = _channels.find(channel_name);
+	if(it != _channels.end())
+		return it->second;
+	return NULL;
+}
+
 bool IRCServer::IsChannelInList(const std::string& channel_name) const{
 	return _channels.find(channel_name) != _channels.end();
+}
+
+bool IRCServer::IsUserInList(const std::string& user_name) const{
+	return _clients.find(user_name) != _clients.end();
+}
+
+bool IRCServer::isValidChannelName(const std::string &name) const {
+	if(name.size() > 10 || name.size() < 2)
+		return false;
+	if(name[0] != '#')
+		return false;
+	if(std::string::npos != name.find('#',1))
+		return false;
+	for(unsigned int i = 0; i < name.size(); ++i)
+	{
+		if(!std::isalnum(static_cast<unsigned char>(name[i])))
+			return false;
+	}
+	return true;
+}
+
+std::vector<std::string> IRCServer::PaserComma(std::string& str)
+{
+	std::vector<std::string> param;
+	while(1)
+	{
+		if(str.find(',') == std::string::npos){
+	        param.push_back(str);
+			break;
+        }
+		std::string cutstring = str.substr(0,str.find(','));
+		param.push_back(cutstring);
+		str = str.substr(str.find(',') + 1);
+	}
+    return param;
+}
+
+StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
+	StringMatrix ret;
+	for(unsigned int i = 0; i < param.size(); i++)
+	{
+		std::vector<std::string> get_parsing = PaserComma(param[i]);
+		ret.push_back(get_parsing);
+	}
+	return ret;
 }

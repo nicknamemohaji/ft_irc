@@ -1,6 +1,7 @@
 #include <string>
 #include <deque>
 #include <iostream>
+#include <vector>
 
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"

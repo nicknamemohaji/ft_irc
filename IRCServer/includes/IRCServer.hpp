@@ -10,6 +10,8 @@
 #include "IRCChannel.hpp"
 #include "IRCContext.hpp"
 
+typedef std::vector<std::vector<std::string> > StringMatrix;
+
 class IRCServer: public TCPServer
 {
 	public:
@@ -24,6 +26,9 @@ class IRCServer: public TCPServer
 			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
+		std::string MakeResponse(IRCContext& context);
+		StringMatrix parseStringMatrix(std::deque<std::string> &param);
+		std::vector<std::string> PaserComma(std::string& str);
 		
 	protected:
 
@@ -42,20 +47,25 @@ class IRCServer: public TCPServer
 		// ==== methods ====
 		// request, response
 		bool RequestParser(Buffer& buf, IRCContext& context);
-		std::string MakeResponse(IRCContext& context);
 
 		// context actions
-		void (IRCServer::*Actions[6])(IRCContext& context);
+		void (IRCServer::*Actions[8])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
+		void ActionJOIN(IRCContext& context);
 		// channel add and del
-		void AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
+		IRCChannel* AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
 		void DelChannel(const std::string &channel_name);
+		IRCChannel* GetChannel(const std::string &channel_name);	
 		//check channel exist
 		bool IsChannelInList(const std::string& channel_name) const;
+		//check user exist
+		bool IsUserInList(const std::string& user_name) const;
+		//check channel name
+		bool isValidChannelName(const std::string &name) const ;
 		// disable this constructors
 		IRCServer(void);
 		IRCServer(const IRCServer& other);
