@@ -51,7 +51,11 @@ class IRCServer: public TCPServer
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
-
+		// channel add and del
+		void AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
+		void DelChannel(const std::string &channel_name);
+		//check channel exist
+		bool IsChannelInList(const std::string& channel_name) const;
 		// disable this constructors
 		IRCServer(void);
 		IRCServer(const IRCServer& other);

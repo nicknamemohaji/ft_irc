@@ -144,3 +144,18 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 		shouldEndWrite = false;
 	}
 }
+
+void IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
+	_channels[channel_name] =  new IRCChannel(nick_name,channel_name,channel_password);
+}
+
+void IRCServer::DelChannel(const std::string &channel_name){
+	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
+	if(it == _channels.end())
+		return;
+	_channels.erase(it);
+}
+
+bool IRCServer::IsChannelInList(const std::string& channel_name) const{
+	return _channels.find(channel_name) != _channels.end();
+}
