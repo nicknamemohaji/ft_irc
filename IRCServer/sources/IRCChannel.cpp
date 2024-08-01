@@ -3,43 +3,49 @@
 #include <map>
 #include <ctime>
 #include <utility>
+#include <sstream>
 
 #include "IRCChannel.hpp"
 
-IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name)
-    : channel_name_(channel_name) {
-    start_date_ = SetTime();
-	channel_topic_edit_date_ = SetTime(); 
+
+IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name) {
+    SetChannelInfo(kChannelName,channel_name);
+    SetChannelInfo(kChannelDate,itostr(std::time(NULL)));
+    SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
+    SetChannelInfo(kTopicInfo,"");
+    SetChannelInfo(kChannelPassword,"");
+    SetChannelInfo(kTopicEditUser,"");
     channel_limit_ = kMaxChannelUsers;
-    channel_mode_ |= kDefault | kTopic;
-    channel_topic_ = "";
-    channel_password_ = "";
     invited_users_.clear();
     users_in_channel_.clear();
-    users_in_channel_.insert(make_pair(nickname, kOperator));
+    users_in_channel_[nickname] = kOperator;
 }
 
 IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd)
-    : channel_name_(channel_name), channel_password_(passwd) {
-    start_date_ = SetTime();
-	channel_topic_edit_date_ = SetTime(); 
+    {
+    SetChannelInfo(kChannelName,channel_name);
+    SetChannelInfo(kChannelPassword,passwd);
+    SetChannelInfo(kChannelDate,itostr(std::time(NULL)));
+    SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
+    SetChannelInfo(kTopicInfo,"");
+    SetChannelInfo(kTopicEditUser,"");
     channel_limit_ = kMaxChannelUsers;
-    channel_mode_ |= kDefault | kTopic;
-    channel_topic_ = "";
     invited_users_.clear();
     users_in_channel_.clear();
-    users_in_channel_.insert(make_pair(nickname, kOperator));
+    users_in_channel_[nickname] = kOperator;
 }
 
-std::string IRCChannel::SetTime() {
-    std::time_t time = std::time(nullptr);
-    char time_string[20];
-    std::strftime(time_string, 20, "%Y%m%d-%H:%M:%S", std::localtime(&time));
-    return std::string(time_string);
+std::string IRCChannel::itostr(long long time) const {
+    std::stringstream result;
+    result << time;
+    return result.str();
 }
 
-bool IRCChannel::CheckChannelMode(ChannelModeSet op) const {
-    return channel_mode_ & op;
+void IRCChannel::DelChannelUser(const std::string& nickname){
+    UserInChannel::iterator it = users_in_channel_.find(nickname);
+    if(it == users_in_channel_.end())
+        return;
+    users_in_channel_.erase(it);
 }
 
 bool IRCChannel::IsUserAuthorized(const std::string& nickname, ChannelPermission option) {
@@ -51,24 +57,18 @@ bool IRCChannel::IsUserAuthorized(const std::string& nickname, ChannelPermission
 }
 
 void IRCChannel::SetUserAuthorization(const std::string& nickname, ChannelPermission option) {
-    if (!IsUserAuthorized(nickname, kOperator)) {
-        return;  // No permission
-    }
     UserInChannel::iterator it = users_in_channel_.find(nickname);
-    if (it == users_in_channel_.end() || it->second & option) {
-        return;  // User not in channel or already has the permission
-    }
     it->second = option;
 }
-
+void IRCChannel::SetChannelInfo(ChannelInfo idx, const std::string& str){
+    channel_info_arr_[idx] = str;
+}
 void IRCChannel::SetTopic(const std::string& nickname, const std::string& topic) {
-    if (CheckChannelMode(kTopic) && IsUserAuthorized(nickname, kOperator)) {
-        channel_topic_ = topic;
-		channel_topic_edit_date_ = SetTime();
-    } else if (!CheckChannelMode(kTopic)) {
-        channel_topic_ = topic;
-		channel_topic_edit_date_ = SetTime();
-    }
+    /*if ((CheckChannelMode(kTopic) && IsUserAuthorized(nickname, kOperator)) || !CheckChannelMode(kTopic)) {
+        SetChannelInfo(KchannelTopic,topic);
+        SetChannelInfo(KchannelTopicEdituser,nickname);
+        SetChannelInfo(KchannelTopicedittime,std::time(NULL));
+    */
 }
 
 bool IRCChannel::IsInChannel(const std::string& nickname) const {
@@ -80,7 +80,7 @@ bool IRCChannel::IsInvited(const std::string& nickname) const {
 }
 
 bool IRCChannel::MatchPassword(const std::string& password) const {
-    return !CheckChannelMode(kPassword) || password == channel_password_;
+    // return !CheckChannelMode(kPassword) || password == GetChannelInfo(kChannelPassword);
 }
 
 void IRCChannel::AddChannelUser(const std::string& nickname) {
@@ -94,10 +94,10 @@ void IRCChannel::AddChannelUser(const std::string& nickname) {
         return;  // User already in channel
     }
     if (IsInvited(nickname)) {
-    	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), target_nickname);
+    	InvitedUsers::iterator it = std::find(invited_users_.begin(), invited_users_.end(), nickname);
         invited_users_.erase(it);
     }
-    users_in_channel_.insert(make_pair(target_nickname, kNormal));
+    users_in_channel_[nickname] =  kNormal;
 }
 
 void IRCChannel::ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option) {
@@ -107,20 +107,11 @@ void IRCChannel::ManageChannelPermission(const std::string& nickname, const std:
     SetUserAuthorization(target_nickname, option);
 }
 
-std::string IRCChannel::GetChannelStartTime() const {
-    return start_date_;
+std::string IRCChannel::GetChannelInfo(ChannelInfo idx)  const {
+    return channel_info_arr_[idx];
 }
 
-std::string IRCChannel::GetTopic() const {
-    return channel_topic_;
-}
 
-std::string IRCChannel::GetTopicEditDate() const {
-    return channel_topic_edit_date_;
-}
-std::string IRCChannel::GetPassword() const {
-    return channel_password_;
-}
 
 void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& target_nickname) {
     if (IsInChannel(nickname) && !IsInvited(target_nickname)) {
