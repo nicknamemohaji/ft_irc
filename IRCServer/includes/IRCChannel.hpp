@@ -15,8 +15,8 @@ const int kMaxChannelUsers = 100;
 
 // Enum for channel permissions
 enum ChannelPermission {
-    kOperator = 1 << 0,  // Operator permission
-    kNormal = 1 << 1     // Normal user permission
+    kOperator = 0,  // Operator permission
+    kNormal = 1  // Normal user permission
 };
 
 // Enum for channel mode settings
