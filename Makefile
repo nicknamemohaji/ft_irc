@@ -7,7 +7,8 @@ SRCS_TCPSERVER := 	TCPServer/sources/TCPMultiplexer.cpp \
 
 # TODO: add sources directrly
 SRCS_IRCSERVER :=	$(wildcard IRCServer/sources/*.cpp)\
-					$(wildcard IRCServer/sources/Command/*.cpp)
+					$(wildcard IRCServer/sources/Command/*.cpp)\
+					$(wildcard IRCServer/sources/RPL/*.cpp)
 
 SRCS := $(SRCS_TCPSERVER) $(SRCS_IRCSERVER) server.cpp
 

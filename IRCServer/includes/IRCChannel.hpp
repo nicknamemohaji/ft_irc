@@ -69,6 +69,7 @@ public:
     // Getters
     std::string GetChannelInfo(ChannelInfo idx) const;
 	std::deque<std::string> GetMemberNames() const;
+	std::deque<std::string> GetChannelUsersWithPrefixes() const;
     unsigned int GetChannelUserSize() const;
 
     //Translater

@@ -28,6 +28,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
+	this->Actions[NAMES] = &IRCServer::ActionNAMES;
 
 	// TODO validate server name
 }
@@ -147,6 +148,9 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 }
 
 IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
+	#ifdef COMMAND
+	std::cout << "create channel " << channel_name << " password is " << channel_password << std::endl;
+	#endif
 	IRCChannel *ret = new IRCChannel(nick_name,channel_name,channel_password);
 	_channels[channel_name] =  ret;
 	return ret;
@@ -213,4 +217,26 @@ StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
 		ret.push_back(get_parsing);
 	}
 	return ret;
+}
+
+std::string IRCServer::AddPrefixToChannelName(const std::string& name){
+	if(name.size() < 1 || name[0] == '#')
+		return name;
+	return "#" + name;
+}
+
+std::string IRCServer::DelPrefixToChannelName(const std::string& name){
+	if(name.size() < 1 || name[0] != '#')
+		return name;
+	return name.substr(1);
+}
+
+IRCClient* IRCServer::GetClient(const std::string& user_name){
+	# ifdef COMMAND
+		std::cout << "client size in server  " << _clients.size() <<std::endl;
+	# endif
+	std::map<std::string, IRCClient*>::const_iterator it = _clients.find(user_name);
+	if(it == _clients.end())
+		return NULL;
+	return it->second;
 }

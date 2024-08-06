@@ -23,6 +23,7 @@ enum IRCCommand
 	MOTD,
 	PING,
 	JOIN,
+	NAMES,
 };
 
 // typedef std::vector<std::vector<std::string> > StringMatrix;

@@ -113,7 +113,7 @@ void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& 
     }
 }
 
-std::deque<std::string> IRCChannel::GetMemberNames() const {
+std::deque<std::string> IRCChannel::GetChannelUsersWithPrefixes() const {
     std::deque<std::string> member_names;
 	UserInChannel::const_iterator user;
     for (user = users_in_channel_.begin(); user != users_in_channel_.end(); ++user) {
@@ -122,6 +122,15 @@ std::deque<std::string> IRCChannel::GetMemberNames() const {
         } else {
             member_names.push_back(user->first);
         }
+    }
+    return member_names;
+}
+
+std::deque<std::string> IRCChannel::GetMemberNames() const {
+    std::deque<std::string> member_names;
+	UserInChannel::const_iterator user;
+    for (user = users_in_channel_.begin(); user != users_in_channel_.end(); ++user) {
+            member_names.push_back(user->first);
     }
     return member_names;
 }

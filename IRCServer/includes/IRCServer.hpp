@@ -29,6 +29,8 @@ class IRCServer: public TCPServer
 		std::string MakeResponse(IRCContext& context);
 		StringMatrix parseStringMatrix(std::deque<std::string> &param);
 		std::vector<std::string> PaserComma(std::string& str);
+		//get client*
+		IRCClient* GetClient(const std::string& user_name);
 		
 	protected:
 
@@ -49,13 +51,14 @@ class IRCServer: public TCPServer
 		bool RequestParser(Buffer& buf, IRCContext& context);
 
 		// context actions
-		void (IRCServer::*Actions[8])(IRCContext& context);
+		void (IRCServer::*Actions[9])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
 		void ActionJOIN(IRCContext& context);
+		void ActionNAMES(IRCContext& context);
 		// channel add and del
 		IRCChannel* AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
 		void DelChannel(const std::string &channel_name);
@@ -65,7 +68,9 @@ class IRCServer: public TCPServer
 		//check user exist
 		bool IsUserInList(const std::string& user_name) const;
 		//check channel name
-		bool isValidChannelName(const std::string &name) const ;
+		bool isValidChannelName(const std::string& name) const;
+		std::string AddPrefixToChannelName(const std::string& name);
+		std::string DelPrefixToChannelName(const std::string& name);
 		// disable this constructors
 		IRCServer(void);
 		IRCServer(const IRCServer& other);
