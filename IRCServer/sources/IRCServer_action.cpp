@@ -55,7 +55,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 
 		return ;
 	}
-
+	_clients[context.client->GetNickname()] = context.client;
 	context.client->SetStatus(REGISTERED);
 	std::stringstream stringresult;
 	std::string clientNickname = context.client->GetNickname();

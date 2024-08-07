@@ -1,6 +1,6 @@
-#include "IRCRpl.hpp"
+#include "IRCServer.hpp"
 
-void IRCRpl::RPL_NAMREPLY(IRCContext& context){
+void IRCServer::RPL_NAMREPLY(IRCContext& context){
 	# ifdef COMMAND
 	std::cout << "RPL_NAMREPLY start" << std::endl;
 	# endif
@@ -31,5 +31,5 @@ void IRCRpl::RPL_NAMREPLY(IRCContext& context){
 	# ifdef COMMAND
 	std::cout << "RPL_NAMREPLY end" << std::endl;
 	# endif
-	IRCRpl::RPL_ENDOFNAMES(context);
+	IRCServer::RPL_ENDOFNAMES(context);
 }

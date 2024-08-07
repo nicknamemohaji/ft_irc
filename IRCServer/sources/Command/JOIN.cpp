@@ -9,17 +9,17 @@
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
-#include "IRCRpl.hpp"
 
 
 //RPL_CREATIONTIME (329)
 // "<client> <channel> <creationtime>"
 
 
-void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext & context)
+void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext context, IRCServer& server)
 {	
 	std::stringstream result;
 	IRCClient *user_to_msg;
+	std::string user_name = context.client->GetNickname();
 	# ifdef COMMAND
 	std::cout << "JOIN msg to channel size = "  << user_in_channel.size() << std::endl;
 	# endif
@@ -29,14 +29,21 @@ void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext & context)
 		# endif
 		std::string ret;
 		result.str("");
-		result <<":"<< context.client->GetNickname()
-		<< " JOIN " << context.channel->GetChannelInfo(kChannelName) << "\r\n";
+		// result <<":"<< user_name << "!" << user_name << "@ft_irc.com"
+		result <<":"<< user_name
+		<< " JOIN :" << context.channel->GetChannelInfo(kChannelName) << "\r\n";
 		ret = result.str();
-		user_to_msg = context.server->GetClient(user_in_channel[i]);
+		user_to_msg = server.GetClient(user_in_channel[i]);
 		if(!user_to_msg)
 			continue;
+	# ifdef COMMAND
+		// std::cout << "Sucesse sned JOIN msg to channel, to " << user_to_msg->GetNickname()  << "the fd is" << user_to_msg->GetFD() << std::endl;
+		std::cout << "msg" << std::endl;
+		std::cout << ret << std::endl;
+	# endif	
+		context.client = user_to_msg;
 		context.client->Send(ret);
-		context.FDsPendingWrite.insert(user_to_msg->GetFD());
+		context.FDsPendingWrite.insert(context.client->GetFD());
 	}
 	# ifdef COMMAND
 		std::cout << "JOIN msg to channel end "  << std::endl;
@@ -144,19 +151,19 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		# ifdef COMMAND
 		std::cout << "channel RPL START;" << i <<std::endl;
 		# endif
+		sendJoinMsg(context.channel->GetMemberNames(),context, *this);
 		if(channel->GetChannelInfo(kTopicInfo) == "")
-			IRCRpl::RPL_NOTOPIC(context);//RPL_NOTOPIC 333
+			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333
 		else{
-			IRCRpl::RPL_TOPIC(context);
-			IRCRpl::RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
+			this->RPL_TOPIC(context);
+			this->RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
 		//RPL_CHANNELMODEIS 324
-		IRCRpl::RPL_NAMREPLY(context);//RPL_NAMREPLY 353
-		IRCRpl::RPL_CREATIONTIME(context); //CREATIONTIME 329
-		// IRCRpl::RPL_JOIN(context);//join alert
+		this->RPL_NAMREPLY(context);//RPL_NAMREPLY 353
+		this->RPL_CREATIONTIME(context); //CREATIONTIME 329
+		// IRCServer::RPL_JOIN(context);//join alert
 
 		//send message all user in channel user incomming
-		// sendJoinMsg(context.channel->GetMemberNames(),context);
 		# ifdef COMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif

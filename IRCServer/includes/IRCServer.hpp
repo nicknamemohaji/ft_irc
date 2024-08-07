@@ -26,11 +26,17 @@ class IRCServer: public TCPServer
 			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
-		std::string MakeResponse(IRCContext& context);
 		StringMatrix parseStringMatrix(std::deque<std::string> &param);
 		std::vector<std::string> PaserComma(std::string& str);
 		//get client*
 		IRCClient* GetClient(const std::string& user_name);
+		//RPL
+		void RPL_NOTOPIC(IRCContext& context);
+		void RPL_TOPIC(IRCContext& context);
+		void RPL_TOPICWHOTIME(IRCContext& context);
+		void RPL_ENDOFNAMES(IRCContext& context);
+		void RPL_NAMREPLY(IRCContext& context);
+		void RPL_CREATIONTIME(IRCContext& context);
 		
 	protected:
 
@@ -49,7 +55,7 @@ class IRCServer: public TCPServer
 		// ==== methods ====
 		// request, response
 		bool RequestParser(Buffer& buf, IRCContext& context);
-
+		std::string MakeResponse(IRCContext& context);
 		// context actions
 		void (IRCServer::*Actions[9])(IRCContext& context);
 		// 1. register new client

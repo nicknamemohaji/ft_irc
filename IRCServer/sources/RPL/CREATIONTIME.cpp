@@ -1,8 +1,8 @@
-#include "IRCRpl.hpp"
+#include "IRCServer.hpp"
 //RPL_CREATIONTIME (329)
 // "<client> <channel> <creationtime>"
 
-void IRCRpl::RPL_CREATIONTIME(IRCContext& context){
+void IRCServer::RPL_CREATIONTIME(IRCContext& context){
 	# ifdef COMMAND
 	std::cout << "RPL_CREATIONTIME start" << std::endl;
 	# endif
@@ -13,7 +13,7 @@ void IRCRpl::RPL_CREATIONTIME(IRCContext& context){
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " " << context.channel->GetChannelInfo(kChannelDate);
 	context.numericResult = 329;
 	context.stringResult = result.str();
-	context.client->Send(context.server->MakeResponse(context));
+	context.client->Send(this->MakeResponse(context));
 	context.FDsPendingWrite.insert(context.client->GetFD());
 	# ifdef COMMAND
 	std::cout << "RPL_CREATIONTIME end" << std::endl;

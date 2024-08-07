@@ -1,6 +1,6 @@
-#include "IRCRpl.hpp"
+#include "IRCServer.hpp"
 
-void IRCRpl::RPL_NOTOPIC(IRCContext& context){
+void IRCServer::RPL_NOTOPIC(IRCContext& context){
 	# ifdef COMMAND
 	std::cout << "RPL_NOTOPIC start" << std::endl;
 	# endif
@@ -11,7 +11,7 @@ void IRCRpl::RPL_NOTOPIC(IRCContext& context){
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " :No topic is set";
 	context.numericResult = 331;
 	context.stringResult = result.str();
-	context.client->Send(context.server->MakeResponse(context));	
+	context.client->Send(this->MakeResponse(context));	
 	context.FDsPendingWrite.insert(context.client->GetFD());
 	# ifdef COMMAND
 	std::cout << "RPL_NOTOPIC end" << std::endl;

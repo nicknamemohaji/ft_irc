@@ -9,7 +9,6 @@
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
-#include "IRCRpl.hpp"
 
 void IRCServer::ActionNAMES(IRCContext& context){
 	//param agument too lage!
@@ -19,6 +18,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 		std::cout << "param size = " << context.params.size() <<std::endl;
 		std::cout << "matrix size = " << PaseringMatrix.size() <<std::endl;
 	# endif
+	//파싱오류 많은 파라미터
 	if(context.params.size() > 1 || PaseringMatrix.size() > 1)
 		throw IRCError::MissingParams(); // 461
 	for(unsigned int i = 0; i < PaseringMatrix.size(); ++i){
@@ -41,7 +41,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	}
 	context.channel = channel;
 	if(!channel->IsInChannel(context.client->GetNickname())){
-		IRCRpl::RPL_ENDOFNAMES(context);
+		this->RPL_ENDOFNAMES(context);
 		# ifdef COMMAND
 		std::cout << "channel name command only endof name rpl " <<std::endl;
 		# endif
@@ -50,7 +50,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name command do well process " << channel->IsInChannel(context.client->GetNickname())<<std::endl;
 	# endif
-	IRCRpl::RPL_NAMREPLY(context);
+	this->RPL_NAMREPLY(context);
 	}
 }
 /*

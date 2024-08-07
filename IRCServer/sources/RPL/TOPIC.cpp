@@ -1,6 +1,6 @@
-#include "IRCRpl.hpp"
+#include "IRCServer.hpp"
 
-void IRCRpl::RPL_TOPIC(IRCContext& context){
+void IRCServer::RPL_TOPIC(IRCContext& context){
 	# ifdef COMMAND
 	std::cout << "RPL_TOPIC start" << std::endl;
 	# endif
@@ -11,7 +11,7 @@ void IRCRpl::RPL_TOPIC(IRCContext& context){
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " :" << context.channel->GetChannelInfo(kTopicInfo);
 	context.numericResult = 332;
 	context.stringResult = result.str();
-	context.client->Send(context.server->MakeResponse(context));	
+	context.client->Send(this->MakeResponse(context));	
 	context.FDsPendingWrite.insert(context.client->GetFD());
 	# ifdef COMMAND
 	std::cout << "RPL_TOPIC end" << std::endl;
