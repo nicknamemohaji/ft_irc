@@ -27,7 +27,7 @@ class IRCServer: public TCPServer
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
 		StringMatrix parseStringMatrix(std::deque<std::string> &param);
-		std::vector<std::string> PaserComma(std::string& str);
+		std::vector<std::string> PaserSep(std::string& str, const char* sep);
 		//get client*
 		IRCClient* GetClient(const std::string& user_name);
 		//RPL
