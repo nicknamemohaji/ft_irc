@@ -8,7 +8,7 @@ void IRCServer::RPL_TOPICWHOTIME(IRCContext& context){
 	result.str("");
 	context.stringResult.clear();
 	result << context.client->GetNickname()
-		<< " "<< context.channel->GetChannelInfo(kChannelName) << " " << context.client->GetNickname() << " " << context.channel->GetChannelInfo(kTopicEditTime);
+		<< " "<< context.channel->GetChannelInfo(kChannelName) << " " << context.channel->GetChannelInfo(kTopicEditUser) << " " << context.channel->GetChannelInfo(kTopicEditTime);
 	context.numericResult = 333;
 	context.stringResult = result.str();
 	context.client->Send(this->MakeResponse(context));	

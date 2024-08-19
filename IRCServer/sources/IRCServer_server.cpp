@@ -30,6 +30,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
 	this->Actions[PART] = &IRCServer::ActionPART;
+	this->Actions[TOPIC] = &IRCServer::ActionTOPIC;
 
 	// TODO validate server name
 }
