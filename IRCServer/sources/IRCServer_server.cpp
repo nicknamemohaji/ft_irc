@@ -29,6 +29,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[PING] = &IRCServer::ActionPING;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
+	this->Actions[PART] = &IRCServer::ActionPART;
 
 	// TODO validate server name
 }
@@ -193,7 +194,7 @@ bool IRCServer::isValidChannelName(const std::string &name) const {
 	return true;
 }
 
-std::vector<std::string> IRCServer::PaserComma(std::string& str)
+std::vector<std::string> IRCServer::PaserSep(std::string& str, const char* sep)
 {
 	std::vector<std::string> param;
 	while(1)
@@ -202,9 +203,9 @@ std::vector<std::string> IRCServer::PaserComma(std::string& str)
 	        param.push_back(str);
 			break;
         }
-		std::string cutstring = str.substr(0,str.find(','));
+		std::string cutstring = str.substr(0,str.find(sep));
 		param.push_back(cutstring);
-		str = str.substr(str.find(',') + 1);
+		str = str.substr(str.find(sep) + 1);
 	}
     return param;
 }
@@ -213,7 +214,7 @@ StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
 	StringMatrix ret;
 	for(unsigned int i = 0; i < param.size(); i++)
 	{
-		std::vector<std::string> get_parsing = PaserComma(param[i]);
+		std::vector<std::string> get_parsing = PaserSep(param[i], ",");
 		ret.push_back(get_parsing);
 	}
 	return ret;
