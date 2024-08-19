@@ -87,6 +87,11 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 476:
 				result << context.channel->GetChannelInfo(kChannelName) << " :Bad Channel Mask";
 				break ;
+			// ERR_NOTONCHANNEL (442) 채널에 유저가 존재하지 않음
+			case 442:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
+				// "<client> <channel> :You're not on that channel"
+				break;
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH
