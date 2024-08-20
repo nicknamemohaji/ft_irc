@@ -10,14 +10,17 @@ void IRCServer::RPL_INVITED(IRCContext& context){
 	std::stringstream result;
 	result.str("");
 	context.stringResult.clear();
+	context.createSource = true;
 	result <<"INVITE " << context.client->GetNickname()
-		<< " :"<< context.channel->GetChannelInfo(kChannelName);
+		<< " "<< context.channel->GetChannelInfo(kChannelName);
 	context.numericResult = -1;
 	context.stringResult = result.str();
 	context.client->Send(this->MakeResponse(context));
-	// IRCClient *client = GetClient(context.params[0]);
 	context.FDsPendingWrite.insert(context.client->GetFD());
 	# ifdef COMMAND
 	std::cout << "INVITED_RPL end" << std::endl;
 	# endif
 }
+
+// :default_user!~root@121.135.181.42 INVITE somin :#bb
+// sabyun!~root@127.0.0.1 INVITE sabyun :#aa

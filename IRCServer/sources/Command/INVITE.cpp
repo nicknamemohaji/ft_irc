@@ -40,9 +40,9 @@ void IRCServer::ActionINVITE(IRCContext &context){
 	*/
 	context.stringResult  = user_name;
 	channel->AddInvitedUser(user_name);
-	this->RPL_INVITING(context);
-	context.client = this->GetClient(user_name);	
-	this->RPL_INVITED(context);
+	RPL_INVITING(context);
+	context.client = GetClient(user_name);	
+	RPL_INVITED(context);
 }
 
 // :dan-!d@localhost INVITE Wiz #test    ; dan- has invited Wiz
