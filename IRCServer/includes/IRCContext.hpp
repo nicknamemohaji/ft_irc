@@ -25,6 +25,7 @@ enum IRCCommand
 	JOIN,
 	NAMES,
 	PART,
+	TOPIC,
 	KICK,
 	PRIVMSG,
 };

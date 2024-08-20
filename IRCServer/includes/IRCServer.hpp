@@ -58,7 +58,7 @@ class IRCServer: public TCPServer
 		bool RequestParser(Buffer& buf, IRCContext& context);
 		std::string MakeResponse(IRCContext& context);
 		// context actions
-		void (IRCServer::*Actions[11])(IRCContext& context);
+		void (IRCServer::*Actions[12])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
@@ -67,6 +67,7 @@ class IRCServer: public TCPServer
 		void ActionJOIN(IRCContext& context);
 		void ActionNAMES(IRCContext& context);
 		void ActionPART(IRCContext& context);
+		void ActionTOPIC(IRCContext& context);
 		void ActionKICK(IRCContext& context);
 		void ActionPRIVMSG(IRCContext& context);
 		// channel add and del
