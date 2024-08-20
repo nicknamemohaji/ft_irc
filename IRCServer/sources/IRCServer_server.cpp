@@ -76,10 +76,18 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
+	AddNewLineToBuffer(message);
 
 	# ifdef DEBUG
 	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
 	# endif
+
+	if (*(message.begin()) == '\r')
+	{
+		message.erase(message.begin(), message.begin() + 2);
+		conn->OverwriteRecvBuffer(message);
+		return ;
+	}
 
 	IRCContext context(shouldWriteFDs);
 	context.server = this;
@@ -93,7 +101,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		// check registration status
 		if (conn->GetStatus() != REGISTERED && context.command > NICK)
 			throw IRCError::NotRegistered();
-
+		
 		/*
 		notes on IRCServer::Actions:
 
@@ -112,26 +120,17 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	{
 		// create error response
 		message = conn->ReadRecvBuffer();
+		AddNewLineToBuffer(message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
 		context.rawMessage = std::string(message.begin(), it);
-		context.numericResult = e.code();
 		// send error response
+		context.numericResult = e.code();
 		conn->Send(MakeResponse(context));
 		shouldWriteFDs.insert(conn->GetFD());
-		// clear buffer
-		if (it == message.end())
-		{
-			it = std::find(message.begin(), message.end(), '\n');
-			if (it == message.end())
-				message.clear();
-			else
-				message.erase(message.begin(), it + 1);
-		}
-		else
-			message.erase(message.begin(), it + 2);
+
+		message.erase(message.begin(), it + 2);
 	}
 
-	message.clear();
 	conn->OverwriteRecvBuffer(message);
 	shouldEndRead = false;
 }
