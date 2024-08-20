@@ -7,7 +7,8 @@ SRCS_TCPSERVER := 	TCPServer/sources/TCPMultiplexer.cpp \
 
 # TODO: add sources directrly
 SRCS_IRCSERVER :=	$(wildcard IRCServer/sources/*.cpp)\
-					$(wildcard IRCServer/sources/Command/*.cpp)
+					$(wildcard IRCServer/sources/Command/*.cpp)\
+					$(wildcard IRCServer/sources/RPL/*.cpp)
 
 SRCS := $(SRCS_TCPSERVER) $(SRCS_IRCSERVER) server.cpp
 
@@ -17,7 +18,7 @@ INCLUDES :=	-I TCPServer/includes \
 			-I IRCServer/includes
 
 C++ := c++
-CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -fsanitize=address -D DEBUG
+CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -fsanitize=address -D COMMAND
 
 all: $(NAME)
 

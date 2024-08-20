@@ -4,6 +4,7 @@
 #include <ctime>
 #include <utility>
 #include <sstream>
+#include <deque>
 
 #include "IRCChannel.hpp"
 
@@ -71,8 +72,14 @@ void IRCChannel::SetChannelInfo(ChannelInfo idx, const std::string& str){
 //     */
 // }
 
+unsigned int IRCChannel::GetChannelUserSize() const{
+    return users_in_channel_.size();
+}
+
 bool IRCChannel::IsInChannel(const std::string& nickname) const {
-    return users_in_channel_.find(nickname) != users_in_channel_.end();
+    if(users_in_channel_.find(nickname) != users_in_channel_.end())
+        return true;
+    return false;
 }
 
 bool IRCChannel::IsInvited(const std::string& nickname) const {
@@ -83,6 +90,9 @@ bool IRCChannel::IsInvited(const std::string& nickname) const {
 //     // return !CheckChannelMode(kPassword) || password == GetChannelInfo(kChannelPassword);
 // }
 
+void IRCChannel::AddChannelUser(const std::string& nickname) {
+    users_in_channel_[nickname] =  kNormal;
+}
 // void IRCChannel::AddChannelUser(const std::string& nickname) {
 //     if (CheckChannelMode(kLimit) && users_in_channel_.size() >= channel_limit_) {
 //         return;  // Channel limit exceeded
@@ -119,8 +129,8 @@ void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& 
     }
 }
 
-std::vector<std::string> IRCChannel::GetMemberNames() const {
-    std::vector<std::string> member_names;
+std::deque<std::string> IRCChannel::GetChannelUsersWithPrefixes() const {
+    std::deque<std::string> member_names;
 	UserInChannel::const_iterator user;
     for (user = users_in_channel_.begin(); user != users_in_channel_.end(); ++user) {
         if (user->second == kOperator) {
@@ -128,6 +138,15 @@ std::vector<std::string> IRCChannel::GetMemberNames() const {
         } else {
             member_names.push_back(user->first);
         }
+    }
+    return member_names;
+}
+
+std::deque<std::string> IRCChannel::GetMemberNames() const {
+    std::deque<std::string> member_names;
+	UserInChannel::const_iterator user;
+    for (user = users_in_channel_.begin(); user != users_in_channel_.end(); ++user) {
+            member_names.push_back(user->first);
     }
     return member_names;
 }

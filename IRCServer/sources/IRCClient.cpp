@@ -1,7 +1,9 @@
 #include <iostream>
+#include <map>
 
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
+#include "IRCChannel.hpp"
 
 IRCClient::IRCClient(const int sockFD):
 	TCPConnection(sockFD),
@@ -65,4 +67,17 @@ std::string IRCClient::GetHostName(void) const
 	if (_host.length() == 0)
 		return "*";
 	return _host;
+}
+
+void IRCClient::AddChannel(const std::string &channel_name, IRCChannel *channel){
+	_channels[channel_name] = channel;
+}
+void IRCClient::DelChannel(const std::string &channel_name){
+	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
+	if(it == _channels.end())
+		return;
+	_channels.erase(it);
+}
+bool IRCClient::IsInChannel(const std::string &channel_name){
+	return _channels.find(channel_name) != _channels.end();
 }

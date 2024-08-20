@@ -1,6 +1,7 @@
 #include <string>
 #include <deque>
 #include <iostream>
+#include <vector>
 
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -50,6 +51,8 @@ enum IRCCommand IRCContext::ConvertStrToCommand(const std::string& command)
 		return MOTD;
 	else if (command == "JOIN")
 		return JOIN;
+	else if (command == "NAMES")
+		return NAMES;
 	else if (command == "KICK")
 		return KICK;
 	else if (command == "PRIVMSG")
@@ -72,6 +75,8 @@ std::string IRCContext::ConvertCommandToStr(enum IRCCommand command)
 		return "MOTD";
 	else if (command == JOIN)
 		return "JOIN";
+	else if (command == NAMES)
+		return "NAMES";
 	else if (command == KICK)
 		return "KICK";
 	else if (command == PRIVMSG)

@@ -7,6 +7,7 @@
 #include <ctime>
 #include <utility>
 #include <sstream>
+#include <deque>
 
 #include "IRCClient.hpp"
 
@@ -67,10 +68,14 @@ public:
 
     // Getters
     std::string GetChannelInfo(ChannelInfo idx) const;
-	std::vector<std::string> GetMemberNames() const;
+	std::deque<std::string> GetMemberNames() const;
+	std::deque<std::string> GetChannelUsersWithPrefixes() const;
+    unsigned int GetChannelUserSize() const;
 
     //Translater
     std::string itostr(long long time) const;
+    
+    unsigned int channel_limit_;
 
 private:
     IRCChannel();
@@ -80,7 +85,6 @@ private:
     std::map<std::string, ChannelPermission> users_in_channel_;
 
     unsigned int channel_mode_;
-    unsigned int channel_limit_;
     std::string channel_info_arr_ [6];
 };
 

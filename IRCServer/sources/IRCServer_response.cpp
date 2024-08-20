@@ -55,6 +55,38 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 464:
 				result << clientNickname << " :Password incorrect";
 				break ;
+			// ERR_CHANOPRIVSNEEDED
+			case 482:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not channel operator";
+				break ;
+			// ERR_NOSUCHCHANNEL
+			case 403:
+				result << clientNickname << " " << context.stringResult << " :No such channel";
+				break ;
+			// ERR_TOOMANYCHANNELS
+			case 405:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You have joined too many channels";
+				break ;
+			//ERR_BADCHANNELKEY* (475) 비밀번호 다름
+			case 475:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+k)";
+				break ;
+			// *ERR_BANNEDFROMCHAN* (474) 벤된 사용자
+			case 474:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+b)";
+				break ;
+			// *ERR_CHANNELISFULL* (471) 채널 포화상태
+			case 471:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+l)";
+				break ;
+			// *ERR_INVITEONLYCHAN* (473) 인바이트 전용채널, 인바이트 안된상태
+			case 473:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i)";
+				break ;
+			// *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
+			case 476:
+				result << context.channel->GetChannelInfo(kChannelName) << " :Bad Channel Mask";
+				break ;
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH

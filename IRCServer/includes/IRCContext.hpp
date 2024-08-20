@@ -5,6 +5,7 @@
 #include <deque>
 #include <set>
 #include <iostream>
+#include <vector>
 
 class IRCServer;
 class IRCChannel;
@@ -22,10 +23,12 @@ enum IRCCommand
 	MOTD,
 	PING,
 	JOIN,
+	NAMES,
 	KICK,
 	PRIVMSG,
 };
 
+// typedef std::vector<std::vector<std::string> > StringMatrix;
 struct IRCContext
 {
 	public:
@@ -52,7 +55,7 @@ struct IRCContext
 		// converter
 		static std::string ConvertCommandToStr(enum IRCCommand command);
 		static enum IRCCommand ConvertStrToCommand(const std::string& command);
-
+		// StringMatrix parseStringMatrix(std::deque<std::string> &param);
 	private:
 		IRCContext(void);
 };
