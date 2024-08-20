@@ -24,6 +24,7 @@ enum IRCCommand
 	PING,
 	JOIN,
 	NAMES,
+	PART,
 	KICK,
 	PRIVMSG,
 };

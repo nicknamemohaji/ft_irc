@@ -29,6 +29,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[PING] = &IRCServer::ActionPING;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
+	this->Actions[PART] = &IRCServer::ActionPART;
 	this->Actions[KICK] = &IRCServer::ActionKICK;
 	this->Actions[PRIVMSG] = &IRCServer::ActionPRIVMSG;
 

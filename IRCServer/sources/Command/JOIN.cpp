@@ -157,11 +157,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		else{
 			this->RPL_TOPIC(context);
 			this->RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
+		// IRCServer::RPL_JOIN(context);//join alert
 		}
 		//RPL_CHANNELMODEIS 324
 		this->RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		this->RPL_CREATIONTIME(context); //CREATIONTIME 329
-		// IRCServer::RPL_JOIN(context);//join alert
 
 		//send message all user in channel user incomming
 		# ifdef COMMAND
