@@ -149,7 +149,6 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			//channel add at client and channel add client
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			channel->AddChannelUser(context.client->GetNickname());
-		
 			# ifdef COMMAND
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
@@ -157,6 +156,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		# ifdef COMMAND
 		std::cout << "channel RPL START;" << i <<std::endl;
 		# endif
+		channel->DelInvitedUser(context.client->GetNickname());
 		sendJoinMsg(context.channel->GetMemberNames(),context, *this);
 		if(channel->GetChannelInfo(kTopicInfo) == "")
 			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333

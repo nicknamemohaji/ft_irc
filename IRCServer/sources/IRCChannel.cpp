@@ -5,6 +5,7 @@
 #include <utility>
 #include <sstream>
 #include <deque>
+#include <iostream>
 
 #include "IRCChannel.hpp"
 
@@ -123,9 +124,18 @@ std::string IRCChannel::GetChannelInfo(ChannelInfo idx)  const {
 
 
 
-void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& target_nickname) {
-    if (IsInChannel(nickname) && !IsInvited(target_nickname)) {
-        invited_users_.push_back(target_nickname);
+void IRCChannel::AddInvitedUser(const std::string& target_nickname) {
+    invited_users_.push_back(target_nickname);
+}
+
+void IRCChannel::DelInvitedUser(const std::string& target_nickname){
+    InvitedUsers::iterator it;
+    for(it = invited_users_.begin(); it != invited_users_.end(); ++it){
+        if(*it == target_nickname){
+            invited_users_.erase(it);
+            std::cout << "invite delted!" << std::endl;
+            return;
+        }
     }
 }
 
