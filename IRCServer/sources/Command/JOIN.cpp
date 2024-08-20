@@ -59,7 +59,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	std::stringstream result;
 	// pram size is over 2 errr parsing 461;
 	if(context.params.size() > 2)
-		throw IRCError::MissingParams(); // 461
+		ErrorSender(context,461);
+		//throw IRCError::MissingParams(); // 461
 	// channel name vaild check
 	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
 	# ifdef COMMAND
@@ -74,8 +75,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	# endif
 	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i)
 	{
-		if(isValidChannelName(PaseringMatrix[0][i]))
-			throw IRCError::BadChannelName(); //476
+		if(isValidChannelName(PaseringMatrix[0][i])){
+			context.stringResult = PaseringMatrix[0][i]; 
+			ErrorSender(context, 476);
+			// throw IRCError::BadChannelName(); //476
+		}
 	}
 	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
 		IRCChannel* channel;
@@ -127,12 +131,14 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					# ifdef COMMAND
 					std::cout << "password error!!!" << i <<std::endl;
 					# endif
-					throw IRCError::BadChannelKey(); // 475 비밀번호
+					ErrorSender(context, 475);
+					// throw IRCError::BadChannelKey(); // 475 비밀번호
 				}
 			}
 			//check channel userlimit
 			if(channel->channel_limit_ <= channel->GetChannelUserSize())
-				throw IRCError::ChannelIsFull(); //471 채널 포화
+				ErrorSender(context, 471);
+				// throw IRCError::ChannelIsFull(); //471 채널 포화
 			//check invite mode and isinvited
 			/*
 			if(modecheck() && !channel.IsInvited(context->client->GetNickname()))
@@ -157,12 +163,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		else{
 			this->RPL_TOPIC(context);
 			this->RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
+		// IRCServer::RPL_JOIN(context);//join alert
 		}
 		//RPL_CHANNELMODEIS 324
 		this->RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		this->RPL_CREATIONTIME(context); //CREATIONTIME 329
-		// IRCServer::RPL_JOIN(context);//join alert
-
 		//send message all user in channel user incomming
 		# ifdef COMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;

@@ -37,6 +37,7 @@ class IRCServer: public TCPServer
 		void RPL_ENDOFNAMES(IRCContext& context);
 		void RPL_NAMREPLY(IRCContext& context);
 		void RPL_CREATIONTIME(IRCContext& context);
+		void ErrorSender(IRCContext context, unsigned int errornum);
 		
 	protected:
 
@@ -58,7 +59,7 @@ class IRCServer: public TCPServer
 		std::string MakeResponse(IRCContext& context);
 		void AddNewLineToBuffer(Buffer& message);
 		// context actions
-		void (IRCServer::*Actions[10])(IRCContext& context);
+		void (IRCServer::*Actions[12])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
@@ -66,6 +67,8 @@ class IRCServer: public TCPServer
 		void ActionPING(IRCContext& context);
 		void ActionJOIN(IRCContext& context);
 		void ActionNAMES(IRCContext& context);
+		void ActionPART(IRCContext& context);
+		void ActionTOPIC(IRCContext& context);
 		void ActionKICK(IRCContext& context);
 		void ActionPRIVMSG(IRCContext& context);
 		// channel add and del
