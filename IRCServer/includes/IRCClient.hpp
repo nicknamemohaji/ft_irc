@@ -12,9 +12,9 @@ struct IRCContext;
 
 enum IRCClientActiveStatus
 {
-	REGISTER_PENDING,	// CAP, PASS
-	REGISTER_ONGOING,	// USER, NICK
-	REGISTERED			// registered
+	REGISTER_PENDING,	// pending PASS
+	REGISTER_PASS,		// PASS is registered
+	REGISTERED,			// registered
 };
 
 class IRCClient: public TCPConnection
@@ -29,12 +29,12 @@ class IRCClient: public TCPConnection
 		// getters
 		enum IRCClientActiveStatus GetStatus(void) const;
 		std::string GetNickname(void) const;
-		std::string GetHostName(void) const;
+		std::string GetUserName(void) const;
 		
 		// setters
 		void SetStatus(enum IRCClientActiveStatus newStatus);
 		void SetNickName(const std::string& name);
-		void SetHostName(const std::string& name);
+		void SetUserName(const std::string& name);
 
 		//channel add, del, isinchannel
 		void AddChannel(const std::string &channel_name, IRCChannel *channel);
@@ -49,7 +49,7 @@ class IRCClient: public TCPConnection
 		std::map<std::string, IRCChannel*> _channels;
 
 		std::string _nickname;
-		std::string _host;
+		std::string _username;
 };
 
 #include "IRCChannel.hpp"

@@ -269,11 +269,13 @@ void TCPMultiplexer::WaitEvent(void)
 			{
 				std::set<int> shouldWriteFDs;
 				bool shouldEndRead;
-				server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
+				while (connection->GetRecvBufferSize() > 0)
+					server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
 				if (shouldEndRead)
 					RemoveKevent(connection->GetFD(), EVFILT_READ);
 				for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)
 					AddKevent(*it, EVFILT_WRITE);
+				shouldWriteFDs.clear();
 			}
 		}
 		else
