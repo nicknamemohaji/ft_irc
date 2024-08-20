@@ -22,6 +22,8 @@ enum IRCCommand
 	MOTD,
 	PING,
 	JOIN,
+	KICK,
+	PRIVMSG,
 };
 
 struct IRCContext
