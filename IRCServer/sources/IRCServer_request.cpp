@@ -21,9 +21,6 @@ static std::string _BufferParseUntilSpace(Buffer& message)
 	
 	// compare SP and CR position
 	std::string ret;
-	
-	std::cout << std::distance(message.begin(), it_SP) << ", " << std::distance(message.begin(), it_CR);
-
 	if (std::distance(message.begin(), it_SP) < std::distance(message.begin(), it_CR))
 	{
 		// space is first occurance
@@ -50,45 +47,6 @@ static void _BufferRemoveSpace(Buffer& message)
 
 bool IRCServer::RequestParser(Buffer& message, IRCContext& context)
 {
-
-	// requires CRLF
-	{
-		// check for CR
-		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
-		// CR is not set
-		if (it == message.end())
-		{
-			// check for LF
-			Buffer::iterator it2 = std::find(message.begin(), message.end(), '\n');
-			// if both CR-LF is not set, then message is incomplete
-			if (it2 == message.end())
-				return false;
-			// else append CR in front of LF to match set
-			message.insert(it2, '\r');
-		}
-		// CR is set
-		else
-		{
-			// check for LF
-			if ((it + 1) == message.end() || *(it + 1) != '\n')
-			{
-				// append LF after CR to match set
-				message.insert(it + 1, '\n');
-			}
-		}
-		/*
-		notes on inserting CR or LF:
-
-		ircv3 표준과 modern irc 문서는 호환성을 위해 단일 LF(\n)만 오는 메시지 처리를 권장하고(SHOULD), 
-		단일 CR(\r)만 오는 메시지 처리를 제안합니다(MAY). 
-		(Servers SHOULD handle single \n character, and MAY handle a single \r character, as if it was a \r\n pair)
-
-		RFC 1459에서도 호환성과 관련해 단일 LF를 인식하는 서버가 있다고 언급하고 있지만, 이에 대한 요구사항은 없습니다.
-
-		이 구현은 modern irc 표준을 따르므로, 단일 LF 또는 CR이 올 경우에 CRLF 짝을 맞추도록 추가하였습니다.
-		*/
-	}
-
 	// 1. ['@' <tags> SPACE]
 	// tags can be disabled by CAP negotiation, and our server will disable it.
 
@@ -139,11 +97,54 @@ bool IRCServer::RequestParser(Buffer& message, IRCContext& context)
 		# endif
 	}
 	// remove CRLF from buffer so that next message does not get deleted...
-	message.erase(message.begin(), message.begin() + 2);
+	if (message.begin() != message.end() && *(message.begin()) == '\r')
+		message.erase(message.begin());
+	if (message.begin() != message.end() && *(message.begin()) == '\n')
+		message.erase(message.begin());
 	
 	# ifdef DEBUG
 	std::cout << "[DEBUG] IRCServer: RequestParser: parse result" << context;
 	# endif
 
 	return true;
+}
+
+
+void IRCServer::AddNewLineToBuffer(Buffer& message)
+// requires CRLF
+{
+	// check for CR
+	Buffer::const_iterator it = std::find(message.begin(), message.end(), '\r');
+	// CR is not set
+	if (it == message.end())
+	{
+		// check for LF
+		Buffer::const_iterator it2 = std::find(message.begin(), message.end(), '\n');
+		// if both CR-LF is not set, then message is incomplete
+		if (it2 == message.end())
+			return ;
+		// else append CR in front of LF to match set
+		message.insert(it2, '\r');
+	}
+	// CR is set
+	else
+	{
+		// check for LF
+		if ((it + 1) == message.end() || *(it + 1) != '\n')
+		{
+			// append LF after CR to match set
+			message.insert(it + 1, '\n');
+		}
+	}
+	/*
+	notes on inserting CR or LF:
+
+	ircv3 표준과 modern irc 문서는 호환성을 위해 단일 LF(\n)만 오는 메시지 처리를 권장하고(SHOULD), 
+	단일 CR(\r)만 오는 메시지 처리를 제안합니다(MAY). 
+	(Servers SHOULD handle single \n character, and MAY handle a single \r character, as if it was a \r\n pair)
+
+	RFC 1459에서도 호환성과 관련해 단일 LF를 인식하는 서버가 있다고 언급하고 있지만, 이에 대한 요구사항은 없습니다.
+
+	이 구현은 modern irc 표준을 따르므로, 단일 LF 또는 CR이 올 경우에 CRLF 짝을 맞추도록 추가하였습니다.
+	*/
 }

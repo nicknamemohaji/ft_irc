@@ -9,10 +9,10 @@
 IRCContext::IRCContext(std::set<int>& FDset):
 	FDsPendingWrite(FDset)
 {
-	source.clear();
 	command = UNKNOWN;
 	params.clear();
 	rawMessage.clear();
+	createSource = false;
 
 	server = NULL;
 	channel = NULL;
@@ -20,13 +20,11 @@ IRCContext::IRCContext(std::set<int>& FDset):
 
 	numericResult = -1;
 	stringResult.clear();
-	FDsPendingWrite.clear();
 }
 
 std::ostream& operator<< (std::ostream& ostream, const IRCContext& context)
 {
 	ostream << "\n--- IRCContext Dump ---\n";
-	ostream << "source: [" << context.source << "]" << std::endl;
 	ostream << "command: [" << context.command << "]" << std::endl;
 	ostream << "params: " << std::endl;
 	for (std::deque<std::string>::const_iterator it = context.params.begin(); it != context.params.end(); it++)
@@ -48,6 +46,8 @@ enum IRCCommand IRCContext::ConvertStrToCommand(const std::string& command)
 	else if (command == "NICK")
 		return NICK;
 	else if (command == "MOTD")
+		return MOTD;
+	else if (command == "motd")	// WTF
 		return MOTD;
 	else if (command == "JOIN")
 		return JOIN;

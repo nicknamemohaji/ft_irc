@@ -34,9 +34,8 @@ enum IRCCommand
 struct IRCContext
 {
 	public:
-
 		// request
-		std::string source;
+		bool createSource;
 		enum IRCCommand command;
 		std::deque<std::string> params;
 		std::string rawMessage;

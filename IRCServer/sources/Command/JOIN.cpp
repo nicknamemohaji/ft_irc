@@ -29,9 +29,9 @@ void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext context, IR
 		# endif
 		std::string ret;
 		result.str("");
-		// result <<":"<< user_name << "!" << user_name << "@ft_irc.com"
-		result <<":"<< user_name
-		<< " JOIN :" << context.channel->GetChannelInfo(kChannelName) << "\r\n";
+		result <<":"<< user_name << "!" << context.client->GetUserName() << "@" << context.client->GetIP();
+		result <<" JOIN :" << context.channel->GetChannelInfo(kChannelName) << "\r\n";
+		context.createSource = true;
 		ret = result.str();
 		user_to_msg = server.GetClient(user_in_channel[i]);
 		if(!user_to_msg)
