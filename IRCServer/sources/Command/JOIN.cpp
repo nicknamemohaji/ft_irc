@@ -186,3 +186,13 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		// context.numericResult = 2;
 		// context.stringResult = result.str();
 		// context.client->Send(MakeResponse(context));
+# ifndef VERSION
+# define VERSION "42.42"
+# endif
+
+// void IRCServer::ActionJOIN(IRCContext& context)
+// {
+// 	std::stringstream result;
+
+// 	///do join
+// }

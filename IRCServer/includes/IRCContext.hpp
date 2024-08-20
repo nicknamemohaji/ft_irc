@@ -26,6 +26,8 @@ enum IRCCommand
 	NAMES,
 	PART,
 	TOPIC,
+	KICK,
+	PRIVMSG,
 };
 
 // typedef std::vector<std::vector<std::string> > StringMatrix;
