@@ -65,6 +65,7 @@ class IRCServer: public TCPServer
 		void ActionPING(IRCContext& context);
 		void ActionJOIN(IRCContext& context);
 		void ActionNAMES(IRCContext& context);
+		void ActionMODE(IRCContext& context);
 		// channel add and del
 		IRCChannel* AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
 		void DelChannel(const std::string &channel_name);

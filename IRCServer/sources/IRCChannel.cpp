@@ -20,6 +20,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
+	ChannelModeSet modes = {false, false, "", -1};
 }
 
 IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd)
@@ -34,6 +35,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
+	ChannelModeSet modes = {false, false, "", -1};
 }
 
 std::string IRCChannel::itostr(long long time) const {
@@ -133,4 +135,35 @@ std::deque<std::string> IRCChannel::GetMemberNames() const {
             member_names.push_back(user->first);
     }
     return member_names;
+}
+
+bool IRCChannel::CheckChannelMode(ChannelMode option) const {
+    switch (option)
+	{
+        case kInvite:
+        case kTopic:
+            return modes.i;
+        case kPassword:
+            return !modes.k.empty();
+        case kLimit:
+            return modes.l >= 0;
+        default:
+            return false;
+    }
+}
+
+void IRCChannel::SetInvite(bool set) {
+	modes.i = set;
+}
+
+void IRCChannel::SetTopic(bool set) {
+	modes.t = set;
+}
+
+void IRCChannel::SetPassword(std::string key) {
+	modes.k = key;
+}
+
+void IRCChannel::SetLimit(int limit) {
+	modes.l = limit;
 }

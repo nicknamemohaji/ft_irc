@@ -7,5 +7,5 @@ docker run -it --name my-running-irssi -e TERM -u $(id -u):$(id -g) \
     -v $HOME/.irssi:/home/user/.irssi:ro \
     irssi
 
-# /CONNECT host.docker.internal 6667 verystrongpassword user
-# /CONNECT irc.ubuntu.com 6667 user
+#/CONNECT host.docker.internal 6667 verystrongpassword user
+# /CONNECT irc.ubuntu.com 6667 user/
