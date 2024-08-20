@@ -58,8 +58,13 @@ void IRCServer::ActionJOIN(IRCContext& context)
 
 	std::stringstream result;
 	// pram size is over 2 errr parsing 461;
+	try{
 	if(context.params.size() > 2)
 		throw IRCError::MissingParams(); // 461
+	}
+	catch(std::exception &e){
+		e.
+	}
 	// channel name vaild check
 	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
 	# ifdef COMMAND
