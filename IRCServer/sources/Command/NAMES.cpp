@@ -33,6 +33,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# endif
 	if(this->isValidChannelName(channel_name)){
 		// throw IRCError::BadChannelName(); //476
+		context.stringResult = channel_name;
 		ErrorSender(context, 476);
 		return;
 	}

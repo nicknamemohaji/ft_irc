@@ -11,10 +11,12 @@
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionINVITE(IRCContext &context){
+	# ifdef COMMAND
 	std::cout << "invite command access" << std::endl;
 	for(unsigned int i = 0; i < context.params.size(); i++){
 		std::cout << context.params[i] << std::endl;
 	}
+	# endif
 	if(context.params.size() != 2 ){
 		ErrorSender(context, 416); // 파라미터 에러.
 		return;
