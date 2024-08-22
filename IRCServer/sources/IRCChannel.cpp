@@ -110,10 +110,7 @@ void IRCChannel::AddChannelUser(const std::string& nickname) {
 //     users_in_channel_[nickname] =  kNormal;
 // }
 
-void IRCChannel::ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option) {
-    if (!IsUserAuthorized(nickname, kOperator)) {
-        return;  // No permission
-    }
+void IRCChannel::ManageChannelPermission(const std::string& target_nickname, ChannelPermission option) {
     SetUserAuthorization(target_nickname, option);
 }
 
