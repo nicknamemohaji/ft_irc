@@ -5,6 +5,7 @@
 #include <utility>
 #include <sstream>
 #include <deque>
+#include <iostream>
 
 #include "IRCChannel.hpp"
 
@@ -20,6 +21,9 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
+    /*
+    모드 추가
+    */
 }
 
 IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd)
@@ -34,7 +38,12 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
+    /*
+    모드 추가
+    */
 }
+
+IRCChannel::~IRCChannel(){}
 
 std::string IRCChannel::itostr(long long time) const {
     std::stringstream result;
@@ -120,9 +129,20 @@ std::string IRCChannel::GetChannelInfo(ChannelInfo idx)  const {
 
 
 
-void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& target_nickname) {
-    if (IsInChannel(nickname) && !IsInvited(target_nickname)) {
-        invited_users_.push_back(target_nickname);
+void IRCChannel::AddInvitedUser(const std::string& target_nickname) {
+    invited_users_.push_back(target_nickname);
+}
+
+void IRCChannel::DelInvitedUser(const std::string& target_nickname){
+    InvitedUsers::iterator it;
+    for(it = invited_users_.begin(); it != invited_users_.end(); ++it){
+        if(*it == target_nickname){
+            invited_users_.erase(it);
+            # ifdef DEBUG
+                std::cout << "invite delted!" << std::endl;
+            # endif
+            return;
+        }
     }
 }
 

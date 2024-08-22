@@ -92,6 +92,12 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
 				// "<client> <channel> :You're not on that channel"
 				break;
+			case 401:
+				result << clientNickname << " :No such nick/channel";
+				break;
+			case 443:
+				result << clientNickname << " " <<  context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
+				break;
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH
@@ -106,7 +112,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 		// source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
 		// can omit username and hostname for client source
 		if (context.createSource)
-			result << context.client->GetNickname() << "!" << context.client->GetUserName() << "@" << context.client->GetIP() << " ";		
+			result << ":" << context.client->GetNickname() << "!" << context.client->GetUserName() << "@" << context.client->GetIP() << " ";		
 		else
 			result << ":" << _serverName << " ";
 		

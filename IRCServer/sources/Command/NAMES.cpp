@@ -19,8 +19,11 @@ void IRCServer::ActionNAMES(IRCContext& context){
 		std::cout << "matrix size = " << PaseringMatrix.size() <<std::endl;
 	# endif
 	//파싱오류 많은 파라미터
-	if(context.params.size() > 1 || PaseringMatrix.size() > 1)
-		throw IRCError::MissingParams(); // 461
+	if(context.params.size() != 1 || PaseringMatrix.size() != 1){
+		// throw IRCError::MissingParams(); // 461
+		ErrorSender(context, 461);
+		return;
+	}
 	for(unsigned int i = 0; i < PaseringMatrix.size(); ++i){
 	if(PaseringMatrix[0][i] == "")
 		continue;
@@ -28,16 +31,23 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
-	if(this->isValidChannelName(channel_name))
-		throw IRCError::BadChannelName(); //476
+	if(this->isValidChannelName(channel_name)){
+		// throw IRCError::BadChannelName(); //476
+		context.stringResult = channel_name;
+		ErrorSender(context, 476);
+		return;
+	}
 	channel = this->GetChannel(channel_name);
 	# ifdef COMMAND
 		std::cout << "channel = " << !channel <<std::endl;
 	# endif
 	if(!channel)
 	{
-		context.stringResult = channel_name; 
-		throw IRCError::NoSuchChannel(); //403
+		context.stringResult = channel_name;{
+		// throw IRCError::NoSuchChannel(); //403
+		ErrorSender(context, 403);
+		return;
+		}
 	}
 	context.channel = channel;
 	if(!channel->IsInChannel(context.client->GetNickname())){
