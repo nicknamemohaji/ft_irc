@@ -5,7 +5,6 @@
 
 #include "TCPMultiplexer.hpp"
 #include "IRCServer.hpp"
-
 int main(int argc, const char *argv[])
 {
 	if (argc != 3)

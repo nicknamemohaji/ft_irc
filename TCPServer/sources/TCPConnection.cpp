@@ -230,10 +230,10 @@ std::string TCPConnection::BufferToString(const Buffer& buf)
 std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer)
 {
 	# ifdef DEBUG
-	ostream << std::endl;
-	for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
-		ostream << "(" << (unsigned int) *it <<  "),";
-	# else
+	// ostream << std::endl;
+	// for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
+	// 	ostream << "(" << (unsigned int) *it <<  "),";
+	// # else
 	std::string ret;
 	ret.assign(buffer.begin(), buffer.end());
 	ostream << ret;

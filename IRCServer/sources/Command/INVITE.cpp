@@ -18,7 +18,7 @@ void IRCServer::ActionINVITE(IRCContext &context){
 	}
 	# endif
 	if(context.params.size() != 2 ){
-		ErrorSender(context, 416); // 파라미터 에러.
+		ErrorSender(context, 461); // 파라미터 에러.
 		return;
 	}
 	std::string user_name = context.params[0];
@@ -41,7 +41,8 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		초대 제한모드인지, 권한이 있는지 확인 하는 부분
 	*/
 	context.stringResult  = user_name;
-	channel->AddInvitedUser(user_name);
+	channel->AddInvitedUser(user_name); //채널의 초대리스트에 추가
+	context.client->AddInviteChannel(channel_name); // 유저의 초대채널리스트에 추가
 	RPL_INVITING(context);
 	context.client = GetClient(user_name);	
 	RPL_INVITED(context);

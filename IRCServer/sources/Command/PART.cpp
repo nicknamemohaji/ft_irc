@@ -78,25 +78,25 @@ void IRCServer::ActionPART(IRCContext& context){
 		#endif	
 		for(unsigned int i = 0; i < channel_name_arry.size(); i++){
 			context.channel = GetChannel(AddPrefixToChannelName(channel_name_arry[i]));
-			std::string channel_name = AddPrefixToChannelName(channel_name_arry[i]);
 			if(!context.channel){
 				#ifdef COMMAND
 				//채널없음
-				std::cout<< "channel error no channel" << channel_name << std::endl;
+				std::cout<< "channel error no channel" << channel_name_arry[i] << std::endl;
 				#endif	
-				context.stringResult = channel_name;
+				context.stringResult = channel_name_arry[i];
 				ErrorSender(context,403);
 				continue;
 			}
+			std::string channel_name = context.channel->GetChannelInfo(kChannelName);
 			if(!context.channel->IsInChannel(context.client->GetNickname())){
 				//채널에 유저 없음
 				ErrorSender(context,442);
 				continue;
 			}
 			sendPartMsg(context.channel->GetMemberNames(),context,*this,reason);
-			context.channel->DelChannelUser(context.client->GetNickname());
+			context.channel->DelChannelUser(context.client->GetNickname()); // 채널에서 유저 제거
 			if(context.channel->GetChannelUserSize() == 0)
-				this->DelChannel(channel_name);
-			context.client->DelChannel(channel_name);
+				DelChannel(channel_name); // 서버에서 채널 제거
+			context.client->DelChannel(channel_name); // 유저의 채널리스트에서 채널 제거
 		}
 }

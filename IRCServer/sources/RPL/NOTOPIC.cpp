@@ -9,7 +9,7 @@ void IRCServer::RPL_NOTOPIC(IRCContext& context){
 	context.stringResult.clear();
 	result << context.client->GetNickname()
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " :No topic is set";
-	context.numericResult = 331;
+	context.numericResult = 333;
 	context.stringResult = result.str();
 	context.client->Send(this->MakeResponse(context));	
 	context.FDsPendingWrite.insert(context.client->GetFD());

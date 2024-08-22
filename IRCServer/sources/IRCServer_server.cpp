@@ -165,6 +165,7 @@ void IRCServer::DelChannel(const std::string &channel_name){
 	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
+	delete it->second;
 	_channels.erase(it);
 }
 

@@ -142,14 +142,14 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "password error!!!" << i <<std::endl;
 					# endif
 					ErrorSender(context, 475);
-					return;
+					continue;
 					// throw IRCError::BadChannelKey(); // 475 비밀번호
 				}
 			}
 			//check channel userlimit
 			if(channel->channel_limit_ <= channel->GetChannelUserSize()){
 				ErrorSender(context, 471);
-				return;
+				continue;
 			}
 				// throw IRCError::ChannelIsFull(); //471 채널 포화
 			//check invite mode and isinvited
@@ -169,7 +169,12 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		# ifdef COMMAND
 		std::cout << "channel RPL START;" << i <<std::endl;
 		# endif
-		channel->DelInvitedUser(context.client->GetNickname());
+		/*
+			초대모드인지 확인
+			do.
+		*/
+		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거
+		context.client->DelInviteChannel(channel_name); // 유저의 초대 채널리스트에서 제거
 		sendJoinMsg(context.channel->GetMemberNames(),context, *this);
 		if(channel->GetChannelInfo(kTopicInfo) == "")
 			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333
