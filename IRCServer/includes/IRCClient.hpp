@@ -40,6 +40,10 @@ class IRCClient: public TCPConnection
 		//channel add, del, isinchannel
 		void AddChannel(const std::string &channel_name, IRCChannel *channel);
 		void DelChannel(const std::string &channel_name);
+		bool IsInChannel(const std::string &channel_name);
+		void AddInviteChannel(const std::string &channel_name);
+		void DelInviteChannel(const std::string &channel_name);
+		bool IsInviteChannel(const std::string &channel_name);
 		bool IsInChannel(const std::string &channel_name) const;
 		IRCClientChannels ListChannels(void) const;
 		
@@ -48,6 +52,8 @@ class IRCClient: public TCPConnection
 	private:
 
 		enum IRCClientActiveStatus _activeStatus;
+
+		std::vector<std::string> _invited_channels_;
 		// TODO change to std::vector<std::string>
 		IRCClientChannels _channels;
 

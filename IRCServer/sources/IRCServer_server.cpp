@@ -34,6 +34,8 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[TOPIC] = &IRCServer::ActionTOPIC;
 	this->Actions[KICK] = &IRCServer::ActionKICK;
 	this->Actions[PRIVMSG] = &IRCServer::ActionPRIVMSG;
+	this->Actions[INVITE] = &IRCServer::ActionINVITE;
+
 
 	// TODO validate server name
 }
@@ -172,6 +174,7 @@ void IRCServer::DelChannel(const std::string &channel_name){
 	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
+	delete it->second;
 	_channels.erase(it);
 }
 
@@ -205,19 +208,22 @@ bool IRCServer::isValidChannelName(const std::string &name) const {
 	return true;
 }
 
-std::vector<std::string> IRCServer::PaserSep(std::string& str, const char* sep)
+std::vector<std::string> IRCServer::ParserSep(const std::string& str, const std::string& sep)
 {
-	std::vector<std::string> param;
-	while(1)
-	{
-		if(str.find(',') == std::string::npos){
-	        param.push_back(str);
-			break;
-        }
-		std::string cutstring = str.substr(0,str.find(sep));
-		param.push_back(cutstring);
-		str = str.substr(str.find(sep) + 1);
-	}
+    std::vector<std::string> param;
+    size_t start = 0;
+    size_t end = str.find(sep);
+    
+    while (end != std::string::npos)
+    {
+        param.push_back(str.substr(start, end - start));
+        start = end + sep.length();
+        end = str.find(sep, start);
+    }
+    
+    // 마지막 요소 추가
+    param.push_back(str.substr(start));
+    
     return param;
 }
 
@@ -225,7 +231,7 @@ StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
 	StringMatrix ret;
 	for(unsigned int i = 0; i < param.size(); i++)
 	{
-		std::vector<std::string> get_parsing = PaserSep(param[i], ",");
+		std::vector<std::string> get_parsing = ParserSep(param[i], ",");
 		ret.push_back(get_parsing);
 	}
 	return ret;
