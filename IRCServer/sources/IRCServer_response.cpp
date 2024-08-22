@@ -106,7 +106,9 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 		// source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
 		// can omit username and hostname for client source
 		if (context.createSource)
-			result << context.client->GetNickname() << "!" << context.client->GetUserName() << "@" << context.client->GetIP() << " ";		
+			result << ":" << context.client->GetNickname()
+				<< "!" << context.client->GetUserName()
+				<< "@" << context.client->GetIP() << " ";		
 		else
 			result << ":" << _serverName << " ";
 		

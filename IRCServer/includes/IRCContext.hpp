@@ -19,6 +19,7 @@ enum IRCCommand
 	PASS,
 	USER,
 	NICK,
+	QUIT,
 	// server informatin
 	MOTD,
 	PING,

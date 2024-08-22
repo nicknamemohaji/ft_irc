@@ -77,11 +77,16 @@ void IRCClient::AddChannel(const std::string &channel_name, IRCChannel *channel)
 	_channels[channel_name] = channel;
 }
 void IRCClient::DelChannel(const std::string &channel_name){
-	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
+	IRCClientChannels::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
 	_channels.erase(it);
 }
-bool IRCClient::IsInChannel(const std::string &channel_name){
+bool IRCClient::IsInChannel(const std::string &channel_name) const {
 	return _channels.find(channel_name) != _channels.end();
+}
+
+IRCClientChannels IRCClient::ListChannels(void) const
+{
+	return _channels;
 }

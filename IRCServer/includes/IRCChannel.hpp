@@ -38,6 +38,7 @@ enum ChannelInfo {
 };
 typedef std::map<std::string, ChannelPermission> UserInChannel;
 typedef std::vector<std::string> InvitedUsers;
+typedef std::deque<std::string> ChannelUsers;
 
 class IRCChannel {
 public:

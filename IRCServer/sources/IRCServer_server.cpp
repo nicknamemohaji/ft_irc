@@ -27,6 +27,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[NICK] = &IRCServer::ActionAcceptClient;
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
+	this->Actions[QUIT] = &IRCServer::ActionQUIT;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
 	this->Actions[PART] = &IRCServer::ActionPART;
@@ -140,6 +141,14 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 	conn->SendBuffer();
 	if (conn->GetSendBufferSize() == 0)
 	{
+		if (conn->GetStatus() == PENDING_QUIT)
+		{
+			_clients.erase(_clients.find(conn->GetNickname()));
+			conn->Close();
+			shouldRead = false;
+			shouldEndWrite = true;
+			return ;
+		}
 		shouldRead = true;
 		shouldEndWrite = true;
 	}
