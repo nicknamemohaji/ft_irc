@@ -58,12 +58,23 @@ void IRCServer::ActionJOIN(IRCContext& context)
 
 	std::stringstream result;
 	// pram size is over 2 errr parsing 461;
-	if(context.params.size() > 2)
-		ErrorSender(context,461);
 		//throw IRCError::MissingParams(); // 461
 	// channel name vaild check
+	if(!(context.params.size() > 0 && context.params.size() < 3)){
+		ErrorSender(context,461);
+		return;
+	}
+	# ifdef COMMAND
+		for(unsigned int i = 0; i < context.params.size(); ++i)
+		{
+			std::cout << "context idx" << i << " " << std::endl;
+			std::cout << context.params[i] << std::endl;	
+			std::cout << std::endl;
+		}
+	# endif
 	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
 	# ifdef COMMAND
+		std::cout << "paser matri size = " << PaseringMatrix.size() << std::endl;
 		std::cout << "paser idx 0 size = " << PaseringMatrix[0].size() << std::endl;
 		for(unsigned int i = 0; i < PaseringMatrix.size(); ++i)
 		{
@@ -73,33 +84,32 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << std::endl;
 		}
 	# endif
-	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i)
-	{
-		if(isValidChannelName(PaseringMatrix[0][i])){
-			context.stringResult = PaseringMatrix[0][i]; 
+	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
+		std::string channel_name =AddPrefixToChannelName(PaseringMatrix[0][i]);
+		if(isValidChannelName(channel_name)){
+			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
+			continue;
 			// throw IRCError::BadChannelName(); //476
 		}
-	}
-	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
 		IRCChannel* channel;
-		if(!IsChannelInList(PaseringMatrix[0][i]))
+		if(!IsChannelInList(channel_name))
 		{
 			# ifdef COMMAND
-			std::cout << "New channel create " << i <<std::endl;
+			std::cout << "New channel create " << i  << channel_name <<std::endl;
 			# endif
 			//make new channel
-			if(PaseringMatrix.size() > 1 && PaseringMatrix[1].size() >= i){
-			# ifdef COMMAND
-			std::cout << PaseringMatrix[1][i] <<"passowrd channel create ! " <<std::endl;
-			# endif	
-				channel = AddChannel(context.client->GetNickname(),PaseringMatrix[0][i],PaseringMatrix[1][i]);
+			if(PaseringMatrix.size() >1 && PaseringMatrix[1][i] != "x"){
+				# ifdef COMMAND
+				std::cout << PaseringMatrix[1][i] <<" passowrd channel create ! " <<std::endl;
+				# endif	
+				channel = AddChannel(context.client->GetNickname(),channel_name,PaseringMatrix[1][i]);
 			}
 			else{
-			# ifdef COMMAND
-			std::cout << "no passowrd channel create ! " <<std::endl;
-			# endif	
-				channel = AddChannel(context.client->GetNickname(),PaseringMatrix[0][i],"");
+				# ifdef COMMAND
+				std::cout << "no passowrd channel create ! " <<std::endl;
+				# endif	
+				channel = AddChannel(context.client->GetNickname(),channel_name,"");
 			}
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			context.channel = channel;
@@ -113,7 +123,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			# endif
 			//exist channel
 			//already in channel
-			channel = this->GetChannel(PaseringMatrix[0][i]);
+			channel = this->GetChannel(channel_name);
 			context.channel = channel;
 			if(channel->IsInChannel(context.client->GetNickname()) == true){
 				# ifdef COMMAND
@@ -132,12 +142,15 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "password error!!!" << i <<std::endl;
 					# endif
 					ErrorSender(context, 475);
+					return;
 					// throw IRCError::BadChannelKey(); // 475 비밀번호
 				}
 			}
 			//check channel userlimit
-			if(channel->channel_limit_ <= channel->GetChannelUserSize())
+			if(channel->channel_limit_ <= channel->GetChannelUserSize()){
 				ErrorSender(context, 471);
+				return;
+			}
 				// throw IRCError::ChannelIsFull(); //471 채널 포화
 			//check invite mode and isinvited
 			/*

@@ -66,7 +66,7 @@ public:
     bool MatchPassword(const std::string& password) const;
 
     // Permission management
-    void ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option);
+    void ManageChannelPermission(const std::string& target_nickname, ChannelPermission option);
 
     // Getters
     std::string GetChannelInfo(ChannelInfo idx) const;

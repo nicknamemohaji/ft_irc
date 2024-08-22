@@ -50,6 +50,10 @@ void sendTopicMsg(std::deque<std::string> user_in_channel, IRCContext context, I
 
 void IRCServer::ActionTOPIC(IRCContext &context)
 {
+	if(!(context.params.size() > 0 && context.params.size() < 3)){
+		ErrorSender(context, 461);
+		return;
+	}
 #ifdef COMMAND
 	std::cout << "param size = " << context.params.size() << std::endl;
 	for (unsigned int i = 0; i < context.params.size(); i++)
@@ -62,11 +66,11 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 	if (!channel)
 	{
 		context.stringResult = AddPrefixToChannelName(context.params[0]);
-		ErrorSender(context, 403);
+		ErrorSender(context, 403); // no such channel
 		return;
 	}
 	if(!channel->IsInChannel(context.client->GetNickname())){
-		ErrorSender(context, 442);
+		ErrorSender(context, 442); // you are not in channel
 		return;
 	}
 	/*

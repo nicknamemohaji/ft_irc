@@ -56,16 +56,20 @@ void sendPartMsg(std::deque<std::string> user_in_channel, IRCContext context, IR
 	# endif
 }
 void IRCServer::ActionPART(IRCContext& context){
-	# ifdef COMMAND
-		std::cout << "param size = " << context.params.size() <<std::endl;
-		std::cout << "param 0 =" << context.params[0] <<std::endl;
-		std::cout << "param 1 = " << context.params[1] <<std::endl;
-	# endif
 		//  param size =1 channel left;
+			std::cout << " PRAT param size = " << context.params.size() <<std::endl;
+		if(!(context.params.size() > 0 && context.params.size() < 3)){
+			ErrorSender(context, 461);
+			return;
+		}
+		# ifdef COMMAND
+			std::cout << "param 0 =" << context.params[0] <<std::endl;
+			std::cout << "param 1 = " << context.params[1] <<std::endl;
+		# endif
 		std::string reason;
 		if(context.params.size() == 2)
 			reason = context.params[1];
-		std::vector<std::string>channel_name_arry =  PaserSep(context.params[0],",");
+		std::vector<std::string>channel_name_arry =  ParserSep(context.params[0],",");
 		#ifdef COMMAND
 		std::cout<< "result of paser channel name = " << std::endl;
 		for(unsigned int i = 0; i < channel_name_arry.size(); i++){
@@ -74,12 +78,13 @@ void IRCServer::ActionPART(IRCContext& context){
 		#endif	
 		for(unsigned int i = 0; i < channel_name_arry.size(); i++){
 			context.channel = GetChannel(AddPrefixToChannelName(channel_name_arry[i]));
+			std::string channel_name = AddPrefixToChannelName(channel_name_arry[i]);
 			if(!context.channel){
 				#ifdef COMMAND
 				//채널없음
-				std::cout<< "channel error no channel" << channel_name_arry[i] << std::endl;
+				std::cout<< "channel error no channel" << channel_name << std::endl;
 				#endif	
-				context.stringResult = channel_name_arry[i];
+				context.stringResult = channel_name;
 				ErrorSender(context,403);
 				continue;
 			}
@@ -91,7 +96,7 @@ void IRCServer::ActionPART(IRCContext& context){
 			sendPartMsg(context.channel->GetMemberNames(),context,*this,reason);
 			context.channel->DelChannelUser(context.client->GetNickname());
 			if(context.channel->GetChannelUserSize() == 0)
-				this->DelChannel(channel_name_arry[i]);
-			context.client->DelChannel(channel_name_arry[i]);
+				this->DelChannel(channel_name);
+			context.client->DelChannel(channel_name);
 		}
 }
