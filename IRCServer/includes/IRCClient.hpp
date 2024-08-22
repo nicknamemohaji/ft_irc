@@ -40,6 +40,9 @@ class IRCClient: public TCPConnection
 		void AddChannel(const std::string &channel_name, IRCChannel *channel);
 		void DelChannel(const std::string &channel_name);
 		bool IsInChannel(const std::string &channel_name);
+		void AddInviteChannel(const std::string &channel_name);
+		void DelInviteChannel(const std::string &channel_name);
+		bool IsInviteChannel(const std::string &channel_name);
 	protected:
 
 	private:
@@ -47,6 +50,7 @@ class IRCClient: public TCPConnection
 		enum IRCClientActiveStatus _activeStatus;
 
 		std::map<std::string, IRCChannel*> _channels;
+		std::vector<std::string> _invited_channels_;
 
 		std::string _nickname;
 		std::string _host;
