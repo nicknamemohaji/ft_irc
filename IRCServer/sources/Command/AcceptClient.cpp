@@ -56,7 +56,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 
 		if (context.client->GetStatus() >= REGISTERED)
 		{
-			std::string prevName = context.client->GetUserName();
+			std::string prevName = context.client->GetNickname();
 
 			// send acknowledgement to user
 			context.createSource = true;

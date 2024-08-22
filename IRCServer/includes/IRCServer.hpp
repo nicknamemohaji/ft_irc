@@ -27,6 +27,7 @@ class IRCServer: public TCPServer
 			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
+		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
 		
 		// expose these methods:: 
 		StringMatrix parseStringMatrix(std::deque<std::string> &param);

@@ -31,6 +31,7 @@ void IRCServer::ActionQUIT(IRCContext& context)
 		// change name from channel
 		context.channel->DelChannelUser(clientName);
 	}
+	client->Send(MakeResponse(context));
 	// TODO remove from invitelist after merge
 
 	// acknoledgement to client

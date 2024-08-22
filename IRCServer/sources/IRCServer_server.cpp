@@ -161,6 +161,40 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 	}
 }
 
+void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWriteFDs)
+{
+	IRCClient* conn = static_cast<IRCClient*>(_conn);
+
+	// check if user is not deleted
+	if (GetClient(conn->GetNickname()) == NULL)
+		return ;
+
+	IRCContext context(shouldWriteFDs);
+
+	// TODO remove repeated code segment (QUIT.cpp > ActionQUIT)
+	IRCClientChannels channels = conn->ListChannels();
+	for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
+	{
+		// broadcast
+		context.numericResult = -1;
+		context.client = conn;
+		context.channel = it->second;
+		context.stringResult = "Error: Client quited unexpectidly";
+		context.createSource = true;
+		SendMessageToChannel(context, false);
+		// change name from channel
+		context.channel->DelChannelUser(conn->GetNickname());
+	}
+
+	// TODO remove repeated code segment (IRCServer_server.cpp > WriteEvent)
+	_clients.erase(_clients.find(conn->GetNickname()));
+	conn->Close();
+
+	return ;
+}
+
+/***********************/
+
 IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
 	#ifdef COMMAND
 	std::cout << "create channel " << channel_name << " password is " << channel_password << std::endl;
