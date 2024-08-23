@@ -22,7 +22,7 @@ void IRCServer::ErrorSender(IRCContext context, unsigned int errornum){
 void IRCServer::ActionPART(IRCContext& context){
 		//  param size =1 channel left;
 			std::cout << " PRAT param size = " << context.params.size() <<std::endl;
-		if(!(context.params.size() > 0 && context.params.size() < 3)){
+		if(!(context.params.size() == 1 || context.params.size() == 2)){
 			ErrorSender(context, 461);
 			return;
 		}
@@ -33,21 +33,21 @@ void IRCServer::ActionPART(IRCContext& context){
 		std::string reason;
 		if(context.params.size() == 2)
 			reason = context.params[1];
-		std::vector<std::string>channel_name_arry =  ParserSep(context.params[0],",");
+		std::vector<std::string>channel_names =  ParserSep(context.params[0],",");
 		#ifdef COMMAND
 		std::cout<< "result of paser channel name = " << std::endl;
-		for(unsigned int i = 0; i < channel_name_arry.size(); i++){
-			std::cout << "channel name "<< i <<" "<< channel_name_arry[i] << std::endl;
+		for(unsigned int i = 0; i < channel_names.size(); i++){
+			std::cout << "channel name "<< i <<" "<< channel_names[i] << std::endl;
 		}
 		#endif	
-		for(unsigned int i = 0; i < channel_name_arry.size(); i++){
-			context.channel = GetChannel(AddPrefixToChannelName(channel_name_arry[i]));
+		for(unsigned int i = 0; i < channel_names.size(); i++){
+			context.channel = GetChannel(AddPrefixToChannelName(channel_names[i]));
 			if(!context.channel){
 				#ifdef COMMAND
 				//채널없음
-				std::cout<< "channel error no channel" << channel_name_arry[i] << std::endl;
+				std::cout<< "channel error no channel" << channel_names[i] << std::endl;
 				#endif	
-				context.stringResult = channel_name_arry[i];
+				context.stringResult = channel_names[i];
 				ErrorSender(context,403);
 				continue;
 			}
