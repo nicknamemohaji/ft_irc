@@ -19,6 +19,7 @@ enum IRCCommand
 	PASS,
 	USER,
 	NICK,
+	QUIT,
 	// server informatin
 	MOTD,
 	PING,
@@ -29,15 +30,15 @@ enum IRCCommand
 	TOPIC,
 	KICK,
 	PRIVMSG,
+	INVITE,
 };
 
 // typedef std::vector<std::vector<std::string> > StringMatrix;
 struct IRCContext
 {
 	public:
-
 		// request
-		std::string source;
+		bool createSource;
 		enum IRCCommand command;
 		std::deque<std::string> params;
 		std::string rawMessage;

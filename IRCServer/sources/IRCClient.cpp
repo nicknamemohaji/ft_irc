@@ -4,12 +4,13 @@
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCChannel.hpp"
+#include "IRCErrors.hpp"
 
 IRCClient::IRCClient(const int sockFD):
 	TCPConnection(sockFD),
 	_activeStatus(REGISTER_PENDING),
 	_nickname(""),
-	_host("")
+	_username("")
 {
 	# ifdef DEBUG
 	std::cout << "[INFO] IRCClient: Constructor: instnace created" << std::endl;
@@ -38,9 +39,12 @@ void IRCClient::SetStatus(enum IRCClientActiveStatus newStatus)
 	_activeStatus = newStatus;
 }
 
-void IRCClient::SetHostName(const std::string& name)
+void IRCClient::SetUserName(const std::string& name)
 {
-	_host = name;
+	if (_username.size() == 0)
+		_username = name;
+	else
+		throw IRCError::AlreadyRegistered();
 }
 
 void IRCClient::SetNickName(const std::string& name)
@@ -62,22 +66,50 @@ std::string IRCClient::GetNickname(void) const
 	return _nickname;
 }
 
-std::string IRCClient::GetHostName(void) const
+std::string IRCClient::GetUserName(void) const
 {
-	if (_host.length() == 0)
-		return "*";
-	return _host;
+	if (_username.length() == 0)
+		return "~" + _nickname;
+	return "~" + _username;
 }
 
 void IRCClient::AddChannel(const std::string &channel_name, IRCChannel *channel){
 	_channels[channel_name] = channel;
 }
 void IRCClient::DelChannel(const std::string &channel_name){
-	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
+	IRCClientChannels::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
 	_channels.erase(it);
 }
-bool IRCClient::IsInChannel(const std::string &channel_name){
+bool IRCClient::IsInChannel(const std::string &channel_name) const {
 	return _channels.find(channel_name) != _channels.end();
+}
+
+void IRCClient::AddInviteChannel(const std::string &channel_name){
+	_invited_channels_.push_back(channel_name);
+}
+void IRCClient::DelInviteChannel(const std::string &channel_name){
+	std::vector<std::string>::iterator it;
+	for(it = _invited_channels_.begin(); it != _invited_channels_.end(); it++){
+		if(*it == channel_name){
+			_invited_channels_.erase(it);
+			return;
+		}
+	}
+}
+
+bool IRCClient::IsInviteChannel(const std::string &channel_name){
+	std::vector<std::string>::iterator it;
+	for(it = _invited_channels_.begin(); it != _invited_channels_.end(); it++){
+		if(*it == channel_name){
+			return true;
+		}
+	}
+	return false;
+}
+
+IRCClientChannels IRCClient::ListChannels(void) const
+{
+	return _channels;
 }

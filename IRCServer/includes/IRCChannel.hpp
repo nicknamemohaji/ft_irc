@@ -8,6 +8,7 @@
 #include <utility>
 #include <sstream>
 #include <deque>
+#include <iostream>
 
 #include "IRCClient.hpp"
 
@@ -45,6 +46,7 @@ enum ChannelInfo {
 };
 typedef std::map<std::string, ChannelPermission> UserInChannel;
 typedef std::vector<std::string> InvitedUsers;
+typedef std::deque<std::string> ChannelUsers;
 
 class IRCChannel {
 public:
@@ -63,7 +65,8 @@ public:
     void SetTopic(const std::string& nickname, const std::string& topic);
 
     // User management
-    void AddInvitedUser(const std::string& nickname, const std::string& target_nickname);
+    void AddInvitedUser(const std::string& target_nickname);
+    void DelInvitedUser(const std::string& target_nickname);
     void AddChannelUser(const std::string& nickname);
     void DelChannelUser(const std::string& nickname);
 
@@ -71,7 +74,7 @@ public:
     bool MatchPassword(const std::string& password) const;
 
     // Permission management
-    void ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option);
+    void ManageChannelPermission(const std::string& target_nickname, ChannelPermission option);
 
     // Getters
     std::string GetChannelInfo(ChannelInfo idx) const;

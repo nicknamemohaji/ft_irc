@@ -51,6 +51,8 @@ TCPConnection::TCPConnection(const int sockFd):
  		) != 0)
 		throw TCPErrors::SystemCallError("fcntl(2)");
 
+	_sendBuf.clear();
+	_recvBuf.clear();
 	# ifdef DEBUG
 	std::cout << "[INFO] TCPConnection: Constructor: instnace created for fd " << _clientSocket << ", ip " << _clientIP << std::endl;
 	# endif
@@ -176,7 +178,7 @@ void TCPConnection::SendBuffer(void)
 	int err = send(
 		_clientSocket,		// sockfd
 		_sendBuf.data(),	// msg
-		_sendBuf.size(),	// len
+		_sendBuf.size() > 512 ? 512 : _sendBuf.size(),	// len
 		0					// flags: 0
 							// (MSG_NOSIGNAL is not available in mac)
 	);
@@ -188,7 +190,7 @@ void TCPConnection::SendBuffer(void)
 		_sendBuf.clear();
 	// short count
 	else
-		_sendBuf.erase(_sendBuf.begin(), _sendBuf.end());
+		_sendBuf.erase(_sendBuf.begin(), _sendBuf.begin() + err);
 
 	# ifdef DEBUG
 	std::cout << "[DEBUG] TCPConnection: SendBuffer: sent " << err << " bytes to client " << _clientIP << std::endl;
@@ -227,10 +229,10 @@ std::string TCPConnection::BufferToString(const Buffer& buf)
 std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer)
 {
 	# ifdef DEBUG
-	ostream << std::endl;
-	for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
-		ostream << "(" << (unsigned int) *it <<  "),";
-	# else
+	// ostream << std::endl;
+	// for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
+	// 	ostream << "(" << (unsigned int) *it <<  "),";
+	// # else
 	std::string ret;
 	ret.assign(buffer.begin(), buffer.end());
 	ostream << ret;

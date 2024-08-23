@@ -6,6 +6,7 @@
 #include <sstream>
 #include <deque>
 #include <queue>
+#include <iostream>
 
 #include "IRCChannel.hpp"
 
@@ -16,7 +17,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
     SetChannelInfo(kTopicInfo,"");
     SetChannelInfo(kChannelPassword,"");
-    SetChannelInfo(kTopicEditUser,"");
+    SetChannelInfo(kTopicEditUser,"NONE");
     channel_limit_ = kMaxChannelUsers;
     invited_users_.clear();
     users_in_channel_.clear();
@@ -31,13 +32,15 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kChannelDate,itostr(std::time(NULL)));
     SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
     SetChannelInfo(kTopicInfo,"");
-    SetChannelInfo(kTopicEditUser,"");
+    SetChannelInfo(kTopicEditUser,"NONE");
     channel_limit_ = kMaxChannelUsers;
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
 	ChannelModeSet modes = {false, false, "", -1};
 }
+
+IRCChannel::~IRCChannel(){}
 
 std::string IRCChannel::itostr(long long time) const {
     std::stringstream result;
@@ -113,10 +116,7 @@ void IRCChannel::AddChannelUser(const std::string& nickname) {
 //     users_in_channel_[nickname] =  kNormal;
 // }
 
-void IRCChannel::ManageChannelPermission(const std::string& nickname, const std::string& target_nickname, ChannelPermission option) {
-    if (!IsUserAuthorized(nickname, kOperator)) {
-        return;  // No permission
-    }
+void IRCChannel::ManageChannelPermission(const std::string& target_nickname, ChannelPermission option) {
     SetUserAuthorization(target_nickname, option);
 }
 
@@ -126,9 +126,20 @@ std::string IRCChannel::GetChannelInfo(ChannelInfo idx)  const {
 
 
 
-void IRCChannel::AddInvitedUser(const std::string& nickname, const std::string& target_nickname) {
-    if (IsInChannel(nickname) && !IsInvited(target_nickname)) {
-        invited_users_.push_back(target_nickname);
+void IRCChannel::AddInvitedUser(const std::string& target_nickname) {
+    invited_users_.push_back(target_nickname);
+}
+
+void IRCChannel::DelInvitedUser(const std::string& target_nickname){
+    InvitedUsers::iterator it;
+    for(it = invited_users_.begin(); it != invited_users_.end(); ++it){
+        if(*it == target_nickname){
+            invited_users_.erase(it);
+            # ifdef DEBUG
+                std::cout << "invite delted!" << std::endl;
+            # endif
+            return;
+        }
     }
 }
 

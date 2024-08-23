@@ -24,6 +24,8 @@ class TCPServer
 			bool& shouldEndRead, std::set<int> &shouldWriteFDs) = 0;
 		virtual void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite) = 0;
+		virtual void RemoveConnection(
+			TCPConnection* conn, std::set<int> &shouldWriteFDs) = 0;
 
 		// getters
 		int GetFD(void) const;

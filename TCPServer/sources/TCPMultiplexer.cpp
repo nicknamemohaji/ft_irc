@@ -137,8 +137,13 @@ void TCPMultiplexer::AddConnection(TCPConnection* connection, TCPServer* server)
 	AddKevent(connection->GetFD(), EVFILT_READ);
 }
 
-void TCPMultiplexer::RemoveConnection(TCPConnection* connection)
+void TCPMultiplexer::RemoveConnection(Client client, std::set<int> &shouldWriteFDs)
 {
+	TCPServer* server = client.first;
+	TCPConnection* connection = client.second;
+
+	server->RemoveConnection(connection, shouldWriteFDs);
+
 	std::map<int, Client>::iterator it = _clients.find(connection->GetFD());
 	if (it == _clients.end())
 	{
@@ -239,25 +244,16 @@ void TCPMultiplexer::WaitEvent(void)
 		TCPConnection* connection = client.second;
 
 		// check for error
-		if (events[i].flags & EV_EOF)
+		if (events[i].flags & EV_EOF || events[i].flags & EV_ERROR)
 		{
 			# ifdef DEBUG
 			std::cout << "[DEBUG] TCPMultiplexer: WaitEvent: socket closed" << std::endl;
 			# endif
 
-			RemoveConnection(connection);
-			delete connection;
-			continue ;
-		}
-		if (events[i].flags & EV_ERROR)
-		{
-			# ifdef DEBUG
-			std::cout << "[WARNING] TCPMultiplexer: WaitEvent: client error detected" << std::endl;
-			# endif
-
-			RemoveConnection(connection);
-			delete connection;
-			
+			std::set<int> shouldWriteFDs;
+			RemoveConnection(client, shouldWriteFDs);
+			for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)
+					AddKevent(*it, EVFILT_WRITE);
 			continue ;
 		}
 
@@ -269,7 +265,8 @@ void TCPMultiplexer::WaitEvent(void)
 			{
 				std::set<int> shouldWriteFDs;
 				bool shouldEndRead;
-				server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
+				while (connection->GetRecvBufferSize() > 0)
+					server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
 				if (shouldEndRead)
 					RemoveKevent(connection->GetFD(), EVFILT_READ);
 				for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)

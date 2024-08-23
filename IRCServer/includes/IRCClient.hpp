@@ -1,20 +1,21 @@
 #ifndef IRCCLIENT_HPP
 #define IRCCLIENT_HPP
 
+#include "TCPConnection.hpp"
+
 #include <string>
 #include <map>
 
-#include "TCPConnection.hpp"
-
 class IRCChannel;
-
 struct IRCContext;
+typedef std::map<std::string, IRCChannel*> IRCClientChannels;
 
 enum IRCClientActiveStatus
 {
-	REGISTER_PENDING,	// CAP, PASS
-	REGISTER_ONGOING,	// USER, NICK
-	REGISTERED			// registered
+	REGISTER_PENDING,	// pending PASS
+	REGISTER_PASS,		// PASS is registered
+	REGISTERED,			// registered
+	PENDING_QUIT
 };
 
 class IRCClient: public TCPConnection
@@ -29,27 +30,35 @@ class IRCClient: public TCPConnection
 		// getters
 		enum IRCClientActiveStatus GetStatus(void) const;
 		std::string GetNickname(void) const;
-		std::string GetHostName(void) const;
+		std::string GetUserName(void) const;
 		
 		// setters
 		void SetStatus(enum IRCClientActiveStatus newStatus);
 		void SetNickName(const std::string& name);
-		void SetHostName(const std::string& name);
+		void SetUserName(const std::string& name);
 
 		//channel add, del, isinchannel
 		void AddChannel(const std::string &channel_name, IRCChannel *channel);
 		void DelChannel(const std::string &channel_name);
 		bool IsInChannel(const std::string &channel_name);
+		void AddInviteChannel(const std::string &channel_name);
+		void DelInviteChannel(const std::string &channel_name);
+		bool IsInviteChannel(const std::string &channel_name);
+		bool IsInChannel(const std::string &channel_name) const;
+		IRCClientChannels ListChannels(void) const;
+		
 	protected:
 
 	private:
 
 		enum IRCClientActiveStatus _activeStatus;
 
-		std::map<std::string, IRCChannel*> _channels;
+		std::vector<std::string> _invited_channels_;
+		// TODO change to std::vector<std::string>
+		IRCClientChannels _channels;
 
 		std::string _nickname;
-		std::string _host;
+		std::string _username;
 };
 
 #include "IRCChannel.hpp"

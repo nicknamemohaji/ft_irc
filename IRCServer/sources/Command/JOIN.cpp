@@ -14,42 +14,6 @@
 //RPL_CREATIONTIME (329)
 // "<client> <channel> <creationtime>"
 
-
-void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext context, IRCServer& server)
-{	
-	std::stringstream result;
-	IRCClient *user_to_msg;
-	std::string user_name = context.client->GetNickname();
-	# ifdef COMMAND
-	std::cout << "JOIN msg to channel size = "  << user_in_channel.size() << std::endl;
-	# endif
-	for(unsigned int i = 0; i < user_in_channel.size(); ++i){
-		# ifdef COMMAND
-		std::cout << "JOIN msg to channel user = "  << user_in_channel[i] << std::endl;
-		# endif
-		std::string ret;
-		result.str("");
-		// result <<":"<< user_name << "!" << user_name << "@ft_irc.com"
-		result <<":"<< user_name
-		<< " JOIN :" << context.channel->GetChannelInfo(kChannelName) << "\r\n";
-		ret = result.str();
-		user_to_msg = server.GetClient(user_in_channel[i]);
-		if(!user_to_msg)
-			continue;
-	# ifdef COMMAND
-		// std::cout << "Sucesse sned JOIN msg to channel, to " << user_to_msg->GetNickname()  << "the fd is" << user_to_msg->GetFD() << std::endl;
-		std::cout << "msg" << std::endl;
-		std::cout << ret << std::endl;
-	# endif	
-		context.client = user_to_msg;
-		context.client->Send(ret);
-		context.FDsPendingWrite.insert(context.client->GetFD());
-	}
-	# ifdef COMMAND
-		std::cout << "JOIN msg to channel end "  << std::endl;
-	# endif
-}
-
 void IRCServer::ActionJOIN(IRCContext& context)
 {
 	# ifdef COMMAND
@@ -58,12 +22,23 @@ void IRCServer::ActionJOIN(IRCContext& context)
 
 	std::stringstream result;
 	// pram size is over 2 errr parsing 461;
-	if(context.params.size() > 2)
-		ErrorSender(context,461);
 		//throw IRCError::MissingParams(); // 461
 	// channel name vaild check
+	if(!(context.params.size() > 0 && context.params.size() < 3)){
+		ErrorSender(context,461);
+		return;
+	}
+	# ifdef COMMAND
+		for(unsigned int i = 0; i < context.params.size(); ++i)
+		{
+			std::cout << "context idx" << i << " " << std::endl;
+			std::cout << context.params[i] << std::endl;	
+			std::cout << std::endl;
+		}
+	# endif
 	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
 	# ifdef COMMAND
+		std::cout << "paser matri size = " << PaseringMatrix.size() << std::endl;
 		std::cout << "paser idx 0 size = " << PaseringMatrix[0].size() << std::endl;
 		for(unsigned int i = 0; i < PaseringMatrix.size(); ++i)
 		{
@@ -73,33 +48,32 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << std::endl;
 		}
 	# endif
-	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i)
-	{
-		if(isValidChannelName(PaseringMatrix[0][i])){
-			context.stringResult = PaseringMatrix[0][i]; 
+	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
+		std::string channel_name =AddPrefixToChannelName(PaseringMatrix[0][i]);
+		if(isValidChannelName(channel_name)){
+			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
+			continue;
 			// throw IRCError::BadChannelName(); //476
 		}
-	}
-	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
 		IRCChannel* channel;
-		if(!IsChannelInList(PaseringMatrix[0][i]))
+		if(!IsChannelInList(channel_name))
 		{
 			# ifdef COMMAND
-			std::cout << "New channel create " << i <<std::endl;
+			std::cout << "New channel create " << i  << channel_name <<std::endl;
 			# endif
 			//make new channel
-			if(PaseringMatrix.size() > 1 && PaseringMatrix[1].size() >= i){
-			# ifdef COMMAND
-			std::cout << PaseringMatrix[1][i] <<"passowrd channel create ! " <<std::endl;
-			# endif	
-				channel = AddChannel(context.client->GetNickname(),PaseringMatrix[0][i],PaseringMatrix[1][i]);
+			if(PaseringMatrix.size() >1 && PaseringMatrix[1][i] != "x"){
+				# ifdef COMMAND
+				std::cout << PaseringMatrix[1][i] <<" passowrd channel create ! " <<std::endl;
+				# endif	
+				channel = AddChannel(context.client->GetNickname(),channel_name,PaseringMatrix[1][i]);
 			}
 			else{
-			# ifdef COMMAND
-			std::cout << "no passowrd channel create ! " <<std::endl;
-			# endif	
-				channel = AddChannel(context.client->GetNickname(),PaseringMatrix[0][i],"");
+				# ifdef COMMAND
+				std::cout << "no passowrd channel create ! " <<std::endl;
+				# endif	
+				channel = AddChannel(context.client->GetNickname(),channel_name,"");
 			}
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			context.channel = channel;
@@ -113,7 +87,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			# endif
 			//exist channel
 			//already in channel
-			channel = this->GetChannel(PaseringMatrix[0][i]);
+			channel = this->GetChannel(channel_name);
 			context.channel = channel;
 			if(channel->IsInChannel(context.client->GetNickname()) == true){
 				# ifdef COMMAND
@@ -132,12 +106,15 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "password error!!!" << i <<std::endl;
 					# endif
 					ErrorSender(context, 475);
+					continue;
 					// throw IRCError::BadChannelKey(); // 475 비밀번호
 				}
 			}
 			//check channel userlimit
-			if(channel->channel_limit_ <= channel->GetChannelUserSize())
+			if(channel->channel_limit_ <= channel->GetChannelUserSize()){
 				ErrorSender(context, 471);
+				continue;
+			}
 				// throw IRCError::ChannelIsFull(); //471 채널 포화
 			//check invite mode and isinvited
 			/*
@@ -149,7 +126,6 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			//channel add at client and channel add client
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			channel->AddChannelUser(context.client->GetNickname());
-		
 			# ifdef COMMAND
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
@@ -157,7 +133,17 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		# ifdef COMMAND
 		std::cout << "channel RPL START;" << i <<std::endl;
 		# endif
-		sendJoinMsg(context.channel->GetMemberNames(),context, *this);
+		/*
+			초대모드인지 확인
+			do.
+		*/
+		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거
+		context.client->DelInviteChannel(channel_name); // 유저의 초대 채널리스트에서 제거
+		// sendJoinMsg(context);
+		context.numericResult = -1;
+		context.createSource = true;
+		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
+		SendMessageToChannel(context,true);
 		if(channel->GetChannelInfo(kTopicInfo) == "")
 			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333
 		else{

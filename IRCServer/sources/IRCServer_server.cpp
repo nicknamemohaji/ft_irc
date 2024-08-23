@@ -27,6 +27,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[NICK] = &IRCServer::ActionAcceptClient;
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
+	this->Actions[QUIT] = &IRCServer::ActionQUIT;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
 	this->Actions[MODE] = &IRCServer::ActionMODE;
@@ -34,6 +35,8 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[TOPIC] = &IRCServer::ActionTOPIC;
 	this->Actions[KICK] = &IRCServer::ActionKICK;
 	this->Actions[PRIVMSG] = &IRCServer::ActionPRIVMSG;
+	this->Actions[INVITE] = &IRCServer::ActionINVITE;
+
 
 	// TODO validate server name
 }
@@ -75,10 +78,18 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
+	AddNewLineToBuffer(message);
 
 	# ifdef DEBUG
 	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
 	# endif
+
+	if (*(message.begin()) == '\r')
+	{
+		message.erase(message.begin(), message.begin() + 2);
+		conn->OverwriteRecvBuffer(message);
+		return ;
+	}
 
 	IRCContext context(shouldWriteFDs);
 	context.server = this;
@@ -92,7 +103,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		// check registration status
 		if (conn->GetStatus() != REGISTERED && context.command > NICK)
 			throw IRCError::NotRegistered();
-
+		
 		/*
 		notes on IRCServer::Actions:
 
@@ -111,26 +122,17 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	{
 		// create error response
 		message = conn->ReadRecvBuffer();
+		AddNewLineToBuffer(message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
 		context.rawMessage = std::string(message.begin(), it);
-		context.numericResult = e.code();
 		// send error response
+		context.numericResult = e.code();
 		conn->Send(MakeResponse(context));
 		shouldWriteFDs.insert(conn->GetFD());
-		// clear buffer
-		if (it == message.end())
-		{
-			it = std::find(message.begin(), message.end(), '\n');
-			if (it == message.end())
-				message.clear();
-			else
-				message.erase(message.begin(), it + 1);
-		}
-		else
-			message.erase(message.begin(), it + 2);
+
+		message.erase(message.begin(), it + 2);
 	}
 
-	message.clear();
 	conn->OverwriteRecvBuffer(message);
 	shouldEndRead = false;
 }
@@ -142,6 +144,14 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 	conn->SendBuffer();
 	if (conn->GetSendBufferSize() == 0)
 	{
+		if (conn->GetStatus() == PENDING_QUIT)
+		{
+			_clients.erase(_clients.find(conn->GetNickname()));
+			conn->Close();
+			shouldRead = false;
+			shouldEndWrite = true;
+			return ;
+		}
 		shouldRead = true;
 		shouldEndWrite = true;
 	}
@@ -151,6 +161,40 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 		shouldEndWrite = false;
 	}
 }
+
+void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWriteFDs)
+{
+	IRCClient* conn = static_cast<IRCClient*>(_conn);
+
+	// check if user is not deleted
+	if (GetClient(conn->GetNickname()) == NULL)
+		return ;
+
+	IRCContext context(shouldWriteFDs);
+
+	// TODO remove repeated code segment (QUIT.cpp > ActionQUIT)
+	IRCClientChannels channels = conn->ListChannels();
+	for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
+	{
+		// broadcast
+		context.numericResult = -1;
+		context.client = conn;
+		context.channel = it->second;
+		context.stringResult = "Error: Client quited unexpectidly";
+		context.createSource = true;
+		SendMessageToChannel(context, false);
+		// change name from channel
+		context.channel->DelChannelUser(conn->GetNickname());
+	}
+
+	// TODO remove repeated code segment (IRCServer_server.cpp > WriteEvent)
+	_clients.erase(_clients.find(conn->GetNickname()));
+	conn->Close();
+
+	return ;
+}
+
+/***********************/
 
 IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password){
 	#ifdef COMMAND
@@ -165,6 +209,7 @@ void IRCServer::DelChannel(const std::string &channel_name){
 	std::map<std::string, IRCChannel*>::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
+	delete it->second;
 	_channels.erase(it);
 }
 
@@ -198,19 +243,22 @@ bool IRCServer::isValidChannelName(const std::string &name) const {
 	return true;
 }
 
-std::vector<std::string> IRCServer::PaserSep(std::string& str, const char* sep)
+std::vector<std::string> IRCServer::ParserSep(const std::string& str, const std::string& sep)
 {
-	std::vector<std::string> param;
-	while(1)
-	{
-		if(str.find(',') == std::string::npos){
-	        param.push_back(str);
-			break;
-        }
-		std::string cutstring = str.substr(0,str.find(sep));
-		param.push_back(cutstring);
-		str = str.substr(str.find(sep) + 1);
-	}
+    std::vector<std::string> param;
+    size_t start = 0;
+    size_t end = str.find(sep);
+    
+    while (end != std::string::npos)
+    {
+        param.push_back(str.substr(start, end - start));
+        start = end + sep.length();
+        end = str.find(sep, start);
+    }
+    
+    // 마지막 요소 추가
+    param.push_back(str.substr(start));
+    
     return param;
 }
 
@@ -218,7 +266,7 @@ StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
 	StringMatrix ret;
 	for(unsigned int i = 0; i < param.size(); i++)
 	{
-		std::vector<std::string> get_parsing = PaserSep(param[i], ",");
+		std::vector<std::string> get_parsing = ParserSep(param[i], ",");
 		ret.push_back(get_parsing);
 	}
 	return ret;
