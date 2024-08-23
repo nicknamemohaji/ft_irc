@@ -27,6 +27,10 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			<< context.numericResult << " ";
 		switch (context.numericResult)
 		{
+			// ERR_NOSUCHNICK
+			case 401:
+				result << clientNickname << " :No such nick/channel";
+				break ;
 			// ERR_NONICKNAMEGIVEN
 			case 431:
 				result << clientNickname << " :No nickname given";
@@ -38,6 +42,10 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			// ERR_NICKNAMEINUSE
 			case 433:
 				result << clientNickname << " :Nickname is already in use";
+				break ;
+			//ERR_USERNOTINCHANNEL
+			case 441:
+				result << clientNickname << " :They aren't on that channel";
 				break ;
 			// ERR_NOTREGISTERED
 			case 451:
@@ -57,7 +65,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				break ;
 			// ERR_CHANOPRIVSNEEDED
 			case 482:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not channel operator";
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not a channel operator";
 				break ;
 			// ERR_NOSUCHCHANNEL
 			case 403:
@@ -80,6 +88,10 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+l)";
 				break ;
 			// *ERR_INVITEONLYCHAN* (473) 인바이트 전용채널, 인바이트 안된상태
+			case 472:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :is an unknown char to me";
+				break ;
+			// *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
 			case 473:
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i)";
 				break ;

@@ -37,6 +37,7 @@ class IRCServer: public TCPServer
 		void RPL_ENDOFNAMES(IRCContext& context);
 		void RPL_NAMREPLY(IRCContext& context);
 		void RPL_CREATIONTIME(IRCContext& context);
+		void RPL_CHANNELMODEIS(IRCContext& context);
 		void ErrorSender(IRCContext context, unsigned int errornum);
 		
 	protected:

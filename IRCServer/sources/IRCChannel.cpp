@@ -5,6 +5,7 @@
 #include <utility>
 #include <sstream>
 #include <deque>
+#include <queue>
 
 #include "IRCChannel.hpp"
 
@@ -182,4 +183,28 @@ void IRCChannel::SetPassword(std::string key) {
 
 void IRCChannel::SetLimit(int limit) {
 	modes.l = limit;
+}
+
+std::string IRCChannel::GetChannelMode() const {
+    std::string m;
+	std::queue<std::string> m_info;
+	if(modes.i)
+		m += "i";
+	if(modes.t)
+		m += "t";
+	if(modes.k.size()) {
+		m += "k";
+		m_info.push(modes.k);
+	}
+	if(modes.l != -1) {
+		m += "l";
+		m_info.push(std::to_string(modes.l));
+	}
+	while(!m_info.empty()) {
+		m += ' ' + m_info.front();
+		m_info.pop();
+	}
+	if(m.size() > 1)
+		return "+" + m;
+	return m;
 }

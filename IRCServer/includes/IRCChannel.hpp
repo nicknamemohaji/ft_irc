@@ -22,8 +22,8 @@ enum ChannelPermission {
 
 // Enum for channel mode settings
 struct ChannelModeSet {
-    bool i;   // 0
-    bool t;    // 0
+    bool i;   // flase
+    bool t;    // false
     std::string k; // ""
     int l;    // -1
 };
@@ -31,8 +31,8 @@ struct ChannelModeSet {
 enum ChannelMode {
 	kInvite = 0,
     kTopic = 1,
-    kPassword = 2,
-    kLimit = 3
+    kLimit = 2,
+    kPassword = 3
 };
 
 enum ChannelInfo {
@@ -88,6 +88,7 @@ public:
 	void SetTopic(bool set);
 	void SetPassword(std::string key);
 	void SetLimit(int limit);
+	std::string GetChannelMode() const;
 
     unsigned int channel_limit_;
 

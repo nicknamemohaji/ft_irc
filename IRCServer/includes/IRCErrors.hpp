@@ -25,6 +25,7 @@ namespace IRCError
 	class ChannelIsFull;
 	class InviteOnly;
 	class BadChannelName;
+	class UnKnownModeChar;
 };
 
 // base error
@@ -186,6 +187,15 @@ class IRCError::ChannelIsFull: public IRCNumeric
 	public:
 		ChannelIsFull(void):
 			IRCNumeric(471)
+		{
+		}
+};
+// *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
+class IRCError::UnKnownModeChar: public IRCNumeric
+{
+	public:
+		UnKnownModeChar(void):
+			IRCNumeric(472)
 		{
 		}
 };
