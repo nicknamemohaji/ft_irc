@@ -89,6 +89,17 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				# endif
 				continue;
 			}
+			# ifdef COMMAND
+			std::cout << "channel RPL START;" << i << "is invite >?   " << channel->IsInvited(context.client->GetNickname()) << "is invitemode ??  " << channel->CheckChannelMode(kInvite)<<std::endl;
+			# endif
+			if(channel->CheckChannelMode(kInvite)==true && channel->IsInvited(context.client->GetNickname()) == false){
+				ErrorSender(context, 473);
+				continue;
+			}
+			# ifdef COMMAND
+			std::cout << "after invite check " <<std::endl;
+			# endif
+			//초대 모드인지, 초대된 유저인지 확인
 			if(channel->GetChannelInfo(kChannelPassword) != "")
 			{
 				//check password and correct password
@@ -122,11 +133,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
 		}
-		# ifdef COMMAND
-		std::cout << "channel RPL START;" << i <<std::endl;
-		# endif
 		/*
-			초대모드인지 확인
+			채널 최대 유저수 확인
 			do.
 		*/
 		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거

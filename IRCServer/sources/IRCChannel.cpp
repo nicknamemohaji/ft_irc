@@ -129,6 +129,8 @@ std::string IRCChannel::GetChannelInfo(ChannelInfo idx)  const {
 
 
 void IRCChannel::AddInvitedUser(const std::string& target_nickname) {
+    if(IsInvited(target_nickname))
+        return;
     invited_users_.push_back(target_nickname);
 }
 

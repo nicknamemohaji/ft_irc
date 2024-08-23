@@ -89,7 +89,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				break ;
 			// *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
 			case 473:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i)";
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i) - you must be invited";
 				break ;
 			// *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
 			case 476:
