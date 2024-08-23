@@ -11,7 +11,7 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-void IRCServer::ActionKICK(IRCContext& context)
-{
+// void IRCServer::ActionKICK(IRCContext& context)
+// {
 
-}
+// }
