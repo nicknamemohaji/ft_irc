@@ -11,44 +11,6 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-void sendModeMsg(std::deque<std::string> user_in_channel, IRCContext context, IRCServer& server, std::string& mode_result)
-{	
-	std::stringstream result;
-	IRCClient *user_to_msg;
-	std::string user_name = context.client->GetNickname();
-	# ifdef COMMAND
-	std::cout << "MODE msg to channel size = "  << user_in_channel.size() << std::endl;
-	# endif
-	for(unsigned int i = 0; i < user_in_channel.size(); ++i){
-		# ifdef COMMAND
-		std::cout << "MODE msg to channel user = "  << user_in_channel[i] << std::endl;
-		# endif
-		std::string ret;
-		result.str("");
-		// result <<":"<< user_name << "!" << user_name << "@ft_irc.com"
-		result <<":"<< user_name
-		<< " MODE " << context.channel->GetChannelInfo(kChannelName);
-		if(mode_result.size() > 1)
-			result << " :" << mode_result;
-		result << "\r\n";
-		ret = result.str();
-		user_to_msg = server.GetClient(user_in_channel[i]);
-		if(!user_to_msg)
-			continue;
-	# ifdef COMMAND
-		// std::cout << "Sucesse sned MODE msg to channel, to " << user_to_msg->GetNickname()  << "the fd is" << user_to_msg->GetFD() << std::endl;
-		std::cout << "msg" << std::endl;
-		std::cout << ret << std::endl;
-	# endif	
-		context.client = user_to_msg;
-		context.client->Send(ret);
-		context.FDsPendingWrite.insert(context.client->GetFD());
-	}
-	# ifdef COMMAND
-		std::cout << "MODE msg to channel end "  << std::endl;
-	# endif
-}
-
 void IRCServer::ActionMODE(IRCContext& context)
 {
 	# ifdef COMMAND
@@ -73,8 +35,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 			throw IRCError::NoSuchChannel(); //403
 		}
 		if(context.params.size() == 1) {
-			//this->RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 (채널 내부인/외부인 구분 필요)
-			this->RPL_CREATIONTIME(context); //CREATIONTIME 329
+			// //this->RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 (채널 내부인/외부인 구분 필요)
+			// this->RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
 		std::string user_name = context.client->GetNickname();
@@ -92,10 +54,14 @@ void IRCServer::ActionMODE(IRCContext& context)
 	int flag = true;
 	for(unsigned int i = 0; i < context.params[1].size(); i++) {
 		if(context.params[1][i] == '-') {
+			if(mode_result.size() && (mode_result[mode_result.size()-1] == '-' || mode_result[mode_result.size()-1] == '+'))
+				mode_result.erase(mode_result.size()-1);
 			mode_result += "-";
 			flag = false;
 		}
 		else if(context.params[1][i] == '+') {
+			if(mode_result.size() && (mode_result[mode_result.size()-1] == '-' || mode_result[mode_result.size()-1] == '+'))
+				mode_result.erase(mode_result.size()-1);
 			mode_result += "+";
 			flag = true;
 		}
@@ -116,9 +82,9 @@ void IRCServer::ActionMODE(IRCContext& context)
 				if(idx >= context.params.size())
 					continue;
 				std::string pwd = context.params[idx++];
-				if(!channel->CheckChannelMode(kPassword) && flag) {
-					if(pwd == "x")
-						continue;
+				if(pwd == "x")
+					continue;
+				if(flag) {
 					channel->SetPassword(pwd);
 					mode_result += "k";
 					add_result.push(pwd);
@@ -144,7 +110,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 				mode_result += "o";
 				add_result.push(target_name);
 				if(flag)
-					channel->SetUserAuthorization(target_name, kOperator);//operator권한 주는함수?
+					channel->SetUserAuthorization(target_name, kOperator);
 				else
 					channel->SetUserAuthorization(target_name, kNormal);
 			}
@@ -153,7 +119,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 					channel->SetLimit(-1);
 					mode_result += "l";
 				}
-				else if(!channel->CheckChannelMode(kLimit) && flag) {
+				else if(flag) {
 					if(idx >= context.params.size())
 						continue;
 					std::string limit_str = context.params[idx++];
@@ -167,13 +133,16 @@ void IRCServer::ActionMODE(IRCContext& context)
 			}
 		}
 	}
-	std::string sign= "-+";
-	for(int i = 0; i < mode_result.size()-1; i++) {
-		if((sign.find(mode_result[i]) != std::string::npos) && (sign.find(mode_result[i+1]) != std::string::npos)){}
+	if(mode_result.size() && (mode_result[mode_result.size()-1] == '-' || mode_result[mode_result.size()-1] == '+'))
+		mode_result.erase(mode_result.size()-1);
+	if(mode_result.size() > 1) {
+		while(!add_result.empty()) {
+			mode_result += " " + add_result.front();
+			add_result.pop();
+		}
+		context.numericResult = -1;
+		context.createSource = true;
+		context.stringResult = " MODE " + context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
+		SendMessageToChannel(context,true);
 	}
-	while(!add_result.empty()) {
-		mode_result += " " + add_result.front();
-		add_result.pop();
-	}
-	sendModeMsg(channel->GetMemberNames(),context,*this,mode_result);
 }

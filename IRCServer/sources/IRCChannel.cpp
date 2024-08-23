@@ -171,8 +171,9 @@ bool IRCChannel::CheckChannelMode(ChannelMode option) const {
     switch (option)
 	{
         case kInvite:
+			return modes.i;
         case kTopic:
-            return modes.i;
+            return modes.t;
         case kPassword:
             return !modes.k.empty();
         case kLimit:
