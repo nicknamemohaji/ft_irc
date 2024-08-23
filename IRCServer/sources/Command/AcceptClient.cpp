@@ -54,14 +54,37 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			throw IRCError::ExitstingNickname();
 		// TODO validate nickaname rule
 
-		context.client->SetNickName(context.params[0]);
-
 		if (context.client->GetStatus() >= REGISTERED)
 		{
-			// TODO announce nickname change
-			std::cout << "TODO announce change" << std::endl;
-			return ;
+			std::string prevName = context.client->GetNickname();
+
+			// send acknowledgement to user
+			context.createSource = true;
+			context.numericResult = -1;
+			context.stringResult = "NICK " + context.params[0];
+			context.client->Send(MakeResponse(context));
+			context.FDsPendingWrite.insert(context.client->GetFD());
+			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
+			IRCClientChannels channels = context.client->ListChannels();
+			for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
+			{
+				// broadcast
+				context.channel = it->second;
+				SendMessageToChannel(context, false);
+				// change name from channel
+				context.channel->DelChannelUser(prevName);
+				context.channel->AddChannelUser(context.params[0]);
+			}
+			
+			// remove previous nickname
+			_clients.erase(_clients.find(context.client->GetNickname()));
 		}
+
+		// Add new name
+		_clients[context.params[0]] = context.client;
+		context.client->SetNickName(context.params[0]);
+		if (context.client->GetStatus() >= REGISTERED)
+			return ;
 	}
 	if (context.command == USER)
 	{
@@ -74,7 +97,6 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 
 	/****** registration complete *******/
 	std::string clientNickname = context.client->GetNickname();
-	_clients[clientNickname] = context.client;
 	context.client->SetStatus(REGISTERED);
 	std::stringstream strstream;
 

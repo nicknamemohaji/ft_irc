@@ -11,6 +11,7 @@
 #include "IRCContext.hpp"
 
 typedef std::vector<std::vector<std::string> > StringMatrix;
+typedef std::map<std::string, IRCClient*> IRCServerClients;
 
 class IRCServer: public TCPServer
 {
@@ -26,6 +27,9 @@ class IRCServer: public TCPServer
 			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
+		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
+		
+		// expose these methods:: 
 		StringMatrix parseStringMatrix(std::deque<std::string> &param);
 		std::vector<std::string> ParserSep(const std::string& str, const std::string& sep);
 		//get client*
@@ -61,12 +65,13 @@ class IRCServer: public TCPServer
 		std::string MakeResponse(IRCContext& context);
 		void AddNewLineToBuffer(Buffer& message);
 		// context actions
-		void (IRCServer::*Actions[13])(IRCContext& context);
+		void (IRCServer::*Actions[14])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
+		void ActionQUIT(IRCContext& context);
 		void ActionJOIN(IRCContext& context);
 		void ActionNAMES(IRCContext& context);
 		void ActionPART(IRCContext& context);
@@ -86,6 +91,8 @@ class IRCServer: public TCPServer
 		bool isValidChannelName(const std::string& name) const;
 		std::string AddPrefixToChannelName(const std::string& name);
 		std::string DelPrefixToChannelName(const std::string& name);
+		// commons
+		void SendMessageToChannel(IRCContext& context, bool sendAlso);
 
 		// disable this constructors
 		IRCServer(void);
