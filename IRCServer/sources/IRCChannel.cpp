@@ -16,7 +16,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
     SetChannelInfo(kTopicInfo,"");
     SetChannelInfo(kChannelPassword,"");
-    SetChannelInfo(kTopicEditUser,"");
+    SetChannelInfo(kTopicEditUser,"NONE");
     channel_limit_ = kMaxChannelUsers;
     invited_users_.clear();
     users_in_channel_.clear();
@@ -33,7 +33,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kChannelDate,itostr(std::time(NULL)));
     SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
     SetChannelInfo(kTopicInfo,"");
-    SetChannelInfo(kTopicEditUser,"");
+    SetChannelInfo(kTopicEditUser,"NONE");
     channel_limit_ = kMaxChannelUsers;
     invited_users_.clear();
     users_in_channel_.clear();
