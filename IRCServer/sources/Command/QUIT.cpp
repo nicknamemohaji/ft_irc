@@ -21,16 +21,7 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	context.stringResult = ss.str();
 	
 	// delete from channels
-	// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
-	IRCClientChannels channels = client->ListChannels();
-	for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
-	{
-		// broadcast
-		context.channel = it->second;
-		SendMessageToChannel(context, false);
-		// change name from channel
-		context.channel->DelChannelUser(clientName);
-	}
+	RemoveClientFromChannel(context);
 	client->Send(MakeResponse(context));
 	// TODO remove from invitelist after merge
 
