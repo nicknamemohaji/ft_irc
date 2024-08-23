@@ -30,7 +30,6 @@ class IRCServer: public TCPServer
 		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
 		
 		// expose these methods:: 
-		StringMatrix parseStringMatrix(std::deque<std::string> &param);
 		std::vector<std::string> ParserSep(const std::string& str, const std::string& sep);
 		//get client*
 		IRCClient* GetClient(const std::string& user_name);

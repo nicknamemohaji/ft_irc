@@ -261,16 +261,6 @@ std::vector<std::string> IRCServer::ParserSep(const std::string& str, const std:
     return param;
 }
 
-StringMatrix IRCServer::parseStringMatrix(std::deque<std::string> &param){
-	StringMatrix ret;
-	for(unsigned int i = 0; i < param.size(); i++)
-	{
-		std::vector<std::string> get_parsing = ParserSep(param[i], ",");
-		ret.push_back(get_parsing);
-	}
-	return ret;
-}
-
 std::string IRCServer::AddPrefixToChannelName(const std::string& name){
 	if(name.size() < 1 || name[0] == '#')
 		return name;

@@ -12,22 +12,22 @@
 
 void IRCServer::ActionNAMES(IRCContext& context){
 	//param agument too lage!
-	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
+
 	IRCChannel *channel = 0;
 	# ifdef COMMAND
 		std::cout << "param size = " << context.params.size() <<std::endl;
-		std::cout << "matrix size = " << PaseringMatrix.size() <<std::endl;
 	# endif
 	//파싱오류 많은 파라미터
-	if(context.params.size() != 1 || PaseringMatrix.size() != 1){
+	if(context.params.size() != 1){
 		// throw IRCError::MissingParams(); // 461
 		ErrorSender(context, 461);
 		return;
 	}
-	for(unsigned int i = 0; i < PaseringMatrix.size(); ++i){
-	if(PaseringMatrix[0][i] == "")
+	std::vector<std::string> channel_names = ParserSep(context.params[0], ",");
+	for(unsigned int i = 0; i < channel_names.size(); ++i){
+	if(channel_names[i] == "")
 		continue;
-	std::string channel_name = AddPrefixToChannelName(PaseringMatrix[0][i]);
+	std::string channel_name = AddPrefixToChannelName(channel_names[i]);
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
