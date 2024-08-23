@@ -14,42 +14,6 @@
 //RPL_CREATIONTIME (329)
 // "<client> <channel> <creationtime>"
 
-
-void sendJoinMsg(std::deque<std::string> user_in_channel, IRCContext context, IRCServer& server)
-{	
-	std::stringstream result;
-	IRCClient *user_to_msg;
-	std::string user_name = context.client->GetNickname();
-	# ifdef COMMAND
-	std::cout << "JOIN msg to channel size = "  << user_in_channel.size() << std::endl;
-	# endif
-	for(unsigned int i = 0; i < user_in_channel.size(); ++i){
-		# ifdef COMMAND
-		std::cout << "JOIN msg to channel user = "  << user_in_channel[i] << std::endl;
-		# endif
-		std::string ret;
-		result.str("");
-		result <<":"<< user_name << "!" << context.client->GetUserName() << "@" << context.client->GetIP();
-		result <<" JOIN :" << context.channel->GetChannelInfo(kChannelName) << "\r\n";
-		context.createSource = true;
-		ret = result.str();
-		user_to_msg = server.GetClient(user_in_channel[i]);
-		if(!user_to_msg)
-			continue;
-	# ifdef COMMAND
-		// std::cout << "Sucesse sned JOIN msg to channel, to " << user_to_msg->GetNickname()  << "the fd is" << user_to_msg->GetFD() << std::endl;
-		std::cout << "msg" << std::endl;
-		std::cout << ret << std::endl;
-	# endif	
-		context.client = user_to_msg;
-		context.client->Send(ret);
-		context.FDsPendingWrite.insert(context.client->GetFD());
-	}
-	# ifdef COMMAND
-		std::cout << "JOIN msg to channel end "  << std::endl;
-	# endif
-}
-
 void IRCServer::ActionJOIN(IRCContext& context)
 {
 	# ifdef COMMAND
@@ -175,7 +139,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		*/
 		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거
 		context.client->DelInviteChannel(channel_name); // 유저의 초대 채널리스트에서 제거
-		sendJoinMsg(context.channel->GetMemberNames(),context, *this);
+		// sendJoinMsg(context);
+		context.numericResult = -1;
+		context.createSource = true;
+		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
+		SendMessageToChannel(context,true);
 		if(channel->GetChannelInfo(kTopicInfo) == "")
 			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333
 		else{
