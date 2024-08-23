@@ -57,16 +57,16 @@ void IRCChannel::DelChannelUser(const std::string& nickname){
 
 bool IRCChannel::IsUserAuthorized(const std::string& nickname, ChannelPermission option) {
     UserInChannel::iterator it = users_in_channel_.find(nickname);
-    if (it == users_in_channel_.end()) {
+    if (it == users_in_channel_.end() || it->second != option) {
         return false;
     }
-	if(it->second != option)
-		return false; 
     return true;
 }
 
 void IRCChannel::SetUserAuthorization(const std::string& nickname, ChannelPermission option) {
     UserInChannel::iterator it = users_in_channel_.find(nickname);
+    if(it == users_in_channel_.end())
+        return;
     it->second = option;
 }
 void IRCChannel::SetChannelInfo(ChannelInfo idx, const std::string& str){
