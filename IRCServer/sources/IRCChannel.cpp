@@ -60,7 +60,9 @@ bool IRCChannel::IsUserAuthorized(const std::string& nickname, ChannelPermission
     if (it == users_in_channel_.end()) {
         return false;
     }
-    return it->second & option;
+	if(it->second != option)
+		return false; 
+    return true;
 }
 
 void IRCChannel::SetUserAuthorization(const std::string& nickname, ChannelPermission option) {

@@ -66,7 +66,7 @@ class IRCServer: public TCPServer
 		std::string MakeResponse(IRCContext& context);
 		void AddNewLineToBuffer(Buffer& message);
 		// context actions
-		void (IRCServer::*Actions[14])(IRCContext& context);
+		void (IRCServer::*Actions[15])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client

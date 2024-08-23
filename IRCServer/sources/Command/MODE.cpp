@@ -63,8 +63,11 @@ void IRCServer::ActionMODE(IRCContext& context)
 	if(context.params.size() <= 0)
 		throw IRCError::MissingParams(); // 461
 	else {
-		std::string channel_name = context.params[0];//
-		channel = this->GetChannel(channel_name);
+		std::string channel_name = context.params[0];
+		if(GetChannel(channel_name) == NULL)
+			return;
+		channel = this->GetChannel(AddPrefixToChannelName(channel_name));
+		context.channel = channel;
 		if(!channel){
 			context.stringResult = channel_name; 
 			throw IRCError::NoSuchChannel(); //403
@@ -99,13 +102,13 @@ void IRCServer::ActionMODE(IRCContext& context)
 		else {
 			if(context.params[1][i] == 'i') {
 				if((!channel->CheckChannelMode(kInvite) && flag) || (channel->CheckChannelMode(kInvite) && !flag)){
-					channel->SetInvite(!flag);
+					channel->SetInvite(flag);
 					mode_result += "i";
 				}
 			}
 			else if(context.params[1][i] == 't') {
 				if((!channel->CheckChannelMode(kTopic) && flag) || (channel->CheckChannelMode(kTopic) && !flag)) {
-					channel->SetTopic(!flag);
+					channel->SetTopic(flag);
 					mode_result += "t";
 				}
 			}
@@ -163,6 +166,10 @@ void IRCServer::ActionMODE(IRCContext& context)
 				}
 			}
 		}
+	}
+	std::string sign= "-+";
+	for(int i = 0; i < mode_result.size()-1; i++) {
+		if((sign.find(mode_result[i]) != std::string::npos) && (sign.find(mode_result[i+1]) != std::string::npos)){}
 	}
 	while(!add_result.empty()) {
 		mode_result += " " + add_result.front();
