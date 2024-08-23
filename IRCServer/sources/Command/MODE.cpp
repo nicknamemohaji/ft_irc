@@ -68,13 +68,13 @@ void IRCServer::ActionMODE(IRCContext& context)
 		else {
 			if(context.params[1][i] == 'i') {
 				if((!channel->CheckChannelMode(kInvite) && flag) || (channel->CheckChannelMode(kInvite) && !flag)){
-					channel->SetInvite(flag);
+					channel->SetChannelMode(kInvite, flag);
 					mode_result += "i";
 				}
 			}
 			else if(context.params[1][i] == 't') {
 				if((!channel->CheckChannelMode(kTopic) && flag) || (channel->CheckChannelMode(kTopic) && !flag)) {
-					channel->SetTopic(flag);
+					channel->SetChannelMode(kTopic, flag);
 					mode_result += "t";
 				}
 			}
@@ -85,12 +85,13 @@ void IRCServer::ActionMODE(IRCContext& context)
 				if(pwd == "x")
 					continue;
 				if(flag) {
-					channel->SetPassword(pwd);
+					channel->SetChannelMode(kPassword, flag);
+					channel->SetChannelInfo(kChannelPassword, pwd);
 					mode_result += "k";
 					add_result.push(pwd);
 				}
 				else if(channel->CheckChannelMode(kPassword) && !flag) {
-					channel->SetPassword("");
+					channel->SetChannelMode(kPassword, flag);
 					mode_result += "k";
 					add_result.push("*");
 				}
@@ -116,7 +117,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 			}
 			else if(context.params[1][i] == 'l') {
 				if(channel->CheckChannelMode(kLimit) && !flag) {
-					channel->SetLimit(-1);
+					channel->SetChannelMode(kLimit, flag);
 					mode_result += "l";
 				}
 				else if(flag) {
@@ -126,7 +127,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 					unsigned int limit = strtod(limit_str.c_str(), nullptr);
 					if(limit < 1 || limit > channel->channel_limit_)
 						continue;
-					channel->SetLimit(limit);
+					channel->SetChannelMode(kLimit, flag);
+					channel->SetChannelInfo(kChannelPassword, std::to_string(limit));
 					mode_result += "l";
 					add_result.push(std::to_string(limit));
 				}

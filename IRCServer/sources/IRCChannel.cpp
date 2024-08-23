@@ -22,7 +22,11 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
-	ChannelModeSet modes = {false, false, "", -1};
+	channel_mode_status_[kInvite] = false;
+	channel_mode_status_[kTopic ] = true;
+	channel_mode_status_[kPassword] = false;
+	channel_mode_status_[kLimit] = false;
+	//ChannelModeSet modes = {false, false, "", -1};
 }
 
 IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd)
@@ -37,7 +41,11 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
-	ChannelModeSet modes = {false, false, "", -1};
+	channel_mode_status_[kInvite] = false;
+	channel_mode_status_[kTopic ] = true;
+	channel_mode_status_[kPassword] = true;
+	channel_mode_status_[kLimit] = false;
+	//ChannelModeSet modes = {false, false, "", -1};
 }
 
 IRCChannel::~IRCChannel(){}
@@ -170,51 +178,27 @@ std::deque<std::string> IRCChannel::GetMemberNames() const {
 }
 
 bool IRCChannel::CheckChannelMode(ChannelMode option) const {
-    switch (option)
-	{
-        case kInvite:
-			return modes.i;
-        case kTopic:
-            return modes.t;
-        case kPassword:
-            return !modes.k.empty();
-        case kLimit:
-            return modes.l >= 0;
-        default:
-            return false;
-    }
+	return channel_mode_status_[option];
 }
 
-void IRCChannel::SetInvite(bool set) {
-	modes.i = set;
-}
-
-void IRCChannel::SetTopic(bool set) {
-	modes.t = set;
-}
-
-void IRCChannel::SetPassword(std::string key) {
-	modes.k = key;
-}
-
-void IRCChannel::SetLimit(int limit) {
-	modes.l = limit;
+void IRCChannel::SetChannelMode(ChannelMode option, bool flag) {
+	channel_mode_status_[option] = flag;
 }
 
 std::string IRCChannel::GetChannelMode() const {
     std::string m;
 	std::queue<std::string> m_info;
-	if(modes.i)
+	if(CheckChannelMode(kInvite))
 		m += "i";
-	if(modes.t)
+	if(CheckChannelMode(kTopic))
 		m += "t";
-	if(modes.k.size()) {
+	if(CheckChannelMode(kPassword)) {
 		m += "k";
-		m_info.push(modes.k);
+		m_info.push(GetChannelInfo(kChannelPassword));
 	}
-	if(modes.l != -1) {
+	if(CheckChannelMode(kLimit)) {
 		m += "l";
-		m_info.push(std::to_string(modes.l));
+		m_info.push(GetChannelInfo(kChannelUserLimit));
 	}
 	while(!m_info.empty()) {
 		m += ' ' + m_info.front();
