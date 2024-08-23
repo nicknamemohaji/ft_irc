@@ -28,6 +28,10 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		ErrorSender(context,461);
 		return;
 	}
+	std::vector<std::string> channel_names_ = ParserSep(context.params[0] , ",");
+	std::vector<std::string> channel_passwords_;
+	if(context.params.size() > 1)
+		channel_passwords_ = ParserSep(context.params[1] , ",");
 	# ifdef COMMAND
 		for(unsigned int i = 0; i < context.params.size(); ++i)
 		{
@@ -36,20 +40,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << std::endl;
 		}
 	# endif
-	StringMatrix PaseringMatrix = parseStringMatrix(context.params);
-	# ifdef COMMAND
-		std::cout << "paser matri size = " << PaseringMatrix.size() << std::endl;
-		std::cout << "paser idx 0 size = " << PaseringMatrix[0].size() << std::endl;
-		for(unsigned int i = 0; i < PaseringMatrix.size(); ++i)
-		{
-			std::cout << "idx" << i << " " << std::endl;
-			for(unsigned int j = 0; j < PaseringMatrix[i].size(); ++j)
-				std::cout << PaseringMatrix[i][j] << std::endl;	
-			std::cout << std::endl;
-		}
-	# endif
-	for(unsigned int i = 0; i < PaseringMatrix[0].size();++i){
-		std::string channel_name =AddPrefixToChannelName(PaseringMatrix[0][i]);
+	for(unsigned int i = 0; i < channel_names_.size();++i){
+		std::string channel_name =AddPrefixToChannelName(channel_names_[i]);
 		if(isValidChannelName(channel_name)){
 			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
@@ -63,11 +55,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << "New channel create " << i  << channel_name <<std::endl;
 			# endif
 			//make new channel
-			if(PaseringMatrix.size() >1 && PaseringMatrix[1][i] != "x"){
+			if(channel_passwords_.size() >1 && channel_passwords_[i] != "x"){
 				# ifdef COMMAND
-				std::cout << PaseringMatrix[1][i] <<" passowrd channel create ! " <<std::endl;
+				std::cout << channel_passwords_[i] <<" passowrd channel create ! " <<std::endl;
 				# endif	
-				channel = AddChannel(context.client->GetNickname(),channel_name,PaseringMatrix[1][i]);
+				channel = AddChannel(context.client->GetNickname(),channel_name,channel_passwords_[i]);
 			}
 			else{
 				# ifdef COMMAND
@@ -100,7 +92,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			if(channel->GetChannelInfo(kChannelPassword) != "")
 			{
 				//check password and correct password
-				if(PaseringMatrix.size() < 2 ||  PaseringMatrix[1].size() < i || channel->GetChannelInfo(kChannelPassword) != PaseringMatrix[1][i])
+				if(channel_passwords_.size() < i || channel->GetChannelInfo(kChannelPassword) != channel_passwords_[i])
 				{
 					# ifdef COMMAND
 					std::cout << "password error!!!" << i <<std::endl;
@@ -144,16 +136,13 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		context.createSource = true;
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
 		SendMessageToChannel(context,true);
-		if(channel->GetChannelInfo(kTopicInfo) == "")
-			this->RPL_NOTOPIC(context);//RPL_NOTOPIC 333
-		else{
-			this->RPL_TOPIC(context);
-			this->RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
-		// IRCServer::RPL_JOIN(context);//join alert
+		if(channel->GetChannelInfo(kTopicInfo) != ""){
+			RPL_TOPIC(context);
+			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
 		//RPL_CHANNELMODEIS 324
-		this->RPL_NAMREPLY(context);//RPL_NAMREPLY 353
-		this->RPL_CREATIONTIME(context); //CREATIONTIME 329
+		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
+		RPL_CREATIONTIME(context); //CREATIONTIME 329
 		//send message all user in channel user incomming
 		# ifdef COMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
