@@ -8,7 +8,9 @@
 
 class IRCChannel;
 struct IRCContext;
-typedef std::map<std::string, IRCChannel*> IRCClientChannels;
+
+typedef std::map<std::string, IRCChannel*> IRCClientJoinedChannels;
+typedef std::vector<std::string> IRCClientChannels;
 
 enum IRCClientActiveStatus
 {
@@ -45,7 +47,8 @@ class IRCClient: public TCPConnection
 		void DelInviteChannel(const std::string &channel_name);
 		bool IsInviteChannel(const std::string &channel_name);
 		bool IsInChannel(const std::string &channel_name) const;
-		IRCClientChannels ListChannels(void) const;
+		IRCClientJoinedChannels ListChannels(void) const;
+		IRCClientChannels ListInvitedChannels(void) const;
 		
 	protected:
 
@@ -53,9 +56,9 @@ class IRCClient: public TCPConnection
 
 		enum IRCClientActiveStatus _activeStatus;
 
-		std::vector<std::string> _invited_channels_;
+		IRCClientChannels _invited_channels_;
 		// TODO change to std::vector<std::string>
-		IRCClientChannels _channels;
+		IRCClientJoinedChannels _channels;
 
 		std::string _nickname;
 		std::string _username;
