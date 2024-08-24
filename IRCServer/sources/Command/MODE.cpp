@@ -23,7 +23,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 	
 	IRCChannel *channel;
 	if(context.params.size() <= 0)
-		throw IRCError::MissingParams(); // 461
+		throw IRCError::MissingParams(); // 461 ㅅㅏ이즈 1일때도 추가***********
 	else {
 		std::string channel_name = context.params[0];
 		if(GetChannel(channel_name) == NULL)
