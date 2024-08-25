@@ -5,6 +5,7 @@
 #include <utility>
 #include <sstream>
 #include <deque>
+#include <queue>
 #include <iostream>
 
 #include "IRCChannel.hpp"
@@ -17,13 +18,15 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kTopicInfo,"");
     SetChannelInfo(kChannelPassword,"");
     SetChannelInfo(kTopicEditUser,"NONE");
-    channel_limit_ = kMaxChannelUsers;
+	SetChannelInfo(kChannelUserLimit,itostr(kMaxChannelUsers));
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
-    /*
-    모드 추가
-    */
+	channel_mode_status_[kInvite] = false;
+	channel_mode_status_[kTopic ] = true;
+	channel_mode_status_[kPassword] = false;
+	channel_mode_status_[kLimit] = false;
+	//ChannelModeSet modes = {false, false, "", -1};
 }
 
 IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_name, const std::string& passwd)
@@ -34,13 +37,15 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
     SetChannelInfo(kTopicEditTime,itostr(std::time(NULL)));
     SetChannelInfo(kTopicInfo,"");
     SetChannelInfo(kTopicEditUser,"NONE");
-    channel_limit_ = kMaxChannelUsers;
+	SetChannelInfo(kChannelUserLimit,itostr(kMaxChannelUsers));
     invited_users_.clear();
     users_in_channel_.clear();
     users_in_channel_[nickname] = kOperator;
-    /*
-    모드 추가
-    */
+	channel_mode_status_[kInvite] = false;
+	channel_mode_status_[kTopic ] = true;
+	channel_mode_status_[kPassword] = true;
+	channel_mode_status_[kLimit] = false;
+	//ChannelModeSet modes = {false, false, "", -1};
 }
 
 IRCChannel::~IRCChannel(){}
@@ -168,4 +173,36 @@ std::deque<std::string> IRCChannel::GetMemberNames() const {
             member_names.push_back(user->first);
     }
     return member_names;
+}
+
+bool IRCChannel::CheckChannelMode(ChannelMode option) const {
+	return channel_mode_status_[option];
+}
+
+void IRCChannel::SetChannelMode(ChannelMode option, bool flag) {
+	channel_mode_status_[option] = flag;
+}
+
+std::string IRCChannel::GetChannelMode() const {
+    std::string m;
+	std::queue<std::string> m_info;
+	if(CheckChannelMode(kInvite))
+		m += "i";
+	if(CheckChannelMode(kTopic))
+		m += "t";
+	if(CheckChannelMode(kPassword)) {
+		m += "k";
+		m_info.push(GetChannelInfo(kChannelPassword));
+	}
+	if(CheckChannelMode(kLimit)) {
+		m += "l";
+		m_info.push(GetChannelInfo(kChannelUserLimit));
+	}
+	while(!m_info.empty()) {
+		m += ' ' + m_info.front();
+		m_info.pop();
+	}
+	if(m.size() > 1)
+		return "+" + m;
+	return m;
 }

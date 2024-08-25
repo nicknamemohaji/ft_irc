@@ -106,7 +106,6 @@ void TCPConnection::Recv(void)
 		sizeof(buf),					// len
 		0								// flags: none
 	);
-
 	if (err == -1)
 		throw TCPErrors::SystemCallError("recv(2)");
 	else if (err == 0)
@@ -149,7 +148,6 @@ bool TCPConnection::CheckRecvEnd(void) const
 		sizeof(byte),					// len
 		MSG_PEEK						// flags: MSG_PEEK = just check buffer
 	);
-
 	return bufferSize != sizeof(byte);
 };
 

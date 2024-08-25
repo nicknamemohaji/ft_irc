@@ -30,6 +30,7 @@ IRCServer::IRCServer(const std::string& port,
 	this->Actions[QUIT] = &IRCServer::ActionQUIT;
 	this->Actions[JOIN] = &IRCServer::ActionJOIN;
 	this->Actions[NAMES] = &IRCServer::ActionNAMES;
+	this->Actions[MODE] = &IRCServer::ActionMODE;
 	this->Actions[PART] = &IRCServer::ActionPART;
 	this->Actions[TOPIC] = &IRCServer::ActionTOPIC;
 	this->Actions[KICK] = &IRCServer::ActionKICK;

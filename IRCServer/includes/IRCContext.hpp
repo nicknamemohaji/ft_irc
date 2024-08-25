@@ -25,6 +25,7 @@ enum IRCCommand
 	PING,
 	JOIN,
 	NAMES,
+	MODE,
 	PART,
 	TOPIC,
 	KICK,

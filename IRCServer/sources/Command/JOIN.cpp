@@ -92,7 +92,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			if(channel->GetChannelInfo(kChannelPassword) != "")
 			{
 				//check password and correct password
-				if(channel_passwords_.size() < i || channel->GetChannelInfo(kChannelPassword) != channel_passwords_[i])
+				if( channel_passwords_.empty() || channel_passwords_.size() < i || channel->GetChannelInfo(kChannelPassword) != channel_passwords_[i])
 				{
 					# ifdef COMMAND
 					std::cout << "password error!!!" << i <<std::endl;
@@ -103,7 +103,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				}
 			}
 			//check channel userlimit
-			if(channel->channel_limit_ <= channel->GetChannelUserSize()){
+			if((unsigned int)std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str()) <= channel->GetChannelUserSize()){
 				ErrorSender(context, 471);
 				continue;
 			}
