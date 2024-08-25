@@ -226,17 +226,17 @@ std::string TCPConnection::BufferToString(const Buffer& buf)
 	return ret;
 }
 
-// std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer)
-// {
-// 	# ifdef DEBUG
-// 	// ostream << std::endl;
-// 	// for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
-// 	// 	ostream << "(" << (unsigned int) *it <<  "),";
-// 	// # else
-// 	std::string ret;
-// 	ret.assign(buffer.begin(), buffer.end());
-// 	ostream << ret;
-// 	# endif
-// 	ostream << buffer << std::endl;
-// 	return ostream;
-// }
+std::ostream& operator<< (std::ostream& ostream, const Buffer& buffer)
+{
+	# ifdef DEBUG
+	// ostream << std::endl;
+	// for (Buffer::const_iterator it = buffer.begin(); it != buffer.end(); it++)
+	// 	ostream << "(" << (unsigned int) *it <<  "),";
+	// # else
+	std::string ret;
+	ret.assign(buffer.begin(), buffer.end());
+	ostream << ret;
+	# endif
+	ostream << std::endl;
+	return ostream;
+}

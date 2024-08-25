@@ -104,7 +104,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				result << clientNickname << " :No such nick/channel";
 				break;
 			case 443:
-				result << clientNickname << " " <<  context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
+				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
 				break;
 			// ERR_UNKNOWNCOMMAND
 			case 421:

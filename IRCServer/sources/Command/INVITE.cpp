@@ -11,7 +11,7 @@
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionINVITE(IRCContext &context){
-	# ifdef COMMAND
+	# ifdef ICOMMAND
 	std::cout << "invite command access" << std::endl;
 	for(unsigned int i = 0; i < context.params.size(); i++){
 		std::cout << context.params[i] << std::endl;
@@ -34,12 +34,14 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		return;
 	}
 	if(channel->IsInChannel(user_name)){
+		context.stringResult = user_name;
 		ErrorSender(context, 443); // 유저가 채널에 이미 있음
 		return;
 	}
-	/*
-		초대 제한모드인지, 권한이 있는지 확인 하는 부분
-	*/
+	if(channel->CheckChannelMode(kInvite) && !channel->IsUserAuthorized(context.client->GetNickname(), kOperator)){
+		ErrorSender(context, 482);
+		return;
+	}
 	context.stringResult  = user_name;
 	channel->AddInvitedUser(user_name); //채널의 초대리스트에 추가
 	context.client->AddInviteChannel(channel_name); // 유저의 초대채널리스트에 추가
