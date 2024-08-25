@@ -16,7 +16,7 @@
 
 void IRCServer::ActionJOIN(IRCContext& context)
 {
-	# ifdef COMMAND
+	# ifdef JCOMMAND
 	std::cout << "JOIN command start" << std::endl;
 	# endif
 
@@ -32,17 +32,18 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	std::vector<std::string> channel_passwords_;
 	if(context.params.size() > 1)
 		channel_passwords_ = ParserSep(context.params[1] , ",");
-	# ifdef COMMAND
+	# ifdef JCOMMAND
 		for(unsigned int i = 0; i < context.params.size(); ++i)
 		{
 			std::cout << "context idx" << i << " " << std::endl;
-			std::cout << context.params[i] << std::endl;	
+			std::cout << context.params[i] << std::endl;
+			std::cout << "channel passwd size  = " << channel_passwords_.size() <<  " channel namesize =" << channel_names_.size() << std::endl;
 			std::cout << std::endl;
 		}
 	# endif
 	for(unsigned int i = 0; i < channel_names_.size();++i){
 		std::string channel_name =AddPrefixToChannelName(channel_names_[i]);
-		if(isValidChannelName(channel_name)){
+		if(!isValidChannelName(channel_name)){
 			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
 			continue;
@@ -51,30 +52,30 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		IRCChannel* channel;
 		if(!IsChannelInList(channel_name))
 		{
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "New channel create " << i  << channel_name <<std::endl;
 			# endif
 			//make new channel
-			if(channel_passwords_.size() >1 && channel_passwords_[i] != "x"){
-				# ifdef COMMAND
+			if(!channel_passwords_.empty() && channel_passwords_.size()-1 > i && channel_passwords_[i] != "x"){
+				# ifdef JCOMMAND
 				std::cout << channel_passwords_[i] <<" passowrd channel create ! " <<std::endl;
 				# endif	
 				channel = AddChannel(context.client->GetNickname(),channel_name,channel_passwords_[i]);
 			}
 			else{
-				# ifdef COMMAND
+				# ifdef JCOMMAND
 				std::cout << "no passowrd channel create ! " <<std::endl;
 				# endif	
 				channel = AddChannel(context.client->GetNickname(),channel_name,"");
 			}
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			context.channel = channel;
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "New channel create check done;" << i <<std::endl;
 			# endif
 		}
 		else{
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "exsit channel join "  << i << std::endl;
 			# endif
 			//exist channel
@@ -82,31 +83,33 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			channel = this->GetChannel(channel_name);
 			context.channel = channel;
 			if(channel->IsInChannel(context.client->GetNickname()) == true){
-				# ifdef COMMAND
+				# ifdef JCOMMAND
 				std::cout << "client nickname "  << context.client->GetNickname() << std::endl;
 				std::cout << "client in channel "  << channel->IsInChannel(context.client->GetNickname()) << std::endl;
 				std::cout << "exsit channel continue "  << i << std::endl;
 				# endif
 				continue;
 			}
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "channel RPL START;" << i << "is invite >?   " << channel->IsInvited(context.client->GetNickname()) << "is invitemode ??  " << channel->CheckChannelMode(kInvite)<<std::endl;
 			# endif
-			if(channel->CheckChannelMode(kInvite)==true && channel->IsInvited(context.client->GetNickname()) == false){
+			//초대 모드인지, 초대된 유저인지 확인
+			if(channel->CheckChannelMode(kInvite) && !channel->IsInvited(context.client->GetNickname())){
 				ErrorSender(context, 473);
 				continue;
 			}
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "after invite check " <<std::endl;
 			# endif
-			//초대 모드인지, 초대된 유저인지 확인
-			if(channel->GetChannelInfo(kChannelPassword) != "")
+			//check password and correct password
+			if(channel->CheckChannelMode(kPassword))
 			{
-				//check password and correct password
-				if(channel_passwords_.size() < i || channel->GetChannelInfo(kChannelPassword) != channel_passwords_[i])
+				if(channel_passwords_.empty() || channel_passwords_.size() < i || channel->GetChannelInfo(kChannelPassword) != channel_passwords_[i])
 				{
-					# ifdef COMMAND
-					std::cout << "password error!!!" << i <<std::endl;
+					# ifdef JCOMMAND
+					if(!channel_passwords_.empty())
+						std::cout << "password error!!!" << i << "password input = " << channel_passwords_[i] <<std::endl;
+					std::cout << "password error!!!" << i << "channel password = " << channel->GetChannelInfo(kChannelPassword) <<std::endl;
 					# endif
 					ErrorSender(context, 475);
 					continue;
@@ -114,8 +117,12 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				}
 			}
 			//check channel userlimit
-			if(channel->channel_limit_ <= channel->GetChannelUserSize()){
-				ErrorSender(context, 471);
+				# ifdef JCOMMAND
+					std::cout << "channel limit !!!" << i << "channel limit = " << channel->GetChannelInfo(kChannelUserLimit) <<std::endl;
+					std::cout << "channel limit !!!" << i << "channel user number = " << channel->GetChannelUserSize() <<std::endl;
+				# endif
+			if(static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) >= channel->GetChannelUserSize()){
+				ErrorSender(context, 471); //471 채널 포화
 				continue;
 			}
 				// throw IRCError::ChannelIsFull(); //471 채널 포화
@@ -129,7 +136,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			//channel add at client and channel add client
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			channel->AddChannelUser(context.client->GetNickname());
-			# ifdef COMMAND
+			# ifdef JCOMMAND
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
 		}
@@ -152,11 +159,11 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		RPL_CREATIONTIME(context); //CREATIONTIME 329
 		//send message all user in channel user incomming
-		# ifdef COMMAND
+		# ifdef JCOMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif
 	}
-	# ifdef COMMAND
+	# ifdef JCOMMAND
 	std::cout << "all join process done" << std::endl;
 	# endif
 	///do join

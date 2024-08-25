@@ -83,8 +83,6 @@ public:
 	void SetChannelMode(ChannelMode option, bool flag);
 	std::string GetChannelMode() const;
 
-    unsigned int channel_limit_;
-
 private:
     IRCChannel();
  

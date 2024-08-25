@@ -200,9 +200,14 @@ IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::strin
 	#ifdef COMMAND
 	std::cout << "create channel " << channel_name << " password is " << channel_password << std::endl;
 	#endif
-	IRCChannel *ret = new IRCChannel(nick_name,channel_name,channel_password);
+	IRCChannel *ret;
+	if(channel_password == "")
+		ret = new IRCChannel(nick_name,channel_name);
+	else
+		ret = new IRCChannel(nick_name,channel_name,channel_password);
 	_channels[channel_name] =  ret;
 	return ret;
+	
 }
 
 void IRCServer::DelChannel(const std::string &channel_name){
@@ -235,7 +240,7 @@ bool IRCServer::isValidChannelName(const std::string &name) const {
 		return false;
 	if(std::string::npos != name.find('#',1))
 		return false;
-	for(unsigned int i = 0; i < name.size(); ++i)
+	for(unsigned int i = 1; i < name.size(); ++i)
 	{
 		if(!std::isalnum(static_cast<unsigned char>(name[i])))
 			return false;

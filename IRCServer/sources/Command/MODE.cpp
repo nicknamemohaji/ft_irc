@@ -125,7 +125,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 						continue;
 					std::string limit_str = context.params[idx++];
 					unsigned int limit = strtod(limit_str.c_str(), nullptr);
-					if(limit < 1 || limit > channel->channel_limit_)
+					if(limit < 1 || limit > kMaxChannelUsers)
 						continue;
 					channel->SetChannelMode(kLimit, flag);
 					channel->SetChannelInfo(kChannelPassword, std::to_string(limit));
