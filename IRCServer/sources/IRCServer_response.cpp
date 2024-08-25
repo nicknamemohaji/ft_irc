@@ -41,7 +41,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				break ;
 			// ERR_CANNOTSENDTOCHAN
 			case 404:
-				result << clientNickname << " " << context.stringResult << " ::Cannot send to channel or user";
+				result << clientNickname << " " << context.stringResult << " :Cannot send to channel or user";
 				break;
 			// ERR_TOOMANYCHANNELS
 			case 405:
