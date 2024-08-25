@@ -29,6 +29,7 @@ namespace IRCError
 	class NotOnChannel;
 	class NoSuchNick;
 	class UserNotInChannel;
+	class CanNotSendToChan;
 };
 
 // base error
@@ -250,4 +251,13 @@ class IRCError::BadChannelName: public IRCNumeric
 		}
 };
 
+// ERR_CANNOTSENDTOCHAN (404): 메시지를 채널에 전달할 수 없음
+class IRCError::CanNotSendToChan: public IRCNumeric
+{
+	public:
+		CanNotSendToChan(void):
+			IRCNumeric(404)
+		{
+		}
+};
 #endif
