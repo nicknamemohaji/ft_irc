@@ -85,7 +85,7 @@ public:
 
 private:
     IRCChannel();
- 
+
     std::vector<std::string> invited_users_;
     std::map<std::string, ChannelPermission> users_in_channel_;
 
