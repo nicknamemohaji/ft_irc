@@ -50,30 +50,40 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			throw IRCError::NoNickname();
 		else if (context.params.size() > 1)
 			throw IRCError::WrongNickname();
-		if (GetClient(context.params[0]) != NULL)
+		std::string new_name = context.params[0];
+		if (GetClient(new_name) != NULL)
 			throw IRCError::ExitstingNickname();
-		// TODO validate nickaname rule
-
+		// validate nickname
+		// TODO set RPL_ISUPPORT for nickname rules
+		if (!(2 <= new_name.size() && new_name.size() <= 10))
+			throw IRCError::WrongNickname();
+		for (unsigned int i = 0; i < new_name.size(); i++)
+		{
+			if (!std::isalnum(static_cast<unsigned char>(new_name[i])))
+				throw IRCError::WrongNickname();
+		}
+	
+		// good to go!
 		if (context.client->GetStatus() >= REGISTERED)
 		{
-			std::string prevName = context.client->GetNickname();
+			std::string prev_name = context.client->GetNickname();
 
 			// send acknowledgement to user
 			context.createSource = true;
 			context.numericResult = -1;
-			context.stringResult = "NICK " + context.params[0];
+			context.stringResult = "NICK " + new_name;
 			context.client->Send(MakeResponse(context));
 			context.FDsPendingWrite.insert(context.client->GetFD());
 			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
-			IRCClientChannels channels = context.client->ListChannels();
-			for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
+			IRCClientJoinedChannels channels = context.client->ListChannels();
+			for (IRCClientJoinedChannels::iterator it = channels.begin(); it != channels.end(); it++)
 			{
 				// broadcast
 				context.channel = it->second;
 				SendMessageToChannel(context, false);
 				// change name from channel
-				context.channel->DelChannelUser(prevName);
-				context.channel->AddChannelUser(context.params[0]);
+				context.channel->DelChannelUser(prev_name);
+				context.channel->AddChannelUser(new_name);
 			}
 			
 			// remove previous nickname
@@ -81,8 +91,8 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		}
 
 		// Add new name
-		_clients[context.params[0]] = context.client;
-		context.client->SetNickName(context.params[0]);
+		_clients[new_name] = context.client;
+		context.client->SetNickName(new_name);
 		if (context.client->GetStatus() >= REGISTERED)
 			return ;
 	}

@@ -77,7 +77,7 @@ void IRCClient::AddChannel(const std::string &channel_name, IRCChannel *channel)
 	_channels[channel_name] = channel;
 }
 void IRCClient::DelChannel(const std::string &channel_name){
-	IRCClientChannels::iterator it = _channels.find(channel_name);
+	IRCClientJoinedChannels::iterator it = _channels.find(channel_name);
 	if(it == _channels.end())
 		return;
 	_channels.erase(it);
@@ -111,7 +111,12 @@ bool IRCClient::IsInviteChannel(const std::string &channel_name){
 	return false;
 }
 
-IRCClientChannels IRCClient::ListChannels(void) const
+IRCClientJoinedChannels IRCClient::ListChannels(void) const
 {
 	return _channels;
+}
+
+IRCClientChannels IRCClient::ListInvitedChannels(void) const
+{
+	return _invited_channels_;
 }

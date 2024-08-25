@@ -166,28 +166,18 @@ void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWrit
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 
-	// check if user is not deleted
+	// if user is not registered, delete client instance immediately
 	if (GetClient(conn->GetNickname()) == NULL)
-		return ;
-
-	IRCContext context(shouldWriteFDs);
-
-	// TODO remove repeated code segment (QUIT.cpp > ActionQUIT)
-	IRCClientChannels channels = conn->ListChannels();
-	for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
 	{
-		// broadcast
-		context.numericResult = -1;
-		context.client = conn;
-		context.channel = it->second;
-		context.stringResult = "Error: Client quited unexpectidly";
-		context.createSource = true;
-		SendMessageToChannel(context, false);
-		// change name from channel
-		context.channel->DelChannelUser(conn->GetNickname());
+		conn->Close();
+		return ;
 	}
 
-	// TODO remove repeated code segment (IRCServer_server.cpp > WriteEvent)
+	IRCContext context(shouldWriteFDs);
+	context.stringResult = "QUIT: Client quited unexpectidly";
+	context.client = conn;
+	RemoveClientFromChannel(context);
+
 	_clients.erase(_clients.find(conn->GetNickname()));
 	conn->Close();
 
