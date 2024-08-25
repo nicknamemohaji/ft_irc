@@ -165,6 +165,12 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 
 void IRCServer::ActionMOTD(IRCContext& context)
 {
+	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
+	{
+		context.stringResult = *it;
+		if (*it != _serverName)
+			throw IRCError::NoSuchServer();
+	}
 	std::string clientNickname = context.client->GetNickname();
 	
 	context.stringResult = clientNickname + " : -- Welcome to " + _serverName + "--";
