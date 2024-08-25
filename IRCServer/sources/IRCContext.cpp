@@ -47,8 +47,10 @@ enum IRCCommand IRCContext::ConvertStrToCommand(const std::string& command)
 		return NICK;
 	else if (command == "MOTD")
 		return MOTD;
-	else if (command == "motd")	// WTF
-		return MOTD;
+	else if (command == "PING")
+		return PING;
+	// else if (command == "motd")	// WTF
+	// 	return MOTD;
 	else if (command == "QUIT")
 		return QUIT;
 	else if (command == "JOIN")
@@ -85,6 +87,8 @@ std::string IRCContext::ConvertCommandToStr(enum IRCCommand command)
 		return "QUIT";
 	else if (command == MOTD)
 		return "MOTD";
+	else if (command == PING)
+		return "PING";
 	else if (command == JOIN)
 		return "JOIN";
 	else if (command == NAMES)

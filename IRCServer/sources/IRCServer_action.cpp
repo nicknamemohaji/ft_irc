@@ -10,14 +10,6 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-void IRCServer::ActionPING(IRCContext& context)
-{
-	// TODO PING
-	context.stringResult = context.client->GetNickname() + ":" + _serverName;
-	context.client->Send(MakeResponse(context));
-	context.FDsPendingWrite.insert(context.client->GetFD());
-}
-
 // void IRCServer::ActionKICK(IRCContext& context)
 // {
 // 	std::cout << "***************************\n";
