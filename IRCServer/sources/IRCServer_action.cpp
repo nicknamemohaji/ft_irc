@@ -18,14 +18,14 @@ void IRCServer::ActionPING(IRCContext& context)
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }
 
-void IRCServer::ActionKICK(IRCContext& context)
-{
-	std::cout << "***************************\n";
-	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++) {
-		std::cout << *it << '/';
-	}
-	std::cout << "***************************\n";
-}
+// void IRCServer::ActionKICK(IRCContext& context)
+// {
+// 	std::cout << "***************************\n";
+// 	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++) {
+// 		std::cout << *it << '/';
+// 	}
+// 	std::cout << "***************************\n";
+// }
 
 void IRCServer::ActionPRIVMSG(IRCContext& context)
 {

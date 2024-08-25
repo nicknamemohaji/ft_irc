@@ -12,7 +12,7 @@
 
 void IRCServer::ActionTOPIC(IRCContext &context)
 {
-	if(!(context.params.size() > 0 && context.params.size() < 3)){
+	if(!(context.params.size() == 1 || context.params.size() == 2)){
 		ErrorSender(context, 461);
 		return;
 	}
@@ -35,11 +35,12 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		ErrorSender(context, 442); // you are not in channel
 		return;
 	}
-	/*
-	channel mode t check
-	do here.
-	*/
-	if(context.params.size() > 1){
+	if(channel->CheckChannelMode(kTopic) && !channel->IsUserAuthorized(context.client->GetNickname(), kOperator)){
+		//channel mode t and nor operater
+		ErrorSender(context, 482);
+		return;
+	}
+	if(context.params.size() == 2){
 		channel->SetChannelInfo(kTopicInfo,context.params[1]);
 		channel->SetChannelInfo(kTopicEditUser,context.client->GetNickname());
 		channel->SetChannelInfo(kTopicEditTime, channel->itostr(std::time(NULL)));
@@ -55,11 +56,4 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		RPL_TOPIC(context);
 	RPL_TOPICWHOTIME(context);
 	}
-	// if(channel->GetChannelInfo(kTopicInfo).size() == 0){
-	// 	this->RPL_NOTOPIC(context);
-	// 	return;
-	// }
-	// sendTopicMsg(channel->GetMemberNames(), context, *this);
 }
-//:default_user!~root@121.135.181.42 TOPIC #isthis :hello11
-//:sabyun!~root@127.0.0.1  TOPIC :#aa: hello world
