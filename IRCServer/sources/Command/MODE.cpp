@@ -44,7 +44,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 		for(unsigned int i = 0; i < context.params[1].size(); i++)
 			if(mode_str.find(context.params[1][i]) == std::string::npos) {
 				context.stringResult = context.params[1][i];
-				throw IRCError::UnKnownModeChar(); //UNKNOWNMODE 472
+				throw IRCError::UnknownModeChar(); //UNKNOWNMODE 472
 			}
 	}
 
@@ -149,6 +149,6 @@ void IRCServer::ActionMODE(IRCContext& context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " MODE " + context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
-		SendMessageToChannel(context,true);
+		SendMessageToChannel(context, SendToAll);
 	}
 }

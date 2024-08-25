@@ -27,6 +27,26 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			<< context.numericResult << " ";
 		switch (context.numericResult)
 		{
+			// ERR_NOSUCHNICK
+			case 401:
+				result << clientNickname << " " << context.stringResult << " :No such nick/channel";
+				break;
+			// ERR_NOSUCHSERVER
+			case 402:
+				result << clientNickname << " " << context.stringResult << " :No such server";
+				break;
+			// ERR_NOSUCHCHANNEL
+			case 403:
+				result << clientNickname << " " << context.stringResult << " :No such channel";
+				break ;
+			// ERR_CANNOTSENDTOCHAN
+			case 404:
+				result << clientNickname << " " << context.stringResult << " :Cannot send to channel or user";
+				break;
+			// ERR_TOOMANYCHANNELS
+			case 405:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You have joined too many channels";
+				break ;
 			// ERR_NONICKNAMEGIVEN
 			case 431:
 				result << clientNickname << " :No nickname given";
@@ -43,6 +63,15 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 441:
 				result << clientNickname << " " << context.stringResult << " :They aren't on that channel";
 				break ;
+			// ERR_NOTONCHANNEL (442) 채널에 유저가 존재하지 않음
+			case 442:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
+				// "<client> <channel> :You're not on that channel"
+				break;
+			// ERR_USERONCHANNEL
+			case 443:
+				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
+				break;
 			// ERR_NOTREGISTERED
 			case 451:
 				result << clientNickname << " :You have not registered";
@@ -59,26 +88,6 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 464:
 				result << clientNickname << " :Password incorrect";
 				break ;
-			// ERR_CHANOPRIVSNEEDED
-			case 482:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not a channel operator";
-				break ;
-			// ERR_NOSUCHCHANNEL
-			case 403:
-				result << clientNickname << " " << context.stringResult << " :No such channel";
-				break ;
-			// ERR_TOOMANYCHANNELS
-			case 405:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You have joined too many channels";
-				break ;
-			//ERR_BADCHANNELKEY* (475) 비밀번호 다름
-			case 475:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+k)";
-				break ;
-			// *ERR_BANNEDFROMCHAN* (474) 벤된 사용자
-			case 474:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+b)";
-				break ;
 			// *ERR_CHANNELISFULL* (471) 채널 포화상태
 			case 471:
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+l)";
@@ -91,21 +100,19 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 473:
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i) - you must be invited";
 				break ;
+			//ERR_BADCHANNELKEY* (475) 비밀번호 다름
+			case 475:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+k)";
+				break ;
 			// *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
 			case 476:
 				result << context.stringResult << " :Bad Channel Mask";
 				break ;
-			// ERR_NOTONCHANNEL (442) 채널에 유저가 존재하지 않음
-			case 442:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
-				// "<client> <channel> :You're not on that channel"
-				break;
-			case 401:
-				result << clientNickname << " " << context.stringResult << " :No such nick/channel";
-				break;
-			case 443:
-				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
-				break;
+			// ERR_CHANOPRIVSNEEDED
+			case 482:
+				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not a channel operator";
+				break ;
+
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH
