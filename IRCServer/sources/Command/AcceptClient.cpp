@@ -55,7 +55,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			throw IRCError::ExitstingNickname();
 		// validate nickname
 		// TODO set RPL_ISUPPORT for nickname rules
-		if (!(2 <= new_name.size() && new_name.size() <= 10))
+		if (!(2 <= new_name.size() && new_name.size() <= 30))
 			throw IRCError::WrongNickname();
 		for (unsigned int i = 0; i < new_name.size(); i++)
 		{
@@ -150,7 +150,8 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// TODO set RPL_ISUPPORT
 	strstream.str("");
 	context.stringResult.clear();
-	strstream << clientNickname << " CHANTYPES=# CASEMAPPING=ascii CHANMODES=o,kl,,it  :are supported by this server";
+	strstream << clientNickname << " CHANTYPES=# CASEMAPPING=ascii CHANMODES=o,kl,,it "
+		<< "PREFIX=(o)@ NICKLEN=30 :are supported by this server";
 	context.stringResult = strstream.str();
 	context.numericResult = 5;
 	context.client->Send(MakeResponse(context));
