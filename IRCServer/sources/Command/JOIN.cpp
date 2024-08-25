@@ -21,10 +21,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	# endif
 
 	std::stringstream result;
-	// pram size is over 2 errr parsing 461;
-		//throw IRCError::MissingParams(); // 461
-	// channel name vaild check
 	if(!(context.params.size() > 0 && context.params.size() < 3)){
+		//throw IRCError::MissingParams(); // 461
 		ErrorSender(context,461);
 		return;
 	}
@@ -43,11 +41,12 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	# endif
 	for(unsigned int i = 0; i < channel_names_.size();++i){
 		std::string channel_name =AddPrefixToChannelName(channel_names_[i]);
+		// channel name vaild check
 		if(!isValidChannelName(channel_name)){
+			// throw IRCError::BadChannelName(); //476
 			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
 			continue;
-			// throw IRCError::BadChannelName(); //476
 		}
 		IRCChannel* channel;
 		if(!IsChannelInList(channel_name))
@@ -111,9 +110,9 @@ void IRCServer::ActionJOIN(IRCContext& context)
 						std::cout << "password error!!!" << i << "password input = " << channel_passwords_[i] <<std::endl;
 					std::cout << "password error!!!" << i << "channel password = " << channel->GetChannelInfo(kChannelPassword) <<std::endl;
 					# endif
+					// throw IRCError::BadChannelKey(); // 475 비밀번호
 					ErrorSender(context, 475);
 					continue;
-					// throw IRCError::BadChannelKey(); // 475 비밀번호
 				}
 			}
 			//check channel userlimit
@@ -125,14 +124,6 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				ErrorSender(context, 471); //471 채널 포화
 				continue;
 			}
-				// throw IRCError::ChannelIsFull(); //471 채널 포화
-			//check invite mode and isinvited
-			/*
-			if(modecheck() && !channel.IsInvited(context->client->GetNickname()))
-				throw IRCError::InviteOnly();
-			if(!channel.IsInvited(context->client->GetNickname())
-				delete invite
-			*/
 			//channel add at client and channel add client
 			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
 			channel->AddChannelUser(context.client->GetNickname());
@@ -140,13 +131,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
 		}
-		/*
-			채널 최대 유저수 확인
-			do.
-		*/
 		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거
 		context.client->DelInviteChannel(channel_name); // 유저의 초대 채널리스트에서 제거
-		// sendJoinMsg(context);
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
@@ -155,10 +141,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			RPL_TOPIC(context);
 			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
-		//RPL_CHANNELMODEIS 324
 		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		RPL_CREATIONTIME(context); //CREATIONTIME 329
-		//send message all user in channel user incomming
 		# ifdef JCOMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif
