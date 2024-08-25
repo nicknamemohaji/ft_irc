@@ -106,6 +106,9 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 443:
 				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
 				break;
+			case 404:
+				result << clientNickname << " " << context.stringResult << " ::Cannot send to channel or user";
+				break;
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH
