@@ -55,6 +55,8 @@ enum IRCCommand IRCContext::ConvertStrToCommand(const std::string& command)
 		return JOIN;
 	else if (command == "NAMES")
 		return NAMES;
+	else if (command == "MODE")
+		return MODE;
 	else if (command == "PART")
 		return PART;
 	else if (command == "TOPIC")
@@ -87,6 +89,8 @@ std::string IRCContext::ConvertCommandToStr(enum IRCCommand command)
 		return "JOIN";
 	else if (command == NAMES)
 		return "NAMES";
+	else if (command == MODE)
+		return "MODE";
 	else if (command == PART)
 		return "PART";
 	else if (command == TOPIC)

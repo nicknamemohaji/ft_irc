@@ -21,21 +21,21 @@ enum ChannelPermission {
     kNormal = 1  // Normal user permission
 };
 
-// Enum for channel mode settings
-enum ChannelModeSet {
-    kLimit = 1 << 0,    // 'l': Limit the number of users
-    kInvite = 1 << 1,   // 'i': Invite-only channel
-    kTopic = 1 << 2,    // 't': Only operators can change topic
-    kPassword = 1 << 3, // 'k': Channel requires a password
-    kDefault = 1 << 4
+enum ChannelMode {
+	kInvite = 0,
+    kTopic = 1,
+    kPassword = 2,
+    kLimit = 3
 };
+
 enum ChannelInfo {
     kChannelPassword = 0,    // channel password idx
     kTopicEditUser = 1,   // channel topic edit user idx
     kTopicInfo = 2,    // channel topic info idx
     kTopicEditTime = 3, // channel topic edit time idx
     kChannelDate = 4, // channel making date idx
-    kChannelName = 5 //channel name idx
+    kChannelName = 5, //channel name idx
+	kChannelUserLimit = 6
 };
 typedef std::map<std::string, ChannelPermission> UserInChannel;
 typedef std::vector<std::string> InvitedUsers;
@@ -78,17 +78,19 @@ public:
     //Translater
     std::string itostr(long long time) const;
     
-    unsigned int channel_limit_;
+	//MODE
+    bool CheckChannelMode(ChannelMode option) const;
+	void SetChannelMode(ChannelMode option, bool flag);
+	std::string GetChannelMode() const;
 
 private:
     IRCChannel();
-    bool CheckChannelMode(ChannelModeSet option) ;
  
     std::vector<std::string> invited_users_;
     std::map<std::string, ChannelPermission> users_in_channel_;
 
-    unsigned int channel_mode_;
-    std::string channel_info_arr_ [6];
+    std::string channel_info_arr_ [7];
+	bool channel_mode_status_ [4];
 };
 
 #endif  // IRC_CHANNEL_HPP

@@ -25,6 +25,10 @@ namespace IRCError
 	class ChannelIsFull;
 	class InviteOnly;
 	class BadChannelName;
+	class UnKnownModeChar;
+	class NotOnChannel;
+	class NoSuchNick;
+	class UserNotInChannel;
 };
 
 // base error
@@ -48,7 +52,35 @@ class IRCNumeric: public std::logic_error
 };
 
 /***************/
+// ERR_NOSUCHNICK
+class IRCError::NoSuchNick: public IRCNumeric
+{
+	public:
+		NoSuchNick(void):
+			IRCNumeric(401)
+		{
+		}
+};
 
+// ERR_NOSUCHCHANNEL
+class IRCError::NoSuchChannel: public IRCNumeric
+{
+	public:
+		NoSuchChannel(void):
+			IRCNumeric(403)
+		{
+		}
+};
+
+// ERR_TOOMANYCHANNELS
+class IRCError::TooManyChannel: public IRCNumeric
+{
+	public:
+		TooManyChannel(void):
+			IRCNumeric(405)
+		{
+		}
+};
 // ERR_UNKNOWNCOMMAND
 class IRCError::UnknownCommand: public IRCNumeric
 {
@@ -85,6 +117,26 @@ class IRCError::ExitstingNickname: public IRCNumeric
 	public:
 		ExitstingNickname(void):
 			IRCNumeric(433)
+		{
+		}
+};
+
+// ERR_USERNOTINCHANNEL
+class IRCError::UserNotInChannel: public IRCNumeric
+{
+	public:
+		UserNotInChannel(void):
+			IRCNumeric(441)
+		{
+		}
+};
+
+// ERR_NOTONCHANNEL
+class IRCError::NotOnChannel: public IRCNumeric
+{
+	public:
+		NotOnChannel(void):
+			IRCNumeric(442)
 		{
 		}
 };
@@ -139,25 +191,6 @@ class IRCError::ChangeNoPrivesneed: public IRCNumeric
 		}
 };
 
-// ERR_NOSUCHCHANNEL
-class IRCError::NoSuchChannel: public IRCNumeric
-{
-	public:
-		NoSuchChannel(void):
-			IRCNumeric(403)
-		{
-		}
-};
-
-// ERR_TOOMANYCHANNELS
-class IRCError::TooManyChannel: public IRCNumeric
-{
-	public:
-		TooManyChannel(void):
-			IRCNumeric(405)
-		{
-		}
-};
 
 
 //ERR_BADCHANNELKEY* (475) 비밀번호 다름
@@ -186,6 +219,15 @@ class IRCError::ChannelIsFull: public IRCNumeric
 	public:
 		ChannelIsFull(void):
 			IRCNumeric(471)
+		{
+		}
+};
+// *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
+class IRCError::UnKnownModeChar: public IRCNumeric
+{
+	public:
+		UnKnownModeChar(void):
+			IRCNumeric(472)
 		{
 		}
 };
