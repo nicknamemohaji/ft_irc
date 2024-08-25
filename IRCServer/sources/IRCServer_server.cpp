@@ -191,7 +191,7 @@ IRCChannel* IRCServer::AddChannel(const std::string &nick_name, const std::strin
 	std::cout << "create channel " << channel_name << " password is " << channel_password << std::endl;
 	#endif
 	IRCChannel *ret;
-	if(channel_password == "")
+	if(channel_password == "" || channel_password == "x")
 		ret = new IRCChannel(nick_name,channel_name);
 	else
 		ret = new IRCChannel(nick_name,channel_name,channel_password);

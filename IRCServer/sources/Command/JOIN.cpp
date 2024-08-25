@@ -137,10 +137,8 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		context.createSource = true;
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
 		SendMessageToChannel(context,true);
-		if(channel->GetChannelInfo(kTopicInfo) != ""){
-			RPL_TOPIC(context);
-			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
-		}
+		if(channel->GetChannelInfo(kTopicInfo) != "")
+			RPL_TOPIC(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		RPL_CREATIONTIME(context); //CREATIONTIME 329
 		# ifdef JCOMMAND
