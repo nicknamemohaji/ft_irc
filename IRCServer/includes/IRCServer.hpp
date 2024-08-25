@@ -41,6 +41,7 @@ class IRCServer: public TCPServer
 		void RPL_NAMREPLY(IRCContext& context);
 		void RPL_CREATIONTIME(IRCContext& context);
 		void RPL_CHANNELMODEIS(IRCContext& context);
+		void RPL_CHANNELMODEISNOINFO(IRCContext& context);
 		void RPL_INVITING(IRCContext& context);
 		void RPL_INVITED(IRCContext& context);
 		void ErrorSender(IRCContext context, unsigned int errornum);

@@ -41,7 +41,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				break ;
 			//ERR_USERNOTINCHANNEL
 			case 441:
-				result << clientNickname << " :They aren't on that channel";
+				result << clientNickname << " " << context.stringResult << " :They aren't on that channel";
 				break ;
 			// ERR_NOTREGISTERED
 			case 451:
@@ -101,7 +101,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				// "<client> <channel> :You're not on that channel"
 				break;
 			case 401:
-				result << clientNickname << " :No such nick/channel";
+				result << clientNickname << " " << context.stringResult << " :No such nick/channel";
 				break;
 			case 443:
 				result << clientNickname << " " <<  context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
