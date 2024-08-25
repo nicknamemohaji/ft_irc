@@ -64,7 +64,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " KICK " + context.channel->GetChannelInfo(kChannelName) + " " + kick_result + " :" + add_result;
-		SendMessageToChannel(context,true);
+		SendMessageToChannel(context,SendToAll);
 		channel->DelChannelUser(target_name[0]);
 	}
 }
