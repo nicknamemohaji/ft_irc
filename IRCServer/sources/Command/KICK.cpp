@@ -65,5 +65,5 @@ void IRCServer::ActionKICK(IRCContext& context)
 	context.numericResult = -1;
 	context.createSource = true;
 	context.stringResult = " KICK " + context.channel->GetChannelInfo(kChannelName) + " :" + result;
-	SendMessageToChannel(context,true);
+	SendMessageToChannel(context, SendToAll);
 }

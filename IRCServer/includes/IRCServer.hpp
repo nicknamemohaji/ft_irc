@@ -93,7 +93,7 @@ class IRCServer: public TCPServer
 		std::string AddPrefixToChannelName(const std::string& name);
 		std::string DelPrefixToChannelName(const std::string& name);
 		// commons
-		void SendMessageToChannel(IRCContext& context, bool sendAlso);
+		void SendMessageToChannel(IRCContext& context, enum ChannelSendMode target);
 		void RemoveClientFromChannel(IRCContext& context);
 
 		// disable this constructors

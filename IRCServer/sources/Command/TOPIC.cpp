@@ -46,7 +46,7 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " TOPIC " + context.channel->GetChannelInfo(kChannelName) + " :" + context.channel->GetChannelInfo(kTopicInfo);
-		SendMessageToChannel(context, true);
+		SendMessageToChannel(context, SendToAll);
 	}
 	else{
 	if (context.channel->GetChannelInfo(kTopicInfo).size() == 0)

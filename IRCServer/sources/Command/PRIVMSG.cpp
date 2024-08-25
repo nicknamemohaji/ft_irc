@@ -27,21 +27,36 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			throw IRCError::MissingParams();
 		target = context.params[0];
 		msg = context.params[1];
-		if((isValidChannelName(target) && IsChannelInList(target)) || ((target.size() > 1 && target[0] == '@') && IsChannelInList(target.substr(1)))){
+
+		context.numericResult = -1;
+		context.createSource = true;
+		context.stringResult  = "PRIVMSG " + target +" :" + msg;
+
+		if (IsChannelInList(target) || 
+			(target.size() > 1 && target[0] == '@' && IsChannelInList(target.substr(1)))
+		)
+		{
 			# ifdef PCOMMAND
 				std::cout << "send to channel" << std::endl;
 			# endif
+
+			enum ChannelSendMode send_mode = SendToAllExceptMe;
 			channel = GetChannel(target);
+			if (channel == NULL)
+			{
+				target = target.substr(1);
+				channel = GetChannel(target);
+				send_mode = SendToOper;
+			}
 			context.channel = channel;
-			if(!channel)
-				throw IRCError::NoSuchChannel();
+			
 			if((channel->CheckChannelMode(kPassword) || channel->CheckChannelMode(kInvite)) && !channel->IsInChannel(context.client->GetNickname()))
+			{
+				context.stringResult = target;
 				throw IRCError::CanNotSendToChan();
-			context.numericResult = -1;
-			context.createSource = true;
-			context.stringResult  = "PRIVMSG " + channel->GetChannelInfo(kChannelName) + " :" + msg;
-			SendMessageToChannel(context, false);
-			return;
+			}
+
+			SendMessageToChannel(context, send_mode);
 		}
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);
@@ -50,9 +65,6 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			# ifdef PCOMMAND
 				std::cout << "send to user " << user_target->GetNickname() <<std::endl;
 			# endif
-			context.numericResult = -1;
-			context.createSource = true;
-			context.stringResult  = "PRIVMSG " + user_target->GetNickname() + " :" + msg;
 			user_target->Send(MakeResponse(context));
 			context.FDsPendingWrite.insert(user_target->GetFD());
 		}
@@ -63,7 +75,6 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			context.stringResult = target;
 			throw IRCError::CanNotSendToChan();
 		}
-		
 }
 
 /* 
