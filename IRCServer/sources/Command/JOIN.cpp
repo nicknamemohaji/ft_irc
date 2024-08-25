@@ -166,23 +166,4 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	# ifdef JCOMMAND
 	std::cout << "all join process done" << std::endl;
 	# endif
-	///do join
 }
-
-		// result.str("");
-		// context.stringResult.clear();
-		// result << clientNickname
-		// 	<< " :Your host is "<< _serverName << ", running version " << VERSION;
-		// context.numericResult = 2;
-		// context.stringResult = result.str();
-		// context.client->Send(MakeResponse(context));
-# ifndef VERSION
-# define VERSION "42.42"
-# endif
-
-// void IRCServer::ActionJOIN(IRCContext& context)
-// {
-// 	std::stringstream result;
-
-// 	///do join
-// }

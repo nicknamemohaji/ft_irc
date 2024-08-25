@@ -26,26 +26,26 @@ void IRCServer::ActionMODE(IRCContext& context)
 		throw IRCError::MissingParams(); // 461
 	else {
 		std::string channel_name = context.params[0];
-		if(GetChannel(channel_name) == NULL)
-			return;
 		channel = this->GetChannel(AddPrefixToChannelName(channel_name));
 		context.channel = channel;
 		if(!channel){
 			context.stringResult = channel_name; 
 			throw IRCError::NoSuchChannel(); //403
 		}
+		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
-			// //this->RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 (채널 내부인/외부인 구분 필요)
-			// this->RPL_CREATIONTIME(context); //CREATIONTIME 329
+			RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
+			RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
-		std::string user_name = context.client->GetNickname();
 		if(!channel->IsUserAuthorized(user_name, kOperator))
 			throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
 		std::string mode_str = "-+itlko";
 		for(unsigned int i = 0; i < context.params[1].size(); i++)
-			if(mode_str.find(context.params[1][i]) == std::string::npos)
+			if(mode_str.find(context.params[1][i]) == std::string::npos) {
+				context.stringResult = context.params[1][i];
 				throw IRCError::UnKnownModeChar(); //UNKNOWNMODE 472
+			}
 	}
 	
 	std::string mode_result;
@@ -101,10 +101,12 @@ void IRCServer::ActionMODE(IRCContext& context)
 					continue;
 				std::string target_name = context.params[idx++];
 				if(!IsUserInList(target_name)) {
+					context.stringResult = target_name;
 					ErrorSender(context,401);
 					continue;
 				}
 				if(!channel->IsInChannel(target_name)){
+					context.stringResult = target_name;
 					ErrorSender(context,441);
 					continue;
 				}
@@ -128,7 +130,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 					if(limit < 1 || limit > kMaxChannelUsers)
 						continue;
 					channel->SetChannelMode(kLimit, flag);
-					channel->SetChannelInfo(kChannelPassword, std::to_string(limit));
+					channel->SetChannelInfo(kChannelUserLimit, std::to_string(limit));
 					mode_result += "l";
 					add_result.push(std::to_string(limit));
 				}

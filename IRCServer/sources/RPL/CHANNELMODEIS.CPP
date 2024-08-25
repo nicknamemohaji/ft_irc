@@ -8,7 +8,11 @@ void IRCServer::RPL_CHANNELMODEIS(IRCContext& context){
 	result.str("");
 	context.stringResult.clear();
 	result << context.client->GetNickname()
-		<< " "<< context.channel->GetChannelInfo(kChannelName) << " " << context.channel->GetChannelMode();
+		<< " "<< context.channel->GetChannelInfo(kChannelName) << " ";
+	if(context.channel->IsInChannel(context.client->GetNickname()))
+		result << context.channel->GetChannelMode();
+	else
+		result << ParserSep(context.channel->GetChannelMode(), " ")[0];
 	context.numericResult = 324;
 	context.stringResult = result.str();
 	context.client->Send(this->MakeResponse(context));

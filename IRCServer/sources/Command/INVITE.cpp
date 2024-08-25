@@ -11,7 +11,7 @@
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionINVITE(IRCContext &context){
-	# ifdef ICOMMAND
+	# ifdef COMMAND
 	std::cout << "invite command access" << std::endl;
 	for(unsigned int i = 0; i < context.params.size(); i++){
 		std::cout << context.params[i] << std::endl;
