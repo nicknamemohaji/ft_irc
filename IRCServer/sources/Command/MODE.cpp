@@ -7,6 +7,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -26,7 +28,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 		throw IRCError::MissingParams(); // 461
 	else {
 		std::string channel_name = context.params[0];
-		channel = this->GetChannel(AddPrefixToChannelName(channel_name));
+		channel = this->GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
 		context.channel = channel;
 		if(!channel){
 			context.stringResult = channel_name; 

@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -16,7 +18,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 	if (context.command == UNKNOWN)
 		command = context.rawMessage;
 	else
-		command = IRCContext::ConvertCommandToStr(context.command);
+		command = IRCRequestParser::ConvertComToStr(context.command);
 	std::string clientNickname = context.client->GetNickname();
 	std::stringstream result;
 

@@ -30,7 +30,6 @@ class IRCServer: public TCPServer
 		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
 		
 		// expose these methods:: 
-		std::vector<std::string> ParserSep(const std::string& str, const std::string& sep);
 		//get client*
 		IRCClient* GetClient(const std::string& user_name);
 		//RPL
@@ -61,9 +60,7 @@ class IRCServer: public TCPServer
 
 		// ==== methods ====
 		// request, response
-		bool RequestParser(Buffer& buf, IRCContext& context);
 		std::string MakeResponse(IRCContext& context);
-		void AddNewLineToBuffer(Buffer& message);
 		// context actions
 		void (IRCServer::*Actions[15])(IRCContext& context);
 		// 1. register new client
@@ -90,8 +87,6 @@ class IRCServer: public TCPServer
 		bool IsUserInList(const std::string& user_name) const;
 		//check channel name
 		bool isValidChannelName(const std::string& name) const;
-		std::string AddPrefixToChannelName(const std::string& name);
-		std::string DelPrefixToChannelName(const std::string& name);
 		// commons
 		void SendMessageToChannel(IRCContext& context, bool sendAlso);
 		void RemoveClientFromChannel(IRCContext& context);

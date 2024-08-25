@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -33,7 +35,7 @@ void IRCServer::ActionPART(IRCContext& context){
 		std::string reason;
 		if(context.params.size() == 2)
 			reason = context.params[1];
-		std::vector<std::string>channel_names =  ParserSep(context.params[0],",");
+		IRCParams channel_names =  IRCRequestParser::SeparateParam(context.params[0],",");
 		#ifdef COMMAND
 		std::cout<< "result of paser channel name = " << std::endl;
 		for(unsigned int i = 0; i < channel_names.size(); i++){
@@ -41,7 +43,7 @@ void IRCServer::ActionPART(IRCContext& context){
 		}
 		#endif	
 		for(unsigned int i = 0; i < channel_names.size(); i++){
-			context.channel = GetChannel(AddPrefixToChannelName(channel_names[i]));
+			context.channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_names[i]));
 			if(!context.channel){
 				#ifdef COMMAND
 				//채널없음

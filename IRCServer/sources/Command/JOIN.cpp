@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -28,10 +30,10 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		ErrorSender(context,461);
 		return;
 	}
-	std::vector<std::string> channel_names_ = ParserSep(context.params[0] , ",");
-	std::vector<std::string> channel_passwords_;
+	IRCParams channel_names_ = IRCRequestParser::SeparateParam(context.params[0] , ",");
+	IRCParams channel_passwords_;
 	if(context.params.size() > 1)
-		channel_passwords_ = ParserSep(context.params[1] , ",");
+		channel_passwords_ = IRCRequestParser::SeparateParam(context.params[1] , ",");
 	# ifdef COMMAND
 		for(unsigned int i = 0; i < context.params.size(); ++i)
 		{
@@ -41,7 +43,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		}
 	# endif
 	for(unsigned int i = 0; i < channel_names_.size();++i){
-		std::string channel_name =AddPrefixToChannelName(channel_names_[i]);
+		std::string channel_name = IRCRequestParser::AddChanPrefixToParam(channel_names_[i]);
 		if(isValidChannelName(channel_name)){
 			context.stringResult = channel_name; 
 			ErrorSender(context, 476);
@@ -153,21 +155,3 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	# endif
 	///do join
 }
-
-		// result.str("");
-		// context.stringResult.clear();
-		// result << clientNickname
-		// 	<< " :Your host is "<< _serverName << ", running version " << VERSION;
-		// context.numericResult = 2;
-		// context.stringResult = result.str();
-		// context.client->Send(MakeResponse(context));
-# ifndef VERSION
-# define VERSION "42.42"
-# endif
-
-// void IRCServer::ActionJOIN(IRCContext& context)
-// {
-// 	std::stringstream result;
-
-// 	///do join
-// }

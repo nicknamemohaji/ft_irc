@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -22,7 +24,7 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		return;
 	}
 	std::string user_name = context.params[0];
-	std::string channel_name = AddPrefixToChannelName(context.params[1]);
+	std::string channel_name = IRCRequestParser::AddChanPrefixToParam(context.params[1]);
 	if(!IsChannelInList(channel_name) || !IsUserInList(user_name)){
 		ErrorSender(context, 401);// 채널 없음 | 유저 없음
 		return;

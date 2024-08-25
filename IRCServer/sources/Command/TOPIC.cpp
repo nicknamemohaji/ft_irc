@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -23,11 +25,11 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		std::cout << "param data =  " << i << ": " << context.params[i] << std::endl;
 	}
 #endif
-	IRCChannel *channel = this->GetChannel(AddPrefixToChannelName(context.params[0]));
+	IRCChannel *channel = this->GetChannel(IRCRequestParser::AddChanPrefixToParam(context.params[0]));
 	context.channel = channel;
 	if (!channel)
 	{
-		context.stringResult = AddPrefixToChannelName(context.params[0]);
+		context.stringResult = IRCRequestParser::AddChanPrefixToParam(context.params[0]);
 		ErrorSender(context, 403); // no such channel
 		return;
 	}

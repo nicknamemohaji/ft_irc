@@ -7,6 +7,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -29,7 +31,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 	std::string channel_name = context.params[0];
 	if(GetChannel(channel_name) == NULL)
 		return;
-	channel = GetChannel(AddPrefixToChannelName(channel_name));
+	channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
 	context.channel = channel;
 	if(!channel){
 		context.stringResult = channel_name; 
@@ -40,7 +42,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		throw IRCError::NotOnChannel(); //ERR_NOTONCHANNEL 442	
 	if(!channel->IsUserAuthorized(user_name, kOperator))
 		throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
-	std::vector<std::string> target_name = ParserSep(context.params[1] , ",");
+	IRCParams target_name = IRCRequestParser::SeparateParam(context.params[1] , ",");
 	if(!IsUserInList(target_name[0]))
 		throw IRCError::ChangeNoPrivesneed(); // ERR_NOSUCHNICK 401
 	if(!channel->IsInChannel(target_name[0]))

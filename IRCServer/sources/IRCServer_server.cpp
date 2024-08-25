@@ -1,10 +1,13 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <sys/socket.h>
 
 #include <iostream>
 #include <ctime>
 
-#include "IRCServer.hpp"
-#include "IRCClient.hpp"
+#include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
 #include "IRCErrors.hpp"
 #include "TCPErrors.hpp"
 
@@ -78,7 +81,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
-	AddNewLineToBuffer(message);
+	IRCRequestParser::AddNewLineToBuffer(message);
 
 	# ifdef DEBUG
 	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
@@ -98,8 +101,13 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	try
 	{
 		// TODO 417 ERR_INPUTTOLONG
-		if (!RequestParser(message, context))
+		IRCCommand _command;
+		IRCParams _params;
+		if (!IRCRequestParser::ParseMessage(message, _command, _params))
 			return ;
+		context.command = _command;
+		context.params = _params;
+
 		// check registration status
 		if (conn->GetStatus() != REGISTERED && context.command > NICK)
 			throw IRCError::NotRegistered();
@@ -122,7 +130,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	{
 		// create error response
 		message = conn->ReadRecvBuffer();
-		AddNewLineToBuffer(message);
+		IRCRequestParser::AddNewLineToBuffer(message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
 		context.rawMessage = std::string(message.begin(), it);
 		// send error response
@@ -231,37 +239,6 @@ bool IRCServer::isValidChannelName(const std::string &name) const {
 			return false;
 	}
 	return true;
-}
-
-std::vector<std::string> IRCServer::ParserSep(const std::string& str, const std::string& sep)
-{
-    std::vector<std::string> param;
-    size_t start = 0;
-    size_t end = str.find(sep);
-    
-    while (end != std::string::npos)
-    {
-        param.push_back(str.substr(start, end - start));
-        start = end + sep.length();
-        end = str.find(sep, start);
-    }
-    
-    // 마지막 요소 추가
-    param.push_back(str.substr(start));
-    
-    return param;
-}
-
-std::string IRCServer::AddPrefixToChannelName(const std::string& name){
-	if(name.size() < 1 || name[0] == '#')
-		return name;
-	return "#" + name;
-}
-
-std::string IRCServer::DelPrefixToChannelName(const std::string& name){
-	if(name.size() < 1 || name[0] != '#')
-		return name;
-	return name.substr(1);
 }
 
 IRCClient* IRCServer::GetClient(const std::string& user_name){

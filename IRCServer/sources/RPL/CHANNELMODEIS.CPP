@@ -1,4 +1,6 @@
 #include "IRCServer.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 
 void IRCServer::RPL_CHANNELMODEIS(IRCContext& context){
 	# ifdef COMMAND
@@ -12,7 +14,7 @@ void IRCServer::RPL_CHANNELMODEIS(IRCContext& context){
 	if(context.channel->IsInChannel(context.client->GetNickname()))
 		result << context.channel->GetChannelMode();
 	else
-		result << ParserSep(context.channel->GetChannelMode(), " ")[0];
+		result << IRCRequestParser::SeparateParam(context.channel->GetChannelMode(), " ")[0];
 	context.numericResult = 324;
 	context.stringResult = result.str();
 	context.client->Send(this->MakeResponse(context));

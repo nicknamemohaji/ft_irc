@@ -6,6 +6,8 @@
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCTypes.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -23,11 +25,11 @@ void IRCServer::ActionNAMES(IRCContext& context){
 		ErrorSender(context, 461);
 		return;
 	}
-	std::vector<std::string> channel_names = ParserSep(context.params[0], ",");
+	IRCParams channel_names = IRCRequestParser::SeparateParam(context.params[0], ",");
 	for(unsigned int i = 0; i < channel_names.size(); ++i){
 	if(channel_names[i] == "")
 		continue;
-	std::string channel_name = AddPrefixToChannelName(channel_names[i]);
+	std::string channel_name = IRCRequestParser::AddChanPrefixToParam(channel_names[i]);
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
