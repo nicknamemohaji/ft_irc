@@ -39,6 +39,10 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 403:
 				result << clientNickname << " " << context.stringResult << " :No such channel";
 				break ;
+			// ERR_CANNOTSENDTOCHAN
+			case 404:
+				result << clientNickname << " " << context.stringResult << " ::Cannot send to channel or user";
+				break;
 			// ERR_TOOMANYCHANNELS
 			case 405:
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You have joined too many channels";
@@ -64,10 +68,10 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
 				// "<client> <channel> :You're not on that channel"
 				break;
-			// // ERR_USERONCHANNEL
-			// case 443:
-			// 	result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
-			// 	break;
+			// ERR_USERONCHANNEL
+			case 443:
+				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
+				break;
 			// ERR_NOTREGISTERED
 			case 451:
 				result << clientNickname << " :You have not registered";
@@ -108,6 +112,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 			case 482:
 				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not a channel operator";
 				break ;
+
 			// ERR_UNKNOWNCOMMAND
 			case 421:
 				// FALLTHROUGH

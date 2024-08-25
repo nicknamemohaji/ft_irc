@@ -9,6 +9,7 @@ namespace IRCError
 	class NoSuchNick;			// 401
 	class NoSuchServer;			// 402
 	class NoSuchChannel;		// 403
+	class CanNotSendToChan;		// 404
 	class TooManyChannel;		// 405
 	class UnknownCommand;		// 421
 	class NoNickname;			// 431
@@ -76,6 +77,16 @@ class IRCError::NoSuchChannel: public IRCNumeric
 	public:
 		NoSuchChannel(void):
 			IRCNumeric(403)
+		{
+		}
+};
+
+// ERR_CANNOTSENDTOCHAN (404): 메시지를 채널에 전달할 수 없음
+class IRCError::CanNotSendToChan: public IRCNumeric
+{
+	public:
+		CanNotSendToChan(void):
+			IRCNumeric(404)
 		{
 		}
 };
@@ -247,5 +258,4 @@ class IRCError::ChangeNoPrivesneed: public IRCNumeric
 		{
 		}
 };
-
 #endif

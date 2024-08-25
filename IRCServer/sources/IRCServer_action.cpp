@@ -10,20 +10,10 @@
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
-// void IRCServer::ActionKICK(IRCContext& context)
-// {
-// 	std::cout << "***************************\n";
-// 	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++) {
-// 		std::cout << *it << '/';
-// 	}
-// 	std::cout << "***************************\n";
-// }
-
-void IRCServer::ActionPRIVMSG(IRCContext& context)
+void IRCServer::ActionPING(IRCContext& context)
 {
-	std::cout << "***************************\n";
-	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++) {
-		std::cout << *it << '/';
-	}
-	std::cout << "***************************\n";
+	// TODO PING
+	context.stringResult = context.client->GetNickname() + ":" + _serverName;
+	context.client->Send(MakeResponse(context));
+	context.FDsPendingWrite.insert(context.client->GetFD());
 }

@@ -80,7 +80,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			{
 				// broadcast
 				context.channel = it->second;
-				SendMessageToChannel(context, false);
+				SendMessageToChannel(context, SendToAllExceptMe);
 				// change name from channel
 				context.channel->DelChannelUser(prev_name);
 				context.channel->AddChannelUser(new_name);
