@@ -106,7 +106,6 @@ void TCPConnection::Recv(void)
 		sizeof(buf),					// len
 		0								// flags: none
 	);
-	std::cout << buf << std::endl;
 	if (err == -1)
 		throw TCPErrors::SystemCallError("recv(2)");
 	else if (err == 0)

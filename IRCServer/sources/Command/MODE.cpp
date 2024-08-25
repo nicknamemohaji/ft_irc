@@ -34,10 +34,6 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
-			// if(channel->IsInChannel(user_name))
-			// 	RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 (채널 내부인)
-			// else
-			// 	RPL_CHANNELMODEISNOINFO(context); //CHANNELMODEISNOINFO 324 (채널 외부인)
 			RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
 			RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
