@@ -224,7 +224,7 @@ bool IRCServer::IsUserInList(const std::string& user_name) const{
 }
 
 bool IRCServer::isValidChannelName(const std::string &name) const {
-	if(name.size() > 10 || name.size() < 2)
+	if(name.size() > 10 || name.size() < 1)
 		return false;
 	if(name[0] != '#')
 		return false;
