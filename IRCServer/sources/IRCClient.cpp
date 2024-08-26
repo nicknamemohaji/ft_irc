@@ -87,7 +87,7 @@ bool IRCClient::IsInChannel(const std::string &channel_name) const {
 }
 
 void IRCClient::AddInviteChannel(const std::string &channel_name){
-	if(!IsInviteChannel(channel_name))
+	if(IsInviteChannel(channel_name))
 		return;
 	_invited_channels_.push_back(channel_name);
 }
