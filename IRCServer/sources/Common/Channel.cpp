@@ -46,8 +46,8 @@ void IRCServer::RemoveClientFromChannel(IRCContext& context)
 			DelChannel(context.channel->GetChannelInfo(kChannelName)); 
 	}
 	// remove from invitation list
-	IRCClientChannels invited_chans = context.client->ListInvitedChannels();
-	for (IRCClientChannels::iterator it = invited_chans.begin(); it != invited_chans.end(); it++)
+	IRCClientChannels _invited_chans = context.client->ListInvitedChannels();
+	for (IRCClientChannels::iterator it = _invited_chans.begin(); it != _invited_chans.end(); it++)
 	{
 		IRCChannel* channel = GetChannel(*it);
 		if (channel == NULL)

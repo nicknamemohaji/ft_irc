@@ -47,7 +47,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 				throw IRCError::UnknownModeChar(); //UNKNOWNMODE 472
 			}
 	}
-	
+
 	std::string mode_result;
 	std::queue<std::string> add_result;
 	unsigned int idx = 2;
@@ -127,8 +127,10 @@ void IRCServer::ActionMODE(IRCContext& context)
 						continue;
 					std::string limit_str = context.params[idx++];
 					unsigned int limit = strtod(limit_str.c_str(), nullptr);
-					if(limit < 1 || limit > kMaxChannelUsers)
+					if(limit < 1)
 						continue;
+					if(limit > kMaxChannelUsers)
+						limit = kMaxChannelUsers;
 					channel->SetChannelMode(kLimit, flag);
 					channel->SetChannelInfo(kChannelUserLimit, std::to_string(limit));
 					mode_result += "l";

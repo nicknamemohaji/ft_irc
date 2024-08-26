@@ -23,7 +23,6 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	// delete from channels
 	RemoveClientFromChannel(context);
 	client->Send(MakeResponse(context));
-	// TODO remove from invitelist after merge
 
 	// acknoledgement to client
 	context.stringResult = "ERROR: Quit connection";

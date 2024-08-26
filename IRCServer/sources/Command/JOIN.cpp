@@ -142,7 +142,6 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
 		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
-		RPL_CREATIONTIME(context); //CREATIONTIME 329
 		# ifdef JCOMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif
