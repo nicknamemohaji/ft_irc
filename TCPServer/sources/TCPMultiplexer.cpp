@@ -153,6 +153,7 @@ void TCPMultiplexer::RemoveConnection(Client client, std::set<int> &shouldWriteF
 		return ;
 	}
 	_clients.erase(it);
+	delete connection;
 }
 
 // ==== main event handler function ====
