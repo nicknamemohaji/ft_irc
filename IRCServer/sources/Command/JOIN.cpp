@@ -140,7 +140,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
-		SendMessageToChannel(context, SendToAll);
+		SendMessageToChannel(kChanSendModeToAll, context);
 		if(channel->GetChannelInfo(kTopicInfo) != ""){
 			IRCResponseCreator::RPL_TOPIC(context);
 			IRCResponseCreator::RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333

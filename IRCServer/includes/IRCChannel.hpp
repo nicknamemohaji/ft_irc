@@ -40,9 +40,9 @@ enum ChannelInfo {
 
 enum ChannelSendMode
 {
-	SendToOper,
-	SendToAll,
-	SendToAllExceptMe
+	kChanSendModeToOper,
+	kChanSendModeToAll,
+	kChanSendModeToExceptMe
 };
 
 typedef std::map<std::string, ChannelPermission> UserInChannel;

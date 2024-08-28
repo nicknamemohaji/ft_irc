@@ -145,6 +145,6 @@ void IRCServer::ActionMODE(IRCContext& context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " MODE " + context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
-		SendMessageToChannel(context, SendToAll);
+		SendMessageToChannel(kChanSendModeToAll, context);
 	}
 }

@@ -75,8 +75,10 @@ class IRCServer: public TCPServer
 		bool IsChannelInList(const std::string& channel_name) const;
 		bool IsUserInList(const std::string& user_name) const;
 		// commons
-		void SendMessageToChannel(IRCContext& context, enum ChannelSendMode target);
-		void RemoveClientFromChannel(IRCContext& context);
+
+		void SendMessageToChannel(enum ChannelSendMode target, IRCContext& context);
+		void RmClientFromChanJoined(IRCClient* client);
+		void RmClientFromChanInvited(IRCClient* client);
 
 		// ==== disable this constructors ====
 		IRCServer(void);

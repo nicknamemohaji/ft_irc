@@ -42,13 +42,13 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				std::cout << "send to channel" << std::endl;
 			# endif
 
-			enum ChannelSendMode send_mode = SendToAllExceptMe;
+			enum ChannelSendMode send_mode = kChanSendModeToExceptMe;
 			channel = GetChannel(target);
 			if (channel == NULL)
 			{
 				target = target.substr(1);
 				channel = GetChannel(target);
-				send_mode = SendToOper;
+				send_mode = kChanSendModeToOper;
 			}
 			context.channel = channel;
 			
@@ -58,7 +58,7 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				throw IRCError::CanNotSendToChan();
 			}
 
-			SendMessageToChannel(context, send_mode);
+			SendMessageToChannel(send_mode, context);
 		}
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);
