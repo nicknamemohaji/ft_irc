@@ -64,7 +64,7 @@ void IRCServer::ActionPART(IRCContext& context){
 			context.stringResult = " PART " + context.channel->GetChannelInfo(kChannelName);
 			if(!reason.empty())
 				context.stringResult = context.stringResult + " :" + reason;
-			SendMessageToChannel(context,true);
+			SendMessageToChannel(context, SendToAll);
 			// sendPartMsg(context.channel->GetMemberNames(),context,*this,reason);
 			context.channel->DelChannelUser(context.client->GetNickname()); // 채널에서 유저 제거
 			if(context.channel->GetChannelUserSize() == 0)

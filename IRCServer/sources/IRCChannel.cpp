@@ -112,16 +112,9 @@ void IRCChannel::AddInvitedUser(const std::string& target_nickname) {
 }
 
 void IRCChannel::DelInvitedUser(const std::string& target_nickname){
-    InvitedUsers::iterator it;
-    for(it = invited_users_.begin(); it != invited_users_.end(); ++it){
-        if(*it == target_nickname){
-            invited_users_.erase(it);
-            # ifdef COMMAND
-                std::cout << "invite delted!" << std::endl;
-            # endif
-            return;
-        }
-    }
+    InvitedUsers::iterator it = std::find(invited_users_.begin(),invited_users_.end(),target_nickname);
+    if(it != invited_users_.end())
+        invited_users_.erase(it);
 }
 
 std::deque<std::string> IRCChannel::GetChannelUsersWithPrefixes() const {
@@ -141,7 +134,7 @@ std::deque<std::string> IRCChannel::GetMemberNames() const {
     std::deque<std::string> member_names;
 	UserInChannel::const_iterator user;
     for (user = users_in_channel_.begin(); user != users_in_channel_.end(); ++user) {
-            member_names.push_back(user->first);
+        member_names.push_back(user->first);
     }
     return member_names;
 }

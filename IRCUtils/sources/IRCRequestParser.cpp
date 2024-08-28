@@ -194,6 +194,8 @@ enum IRCCommand IRCRequestParser::ConvertStrToCom(const std::string& command)
 		return NICK;
 	else if (command == "MOTD")
 		return MOTD;
+	else if (command == "PING")
+		return PING;
 	else if (command == "motd")	// WTF
 		return MOTD;
 	else if (command == "QUIT")

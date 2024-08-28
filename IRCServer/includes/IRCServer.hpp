@@ -40,8 +40,6 @@ class IRCServer: public TCPServer
 		void RPL_NAMREPLY(IRCContext& context);
 		void RPL_CREATIONTIME(IRCContext& context);
 		void RPL_CHANNELMODEIS(IRCContext& context);
-		void RPL_INVITING(IRCContext& context);
-		void RPL_INVITED(IRCContext& context);
 		void ErrorSender(IRCContext context, unsigned int errornum);
 		
 	protected:
@@ -62,7 +60,7 @@ class IRCServer: public TCPServer
 		// request, response
 		std::string MakeResponse(IRCContext& context);
 		// context actions
-		void (IRCServer::*Actions[15])(IRCContext& context);
+		void (IRCServer::*Actions[16])(IRCContext& context);
 		// 1. register new client
 		void ActionAcceptClient(IRCContext& context);
 		// 2. manage existing client
@@ -88,7 +86,7 @@ class IRCServer: public TCPServer
 		//check channel name
 		bool isValidChannelName(const std::string& name) const;
 		// commons
-		void SendMessageToChannel(IRCContext& context, bool sendAlso);
+		void SendMessageToChannel(IRCContext& context, enum ChannelSendMode target);
 		void RemoveClientFromChannel(IRCContext& context);
 
 		// disable this constructors

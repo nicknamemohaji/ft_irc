@@ -37,6 +37,14 @@ enum ChannelInfo {
     kChannelName = 5, //channel name idx
 	kChannelUserLimit = 6
 };
+
+enum ChannelSendMode
+{
+	SendToOper,
+	SendToAll,
+	SendToAllExceptMe
+};
+
 typedef std::map<std::string, ChannelPermission> UserInChannel;
 typedef std::vector<std::string> InvitedUsers;
 typedef std::deque<std::string> ChannelUsers;

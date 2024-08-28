@@ -10,17 +10,18 @@ SRCS_IRCSERVER :=	$(wildcard IRCServer/sources/*.cpp)\
 					$(wildcard IRCServer/sources/Command/*.cpp)\
 					$(wildcard IRCServer/sources/Common/*.cpp)\
 					$(wildcard IRCServer/sources/RPL/*.cpp) \
-					$(wildcard IRCServer/sources/utils/*.cpp)
+					$(wildcard IRCUtils/sources/*.cpp)
 
 SRCS := $(SRCS_TCPSERVER) $(SRCS_IRCSERVER) server.cpp
 
 OBJS := $(SRCS:.cpp=.o)
 
 INCLUDES :=	-I TCPServer/includes \
-			-I IRCServer/includes
+			-I IRCServer/includes \
+			-I IRCUtils/includes
 
 C++ := c++
-CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -fsanitize=address -D COMMAND -D DEBUG
+CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -fsanitize=address -D PCOMMAND -D DEBUG
 
 all: $(NAME)
 

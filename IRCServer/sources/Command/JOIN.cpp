@@ -138,13 +138,12 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
-		SendMessageToChannel(context,true);
+		SendMessageToChannel(context, SendToAll);
 		if(channel->GetChannelInfo(kTopicInfo) != ""){
 			RPL_TOPIC(context);
 			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
 		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
-		RPL_CREATIONTIME(context); //CREATIONTIME 329
 		# ifdef JCOMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif

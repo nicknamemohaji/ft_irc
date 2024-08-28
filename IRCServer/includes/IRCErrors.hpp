@@ -6,29 +6,28 @@
 
 namespace IRCError
 {
-	class UnknownCommand;
-	class MissingParams;
-	
-	class WrongPassword;
-	class NotRegistered;
-	class AlreadyRegistered;
+	class NoSuchNick;			// 401
+	class NoSuchServer;			// 402
+	class NoSuchChannel;		// 403
+	class CanNotSendToChan;		// 404
+	class TooManyChannel;		// 405
+	class UnknownCommand;		// 421
+	class NoNickname;			// 431
+	class WrongNickname;		// 432
+	class ExitstingNickname;	// 433
+	class UserNotInChannel;		// 441
+	class NotOnChannel;			// 442
+	class NotRegistered;		// 451
+	class MissingParams;		// 461
+	class AlreadyRegistered;	// 462
+	class WrongPassword;		// 464
+	class ChannelIsFull;		// 471
+	class UnknownModeChar;		// 472
+	class InviteOnly;			// 473
+	class BadChannelKey;		// 475
+	class BadChannelName;		// 476
+	class ChangeNoPrivesneed;	// 482
 
-	class NoNickname;
-	class WrongNickname;
-	class ExitstingNickname;
-
-	class ChangeNoPrivesneed;
-	class NoSuchChannel;
-	class TooManyChannel;
-	class BadChannelKey;
-	class BandedUser;
-	class ChannelIsFull;
-	class InviteOnly;
-	class BadChannelName;
-	class UnKnownModeChar;
-	class NotOnChannel;
-	class NoSuchNick;
-	class UserNotInChannel;
 };
 
 // base error
@@ -62,12 +61,32 @@ class IRCError::NoSuchNick: public IRCNumeric
 		}
 };
 
+// ERR_NOSUCHSERVER
+class IRCError::NoSuchServer: public IRCNumeric
+{
+	public:
+		NoSuchServer(void):
+			IRCNumeric(402)
+		{
+		}
+};
+
 // ERR_NOSUCHCHANNEL
 class IRCError::NoSuchChannel: public IRCNumeric
 {
 	public:
 		NoSuchChannel(void):
 			IRCNumeric(403)
+		{
+		}
+};
+
+// ERR_CANNOTSENDTOCHAN (404): 메시지를 채널에 전달할 수 없음
+class IRCError::CanNotSendToChan: public IRCNumeric
+{
+	public:
+		CanNotSendToChan(void):
+			IRCNumeric(404)
 		{
 		}
 };
@@ -181,38 +200,6 @@ class IRCError::WrongPassword: public IRCNumeric
 		}
 };
 
-// ERR_CHANOPRIVSNEEDED
-class IRCError::ChangeNoPrivesneed: public IRCNumeric
-{
-	public:
-		ChangeNoPrivesneed(void):
-			IRCNumeric(482)
-		{
-		}
-};
-
-
-
-//ERR_BADCHANNELKEY* (475) 비밀번호 다름
-class IRCError::BadChannelKey: public IRCNumeric
-{
-	public:
-		BadChannelKey(void):
-			IRCNumeric(475)
-		{
-		}
-};
-
-// *ERR_BANNEDFROMCHAN* (474) 벤된 사용자
-class IRCError::BandedUser: public IRCNumeric
-{
-	public:
-		BandedUser(void):
-			IRCNumeric(474)
-		{
-		}
-};
-
 // *ERR_CHANNELISFULL* (471) 채널 포화상태
 class IRCError::ChannelIsFull: public IRCNumeric
 {
@@ -223,10 +210,10 @@ class IRCError::ChannelIsFull: public IRCNumeric
 		}
 };
 // *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
-class IRCError::UnKnownModeChar: public IRCNumeric
+class IRCError::UnknownModeChar: public IRCNumeric
 {
 	public:
-		UnKnownModeChar(void):
+		UnknownModeChar(void):
 			IRCNumeric(472)
 		{
 		}
@@ -240,6 +227,17 @@ class IRCError::InviteOnly: public IRCNumeric
 		{
 		}
 };
+
+//ERR_BADCHANNELKEY* (475) 비밀번호 다름
+class IRCError::BadChannelKey: public IRCNumeric
+{
+	public:
+		BadChannelKey(void):
+			IRCNumeric(475)
+		{
+		}
+};
+
 // *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
 class IRCError::BadChannelName: public IRCNumeric
 {
@@ -250,4 +248,14 @@ class IRCError::BadChannelName: public IRCNumeric
 		}
 };
 
+
+// ERR_CHANOPRIVSNEEDED
+class IRCError::ChangeNoPrivesneed: public IRCNumeric
+{
+	public:
+		ChangeNoPrivesneed(void):
+			IRCNumeric(482)
+		{
+		}
+};
 #endif

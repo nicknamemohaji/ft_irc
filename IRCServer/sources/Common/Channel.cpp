@@ -6,16 +6,20 @@
 #include <string>
 #include <deque>
 
-void IRCServer::SendMessageToChannel(IRCContext& context, bool sendAlso)
+void IRCServer::SendMessageToChannel(IRCContext& context, enum ChannelSendMode target)
 {
 	std::string message = MakeResponse(context);
-	ChannelUsers users = context.channel->GetMemberNames();
+	ChannelUsers users = context.channel->GetChannelUsersWithPrefixes();
 
 	for(ChannelUsers::iterator it = users.begin(); it != users.end(); it++)
 	{
-		// TODO handle error
-		IRCClient* userPtr = GetClient(*it);
-		if (!sendAlso && userPtr == context.client)
+		std::string userNickname = *it;
+		if (target == SendToOper && userNickname[0] != '@')
+			continue ;
+		if (userNickname[0] == '@')
+			userNickname = userNickname.substr(1);
+		IRCClient* userPtr = GetClient(userNickname);
+		if (target != SendToAll && userPtr == context.client)
 			continue ;
 		userPtr->Send(message);
 		context.FDsPendingWrite.insert(userPtr->GetFD());
@@ -35,15 +39,15 @@ void IRCServer::RemoveClientFromChannel(IRCContext& context)
 		context.channel = it->second;
 		// broadcast
 		if (context.stringResult.size() != 0)
-			SendMessageToChannel(context, false);
+			SendMessageToChannel(context, SendToAllExceptMe);
 		// delete name from channel
 		context.channel->DelChannelUser(nickname);
 		if(context.channel->GetChannelUserSize() == 0)
 			DelChannel(context.channel->GetChannelInfo(kChannelName)); 
 	}
 	// remove from invitation list
-	IRCClientChannels invited_chans = context.client->ListInvitedChannels();
-	for (IRCClientChannels::iterator it = invited_chans.begin(); it != invited_chans.end(); it++)
+	IRCClientChannels _invited_chans = context.client->ListInvitedChannels();
+	for (IRCClientChannels::iterator it = _invited_chans.begin(); it != _invited_chans.end(); it++)
 	{
 		IRCChannel* channel = GetChannel(*it);
 		if (channel == NULL)
