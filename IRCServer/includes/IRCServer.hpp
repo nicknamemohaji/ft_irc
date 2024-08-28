@@ -28,19 +28,9 @@ class IRCServer: public TCPServer
 		void WriteEvent(TCPConnection* conn,
 			bool& shouldRead, bool& shouldEndWrite);
 		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
-		
-		// expose these methods:: 
-		//get client*
-		IRCClient* GetClient(const std::string& user_name);
-		//RPL
-		void RPL_NOTOPIC(IRCContext& context);
-		void RPL_TOPIC(IRCContext& context);
-		void RPL_TOPICWHOTIME(IRCContext& context);
-		void RPL_ENDOFNAMES(IRCContext& context);
-		void RPL_NAMREPLY(IRCContext& context);
-		void RPL_CREATIONTIME(IRCContext& context);
-		void RPL_CHANNELMODEIS(IRCContext& context);
-		void ErrorSender(IRCContext context, unsigned int errornum);
+
+		// public getter
+		std::string GetServerName(void) const;
 		
 	protected:
 
@@ -57,13 +47,11 @@ class IRCServer: public TCPServer
 		std::map<std::string, IRCClient*> _clients;
 
 		// ==== methods ====
-		// request, response
-		std::string MakeResponse(IRCContext& context);
 		// context actions
+		// 1. array of method pointers
 		void (IRCServer::*Actions[16])(IRCContext& context);
-		// 1. register new client
+		// 2. action methods
 		void ActionAcceptClient(IRCContext& context);
-		// 2. manage existing client
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
 		void ActionQUIT(IRCContext& context);
@@ -75,21 +63,22 @@ class IRCServer: public TCPServer
 		void ActionKICK(IRCContext& context);
 		void ActionPRIVMSG(IRCContext& context);
 		void ActionINVITE(IRCContext& context);
+
+		//get pointer from name
+		IRCClient* GetClient(const std::string& user_name);
+		IRCChannel* GetChannel(const std::string &channel_name);
+		
 		// channel add and del
 		IRCChannel* AddChannel(const std::string &nick_name, const std::string &channel_name, const std::string &channel_password);
 		void DelChannel(const std::string &channel_name);
-		IRCChannel* GetChannel(const std::string &channel_name);	
-		//check channel exist
+		//check names
 		bool IsChannelInList(const std::string& channel_name) const;
-		//check user exist
 		bool IsUserInList(const std::string& user_name) const;
-		//check channel name
-		bool isValidChannelName(const std::string& name) const;
 		// commons
 		void SendMessageToChannel(IRCContext& context, enum ChannelSendMode target);
 		void RemoveClientFromChannel(IRCContext& context);
 
-		// disable this constructors
+		// ==== disable this constructors ====
 		IRCServer(void);
 		IRCServer(const IRCServer& other);
 		IRCServer& operator=(const IRCServer& other);

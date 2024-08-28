@@ -1,3 +1,6 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -5,24 +8,15 @@
 #include <algorithm>
 #include <queue>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCRequestParser.hpp"
 #include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionMODE(IRCContext& context)
-{
-	# ifdef COMMAND
-	std::cout << "*MODE command start*" << std::endl;
-	std::cout << "context.params.size = " << context.params.size() << std::endl;
-
-	for(unsigned long i = 0; i < context.params.size(); i++)
-		std::cout << context.params[i] << std::endl;
-	# endif
-	
+{	
 	IRCChannel *channel;
 	if(context.params.size() <= 0)
 		throw IRCError::MissingParams(); // 461
@@ -36,8 +30,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
-			RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
-			RPL_CREATIONTIME(context); //CREATIONTIME 329
+			IRCResponseCreator::RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
+			IRCResponseCreator::RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
 		if(!channel->IsUserAuthorized(user_name, kOperator))
@@ -104,12 +98,12 @@ void IRCServer::ActionMODE(IRCContext& context)
 				std::string target_name = context.params[idx++];
 				if(!IsUserInList(target_name)) {
 					context.stringResult = target_name;
-					ErrorSender(context,401);
+					IRCResponseCreator::ErrorSender(context,401);
 					continue;
 				}
 				if(!channel->IsInChannel(target_name)){
 					context.stringResult = target_name;
-					ErrorSender(context,441);
+					IRCResponseCreator::ErrorSender(context,441);
 					continue;
 				}
 				mode_result += "o";

@@ -1,13 +1,15 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCRequestParser.hpp"
 #include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -22,7 +24,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	//파싱오류 많은 파라미터
 	if(context.params.size() != 1){
 		// throw IRCError::MissingParams(); // 461
-		ErrorSender(context, 461);
+		IRCResponseCreator::ErrorSender(context, 461);
 		return;
 	}
 	IRCParams channel_names = IRCRequestParser::SeparateParam(context.params[0], ",");
@@ -33,10 +35,10 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
-	if(this->isValidChannelName(channel_name)){
+	if(IRCChannel::isValidChannelName(channel_name)){
 		// throw IRCError::BadChannelName(); //476
 		context.stringResult = channel_name;
-		ErrorSender(context, 476);
+		IRCResponseCreator::ErrorSender(context, 476);
 		return;
 	}
 	channel = this->GetChannel(channel_name);
@@ -47,13 +49,13 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	{
 		context.stringResult = channel_name;{
 		// throw IRCError::NoSuchChannel(); //403
-		ErrorSender(context, 403);
+		IRCResponseCreator::ErrorSender(context, 403);
 		return;
 		}
 	}
 	context.channel = channel;
 	if(!channel->IsInChannel(context.client->GetNickname())){
-		this->RPL_ENDOFNAMES(context);
+		IRCResponseCreator::RPL_ENDOFNAMES(context);
 		# ifdef COMMAND
 		std::cout << "channel name command only endof name rpl " <<std::endl;
 		# endif
@@ -62,7 +64,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name command do well process " << channel->IsInChannel(context.client->GetNickname())<<std::endl;
 	# endif
-	this->RPL_NAMREPLY(context);
+	IRCResponseCreator::RPL_NAMREPLY(context);
 	}
 }
 /*

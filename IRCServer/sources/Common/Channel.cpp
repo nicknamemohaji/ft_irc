@@ -6,9 +6,11 @@
 #include <string>
 #include <deque>
 
+#include "IRCResponseCreator.hpp"
+
 void IRCServer::SendMessageToChannel(IRCContext& context, enum ChannelSendMode target)
 {
-	std::string message = MakeResponse(context);
+	std::string message = IRCResponseCreator::MakeResponse(context);
 	ChannelUsers users = context.channel->GetChannelUsersWithPrefixes();
 
 	for(ChannelUsers::iterator it = users.begin(); it != users.end(); it++)

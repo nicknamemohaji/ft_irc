@@ -84,7 +84,9 @@ public:
     unsigned int GetChannelUserSize() const;
 
     //Translater
-    std::string itostr(long long time) const;
+    static std::string itostr(long long time);
+	//check channel name
+	static bool isValidChannelName(const std::string& name);
     
 	//MODE
     bool CheckChannelMode(ChannelMode option) const;

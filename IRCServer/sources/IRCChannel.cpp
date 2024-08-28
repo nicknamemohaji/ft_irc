@@ -48,7 +48,7 @@ IRCChannel::IRCChannel(const std::string& nickname, const std::string& channel_n
 
 IRCChannel::~IRCChannel(){}
 
-std::string IRCChannel::itostr(long long time) const {
+std::string IRCChannel::itostr(long long time) {
     std::stringstream result;
     result << time;
     return result.str();
@@ -169,4 +169,19 @@ std::string IRCChannel::GetChannelMode() const {
 	if(m.size() > 1)
 		return "+" + m;
 	return m;
+}
+
+bool IRCChannel::isValidChannelName(const std::string &name) {
+	if(name.size() > 10 || name.size() < 1)
+		return false;
+	if(name[0] != '#')
+		return false;
+	if(std::string::npos != name.find('#',1))
+		return false;
+	for(unsigned int i = 1; i < name.size(); ++i)
+	{
+		if(!std::isalnum(static_cast<unsigned char>(name[i])))
+			return false;
+	}
+	return true;
 }

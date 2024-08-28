@@ -6,6 +6,8 @@
 #include <sstream>
 #include <deque>
 
+#include "IRCResponseCreator.hpp"
+
 void IRCServer::ActionQUIT(IRCContext& context)
 {
 	IRCClient* client = context.client;
@@ -22,11 +24,11 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	
 	// delete from channels
 	RemoveClientFromChannel(context);
-	client->Send(MakeResponse(context));
+	client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// acknoledgement to client
 	context.stringResult = "ERROR: Quit connection";
-	client->Send(MakeResponse(context));
+	client->Send(IRCResponseCreator::MakeResponse(context));
 	context.FDsPendingWrite.insert(client->GetFD());
 	client->SetStatus(PENDING_QUIT);
 }

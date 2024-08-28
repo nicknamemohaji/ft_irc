@@ -1,16 +1,18 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+#include "IRCClient.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCRequestParser.hpp"
 #include "IRCTypes.hpp"
-#include "IRCClient.hpp"
+#include "IRCRequestParser.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
+#include "IRCResponseCreator.hpp"
 
 
 //RPL_CREATIONTIME (329)
@@ -25,7 +27,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	std::stringstream result;
 	if(!(context.params.size() > 0 && context.params.size() < 3)){
 		//throw IRCError::MissingParams(); // 461
-		ErrorSender(context,461);
+		IRCResponseCreator::ErrorSender(context,461);
 		return;
 	}
 	IRCParams channel_names_ = IRCRequestParser::SeparateParam(context.params[0] , ",");
@@ -44,10 +46,10 @@ void IRCServer::ActionJOIN(IRCContext& context)
 	for(unsigned int i = 0; i < channel_names_.size();++i){
 		std::string channel_name = IRCRequestParser::AddChanPrefixToParam(channel_names_[i]);
 		// channel name vaild check
-		if(!isValidChannelName(channel_name)){
+		if(!IRCChannel::isValidChannelName(channel_name)){
 			// throw IRCError::BadChannelName(); //476
 			context.stringResult = channel_name; 
-			ErrorSender(context, 476);
+			IRCResponseCreator::ErrorSender(context, 476);
 			continue;
 		}
 		IRCChannel* channel;
@@ -96,7 +98,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 			# endif
 			//초대 모드인지, 초대된 유저인지 확인
 			if(channel->CheckChannelMode(kInvite) && !channel->IsInvited(context.client->GetNickname())){
-				ErrorSender(context, 473);
+				IRCResponseCreator::ErrorSender(context, 473);
 				continue;
 			}
 			# ifdef JCOMMAND
@@ -113,7 +115,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "password error!!!" << i << "channel password = " << channel->GetChannelInfo(kChannelPassword) <<std::endl;
 					# endif
 					// throw IRCError::BadChannelKey(); // 475 비밀번호
-					ErrorSender(context, 475);
+					IRCResponseCreator::ErrorSender(context, 475);
 					continue;
 				}
 			}
@@ -123,7 +125,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "channel limit !!!" << i << "channel user number = " << channel->GetChannelUserSize() <<std::endl;
 				# endif
 			if(channel->CheckChannelMode(kLimit) && static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) >= channel->GetChannelUserSize()){
-				ErrorSender(context, 471); //471 채널 포화
+				IRCResponseCreator::ErrorSender(context, 471); //471 채널 포화
 				continue;
 			}
 			//channel add at client and channel add client
@@ -140,10 +142,10 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		context.stringResult = " JOIN " + context.channel->GetChannelInfo(kChannelName);
 		SendMessageToChannel(context, SendToAll);
 		if(channel->GetChannelInfo(kTopicInfo) != ""){
-			RPL_TOPIC(context);
-			RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
+			IRCResponseCreator::RPL_TOPIC(context);
+			IRCResponseCreator::RPL_TOPICWHOTIME(context);//RPL_TOPIC 332, RPL_TOPICWHOTIME 333
 		}
-		RPL_NAMREPLY(context);//RPL_NAMREPLY 353
+		IRCResponseCreator::RPL_NAMREPLY(context);//RPL_NAMREPLY 353
 		# ifdef JCOMMAND
 		std::cout << "channel RPL done;" << i <<std::endl;
 		# endif

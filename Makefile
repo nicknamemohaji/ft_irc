@@ -9,8 +9,8 @@ SRCS_TCPSERVER := 	TCPServer/sources/TCPMultiplexer.cpp \
 SRCS_IRCSERVER :=	$(wildcard IRCServer/sources/*.cpp)\
 					$(wildcard IRCServer/sources/Command/*.cpp)\
 					$(wildcard IRCServer/sources/Common/*.cpp)\
-					$(wildcard IRCServer/sources/RPL/*.cpp) \
-					$(wildcard IRCUtils/sources/*.cpp)
+					$(wildcard IRCUtils/sources/*.cpp) \
+					$(wildcard IRCUtils/sources/RPL/*.cpp)
 
 SRCS := $(SRCS_TCPSERVER) $(SRCS_IRCSERVER) server.cpp
 

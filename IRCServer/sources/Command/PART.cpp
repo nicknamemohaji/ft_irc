@@ -1,31 +1,24 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCRequestParser.hpp"
 #include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
-
-void IRCServer::ErrorSender(IRCContext context, unsigned int errornum){
-	# ifdef COMMAND
-	std::cout << "Error sender process "  << errornum << std::endl;
-	# endif
-	context.numericResult = errornum;
-	context.client->Send(MakeResponse(context));	
-	context.FDsPendingWrite.insert(context.client->GetFD());
-}
 
 void IRCServer::ActionPART(IRCContext& context){
 		//  param size =1 channel left;
 			std::cout << " PRAT param size = " << context.params.size() <<std::endl;
 		if(!(context.params.size() == 1 || context.params.size() == 2)){
-			ErrorSender(context, 461);
+			IRCResponseCreator::ErrorSender(context, 461);
 			return;
 		}
 		# ifdef COMMAND
@@ -50,13 +43,13 @@ void IRCServer::ActionPART(IRCContext& context){
 				std::cout<< "channel error no channel" << channel_names[i] << std::endl;
 				#endif	
 				context.stringResult = channel_names[i];
-				ErrorSender(context,403);
+				IRCResponseCreator::ErrorSender(context,403);
 				continue;
 			}
 			std::string channel_name = context.channel->GetChannelInfo(kChannelName);
 			if(!context.channel->IsInChannel(context.client->GetNickname())){
 				//채널에 유저 없음
-				ErrorSender(context,442);
+				IRCResponseCreator::ErrorSender(context,442);
 				continue;
 			}
 			context.numericResult = -1;

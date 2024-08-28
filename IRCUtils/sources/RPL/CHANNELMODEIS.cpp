@@ -1,25 +1,24 @@
-#include "IRCServer.hpp"
-#include "IRCRequestParser.hpp"
-#include "IRCTypes.hpp"
+#include "IRCResponseCreator.hpp"
 
-void IRCServer::RPL_CHANNELMODEIS(IRCContext& context){
-	# ifdef COMMAND
-	std::cout << "RPL_CHANNELMODEIS start" << std::endl;
-	# endif
+#include <string>
+#include <sstream>
+
+#include "IRCRequestParser.hpp"
+#include "IRCClient.hpp"
+#include "IRCChannel.hpp"
+
+void IRCResponseCreator::RPL_CHANNELMODEIS(IRCContext& context){
 	std::stringstream result;
-	result.str("");
-	context.stringResult.clear();
+
 	result << context.client->GetNickname()
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " ";
 	if(context.channel->IsInChannel(context.client->GetNickname()))
 		result << context.channel->GetChannelMode();
 	else
 		result << IRCRequestParser::SeparateParam(context.channel->GetChannelMode(), " ")[0];
+	
 	context.numericResult = 324;
 	context.stringResult = result.str();
-	context.client->Send(this->MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 	context.FDsPendingWrite.insert(context.client->GetFD());
-	# ifdef COMMAND
-	std::cout << "RPL_CHANNELMODEIS end" << std::endl;
-	# endif
 }

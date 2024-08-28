@@ -1,12 +1,14 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCChannel.hpp"
-#include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
@@ -62,16 +64,10 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
 				throw IRCError::NoSuchNick();
-			# ifdef PCOMMAND
-				std::cout << "send to user " << user_target->GetNickname() <<std::endl;
-			# endif
-			user_target->Send(MakeResponse(context));
+			user_target->Send(IRCResponseCreator::MakeResponse(context));
 			context.FDsPendingWrite.insert(user_target->GetFD());
 		}
 		else{
-			# ifdef PCOMMAND
-				std::cout << "error can't send anyone !!!! " <<std::endl;
-			# endif
 			context.stringResult = target;
 			throw IRCError::CanNotSendToChan();
 		}

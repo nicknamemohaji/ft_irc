@@ -8,6 +8,7 @@
 
 #include "IRCTypes.hpp"
 #include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCErrors.hpp"
 #include "TCPErrors.hpp"
 
@@ -135,7 +136,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		context.rawMessage = std::string(message.begin(), it);
 		// send error response
 		context.numericResult = e.code();
-		conn->Send(MakeResponse(context));
+		conn->Send(IRCResponseCreator::MakeResponse(context));
 		shouldWriteFDs.insert(conn->GetFD());
 
 		message.erase(message.begin(), it + 2);
@@ -231,21 +232,6 @@ bool IRCServer::IsUserInList(const std::string& user_name) const{
 	return _clients.find(user_name) != _clients.end();
 }
 
-bool IRCServer::isValidChannelName(const std::string &name) const {
-	if(name.size() > 10 || name.size() < 1)
-		return false;
-	if(name[0] != '#')
-		return false;
-	if(std::string::npos != name.find('#',1))
-		return false;
-	for(unsigned int i = 1; i < name.size(); ++i)
-	{
-		if(!std::isalnum(static_cast<unsigned char>(name[i])))
-			return false;
-	}
-	return true;
-}
-
 IRCClient* IRCServer::GetClient(const std::string& user_name){
 	# ifdef COMMAND
 		std::cout << "client size in server  " << _clients.size() <<std::endl;
@@ -254,4 +240,9 @@ IRCClient* IRCServer::GetClient(const std::string& user_name){
 	if(it == _clients.end())
 		return NULL;
 	return it->second;
+}
+
+std::string IRCServer::GetServerName(void) const
+{
+	return _serverName;
 }
