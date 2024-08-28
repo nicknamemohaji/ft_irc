@@ -35,7 +35,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
-	if(IRCChannel::isValidChannelName(channel_name)){
+	if(!IRCChannel::isValidChannelName(channel_name)){
 		// throw IRCError::BadChannelName(); //476
 		context.stringResult = channel_name;
 		IRCResponseCreator::ErrorSender(context, 476);

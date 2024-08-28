@@ -33,12 +33,12 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		IRCResponseCreator::ErrorSender(context, 442); // you are not in channel
 		return;
 	}
-	if(channel->CheckChannelMode(kTopic) && !channel->IsUserAuthorized(context.client->GetNickname(), kOperator)){
-		//channel mode t and nor operater
-		IRCResponseCreator::ErrorSender(context, 482);
-		return;
-	}
 	if(context.params.size() == 2){
+		if(channel->CheckChannelMode(kTopic) && !channel->IsUserAuthorized(context.client->GetNickname(), kOperator)){
+			//channel mode t and nor operater
+			IRCResponseCreator::ErrorSender(context, 482);
+			return;
+		}
 		channel->SetChannelInfo(kTopicInfo,context.params[1]);
 		channel->SetChannelInfo(kTopicEditUser,context.client->GetNickname());
 		channel->SetChannelInfo(kTopicEditTime, channel->itostr(std::time(NULL)));
@@ -47,11 +47,12 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		context.stringResult = " TOPIC " + context.channel->GetChannelInfo(kChannelName) + " :" + context.channel->GetChannelInfo(kTopicInfo);
 		SendMessageToChannel(kChanSendModeToAll, context);
 	}
-	else{
-	if (context.channel->GetChannelInfo(kTopicInfo).size() == 0)
-		IRCResponseCreator::RPL_NOTOPIC(context);
 	else
-		IRCResponseCreator::RPL_TOPIC(context);
-	IRCResponseCreator::RPL_TOPICWHOTIME(context);
+	{
+		if (context.channel->GetChannelInfo(kTopicInfo).size() == 0)
+			IRCResponseCreator::RPL_NOTOPIC(context);
+		else
+			IRCResponseCreator::RPL_TOPIC(context);
+		IRCResponseCreator::RPL_TOPICWHOTIME(context);
 	}
 }
