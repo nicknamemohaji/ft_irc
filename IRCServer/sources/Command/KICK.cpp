@@ -23,19 +23,16 @@ void IRCServer::ActionKICK(IRCContext& context)
 		std::cout << context.params[i] << std::endl;
 	# endif
 
-	IRCChannel *channel;
 	if(context.params.size() <= 1)
 		throw IRCError::MissingParams(); // 461
 
 	std::string channel_name = context.params[0];
-	if(GetChannel(channel_name) == NULL)
-		return;
-	channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
-	context.channel = channel;
+	IRCChannel *channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
 	if(!channel){
 		context.stringResult = channel_name; 
 		throw IRCError::NoSuchChannel(); //403 채널존재 체크
 	}
+	context.channel = channel;
 	std::string user_name = context.client->GetNickname();
 	if(!channel->IsInChannel(user_name))
 		throw IRCError::NotOnChannel(); //ERR_NOTONCHANNEL 442

@@ -8,16 +8,17 @@
 
 #include "IRCErrors.hpp"
 
+/*
+IRCRequestParser.cpp
+- bool IRCRequestParser::ParseMessage
+- void IRCRequestParser::AddNewLineToBuffer
+- std::string IRCRequestParser::AddChanPrefixToParam
+- std::string IRCRequestParser::DelChanPrefixFromParam
+- enum IRCCommandIRCRequestParser::ConvertStrToCom
+- std::string IRCRequestParser::ConvertComToStr
+*/
 static std::string	_BufferParseUntilSpace(Buffer& message);
 static void			_BufferRemoveSpace(Buffer& message);
-bool 				IRCRequestParser::ParseMessage(
-						Buffer& message, IRCCommand& command, IRCParams& params);
-void 				IRCRequestParser::AddNewLineToBuffer(Buffer& buffer);
-std::string 		IRCRequestParser::AddChanPrefixToParam(const std::string& param);
-std::string 		IRCRequestParser::DelChanPrefixFromParam(const std::string& param);
-enum IRCCommand 	IRCRequestParser::ConvertStrToCom(const std::string& command);
-std::string 		IRCRequestParser::ConvertComToStr(enum IRCCommand command);
-
 
 static std::string _BufferParseUntilSpace(Buffer& message)
 {
