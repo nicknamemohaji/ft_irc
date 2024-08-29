@@ -1,14 +1,17 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCClient.hpp"
+#include "IRCTypes.hpp"
 #include "IRCContext.hpp"
+#include "IRCChannel.hpp"
 #include "IRCErrors.hpp"
+#include "IRCResponseCreator.hpp"
 
 # ifndef VERSION
 # define VERSION "42.42"
@@ -72,7 +75,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			context.createSource = true;
 			context.numericResult = -1;
 			context.stringResult = "NICK " + new_name;
-			context.client->Send(MakeResponse(context));
+			context.client->Send(IRCResponseCreator::MakeResponse(context));
 			context.FDsPendingWrite.insert(context.client->GetFD());
 			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
 			IRCClientJoinedChannels channels = context.client->ListChannels();
@@ -80,7 +83,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			{
 				// broadcast
 				context.channel = it->second;
-				SendMessageToChannel(context, SendToAllExceptMe);
+				SendMessageToChannel(kChanSendModeToExceptMe, context);
 				// change name from channel
 				context.channel->DelChannelUser(prev_name);
 				context.channel->AddChannelUser(new_name);
@@ -117,7 +120,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :Welcome to the "<< _serverName << " Network, " << clientNickname << "!";
 	context.numericResult = 1;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// send RPL_YOURHOST
 	strstream.str("");
@@ -126,7 +129,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :Your host is "<< _serverName << ", running version " << VERSION;
 	context.numericResult = 2;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// send RPL_CREATED
 	strstream.str("");
@@ -135,7 +138,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :This server was created "<< _startDate;
 	context.numericResult = 3;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// send RPL_MYINFO
 	// TODO set RPL_MYINFO
@@ -144,7 +147,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	strstream << clientNickname << " " << _serverName << " " << VERSION << " r oitlk";
 	context.stringResult = strstream.str();
 	context.numericResult = 4;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// send RPL_ISUPPORT
 	// TODO set RPL_ISUPPORT
@@ -154,7 +157,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< "PREFIX=(o)@ NICKLEN=30 :are supported by this server";
 	context.stringResult = strstream.str();
 	context.numericResult = 5;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// send MOTD
 	ActionMOTD(context);
@@ -179,19 +182,19 @@ void IRCServer::ActionMOTD(IRCContext& context)
 	
 	context.stringResult = clientNickname + " : -- Welcome to " + _serverName + "--";
 	context.numericResult = 375;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 	
 	context.stringResult = clientNickname + " :Mesasge of the day:";
 	context.numericResult = 372;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 	
 	context.stringResult = clientNickname + " :WeLOve42Seoul";
 	context.numericResult = 372;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	context.stringResult = clientNickname + " :end of MOTD";
 	context.numericResult = 376;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }

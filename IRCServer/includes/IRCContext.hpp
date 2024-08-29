@@ -1,6 +1,8 @@
 #ifndef IRCCONTEXT_HPP
 #define IRCCONTEXT_HPP
 
+#include "IRCTypes.hpp"
+
 #include <string>
 #include <deque>
 #include <set>
@@ -10,28 +12,6 @@
 class IRCServer;
 class IRCChannel;
 class IRCClient;
-
-enum IRCCommand
-{
-	UNKNOWN = -1,
-	// registration
-	CAP,
-	PASS,
-	USER,
-	NICK,
-	QUIT,
-	// server informatin
-	MOTD,
-	PING,
-	JOIN,
-	NAMES,
-	MODE,
-	PART,
-	TOPIC,
-	KICK,
-	PRIVMSG,
-	INVITE,
-};
 
 // typedef std::vector<std::vector<std::string> > StringMatrix;
 struct IRCContext
@@ -55,11 +35,6 @@ struct IRCContext
 		
 		// initialize struct... 
 		IRCContext(std::set<int>& FDset);
-
-		// converter
-		static std::string ConvertCommandToStr(enum IRCCommand command);
-		static enum IRCCommand ConvertStrToCommand(const std::string& command);
-		// StringMatrix parseStringMatrix(std::deque<std::string> &param);
 	private:
 		IRCContext(void);
 };

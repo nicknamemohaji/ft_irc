@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 
+#include "IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCErrors.hpp"
 
@@ -16,6 +17,6 @@ void IRCServer::ActionPING(IRCContext& context)
 	std::stringstream ss;
 	ss << "PONG " << _serverName << " :" << context.params[0];
 	context.stringResult = ss.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRCResponseCreator::MakeResponse(context));
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }

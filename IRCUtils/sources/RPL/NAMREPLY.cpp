@@ -1,9 +1,14 @@
-#include "IRCServer.hpp"
+#include "IRCResponseCreator.hpp"
+#include "IRCChannel.hpp"
 
-void IRCServer::RPL_NAMREPLY(IRCContext& context){
-	# ifdef COMMAND
-	std::cout << "RPL_NAMREPLY start" << std::endl;
-	# endif
+#include <string>
+#include <sstream>
+#include <deque>
+
+#include "IRCClient.hpp"
+
+
+void IRCResponseCreator::RPL_NAMREPLY(IRCContext& context){
 	std::deque<std::string> channel_names = context.channel->GetChannelUsersWithPrefixes();
 	std::string names;
 	while(!channel_names.empty())
@@ -18,18 +23,13 @@ void IRCServer::RPL_NAMREPLY(IRCContext& context){
 				names += " ";
 		}
 		std::stringstream result;
-		result.str("");
-		context.stringResult.clear();
 		result << context.client->GetNickname()
 			<< " = "<< context.channel->GetChannelInfo(kChannelName) << " :" << names;
 		context.numericResult = 353;
 		context.stringResult = result.str();
-		context.client->Send(context.server->MakeResponse(context));
+		context.client->Send(IRCResponseCreator::MakeResponse(context));
 		context.FDsPendingWrite.insert(context.client->GetFD());
 		names.clear();
 	}
-	# ifdef COMMAND
-	std::cout << "RPL_NAMREPLY end" << std::endl;
-	# endif
-	IRCServer::RPL_ENDOFNAMES(context);
+	IRCResponseCreator::RPL_ENDOFNAMES(context);
 }

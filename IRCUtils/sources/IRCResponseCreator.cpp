@@ -1,29 +1,33 @@
+#include "IRCResponseCreator.hpp"
+#include "IRCContext.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
 
-#include "IRCServer.hpp"
+#include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
 #include "IRCChannel.hpp"
 #include "IRCClient.hpp"
-#include "IRCContext.hpp"
+#include "IRCServer.hpp"
 #include "IRCErrors.hpp"
 
-std::string IRCServer::MakeResponse(IRCContext& context)
+std::string IRCResponseCreator::MakeResponse(IRCContext& context)
 {
 	std::string command;
 	if (context.command == UNKNOWN)
 		command = context.rawMessage;
 	else
-		command = IRCContext::ConvertCommandToStr(context.command);
+		command = IRCRequestParser::ConvertComToStr(context.command);
 	std::string clientNickname = context.client->GetNickname();
 	std::stringstream result;
 
 	// error response
 	if (400 <= context.numericResult && context.numericResult < 600)
 	{
-		result << ":" + _serverName + " "  << std::setw(3) << std::setfill('0') 
+		result << ":" + context.server->GetServerName() + " "  << std::setw(3) << std::setfill('0') 
 			<< context.numericResult << " ";
 		switch (context.numericResult)
 		{
@@ -131,7 +135,7 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 				<< "!" << context.client->GetUserName()
 				<< "@" << context.client->GetIP() << " ";		
 		else
-			result << ":" << _serverName << " ";
+			result << ":" << context.server->GetServerName() << " ";
 		
 		/*
 		notes on IRCContext, IRCServer::MakeResponse
@@ -144,11 +148,13 @@ std::string IRCServer::MakeResponse(IRCContext& context)
 		result << context.stringResult;
 	}
 
-	# ifdef DEBUG
-	std::cout << "[DEBUG] IRCServer: MakeResponse: from context" << context;
-	std::cout << "[DEBUG] IRCServer: MakeResponse: response " << result.str() << std::endl;
-	# endif
-
 	result << "\r\n";
 	return result.str();
+}
+
+
+void IRCResponseCreator::ErrorSender(IRCContext context, unsigned int errornum){
+	context.numericResult = errornum;
+	context.client->Send(IRCResponseCreator::MakeResponse(context));	
+	context.FDsPendingWrite.insert(context.client->GetFD());
 }
