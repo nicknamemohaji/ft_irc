@@ -21,11 +21,11 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		return;
 	}
 
-	IRCChannel *channel = this->GetChannel(IRCRequestParser::AddChanPrefixToParam(context.params[0]));
+	IRCChannel *channel = this->GetChannel(IRC_request_parser::AddChanPrefixToParam(context.params[0]));
 	context.channel = channel;
 	if (!channel)
 	{
-		context.stringResult = IRCRequestParser::AddChanPrefixToParam(context.params[0]);
+		context.stringResult = IRC_request_parser::AddChanPrefixToParam(context.params[0]);
 		IRCResponseCreator::ErrorSender(context, 403); // no such channel
 		return;
 	}

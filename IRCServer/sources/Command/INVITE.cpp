@@ -20,7 +20,7 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		return;
 	}
 	std::string _nickname = context.params[0];
-	std::string _channel_name = IRCRequestParser::AddChanPrefixToParam(context.params[1]);
+	std::string _channel_name = IRC_request_parser::AddChanPrefixToParam(context.params[1]);
 	if(!IsChannelInList(_channel_name) || !IsUserInList(_nickname)){
 		IRCResponseCreator::ErrorSender(context, 401);// 채널 없음 | 유저 없음
 		return;

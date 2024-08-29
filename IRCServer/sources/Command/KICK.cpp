@@ -27,7 +27,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		throw IRCError::MissingParams(); // 461
 
 	std::string channel_name = context.params[0];
-	IRCChannel *channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
+	IRCChannel *channel = GetChannel(IRC_request_parser::AddChanPrefixToParam(channel_name));
 	if(!channel){
 		context.stringResult = channel_name; 
 		throw IRCError::NoSuchChannel(); //403 채널존재 체크
@@ -38,7 +38,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		throw IRCError::NotOnChannel(); //ERR_NOTONCHANNEL 442
 	if(!channel->IsUserAuthorized(user_name, kOperator))
 		throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
-	IRCParams target_name = IRCRequestParser::SeparateParam(context.params[1] , ",");
+	IRCParams target_name = IRC_request_parser::SeparateParam(context.params[1] , ",");
 	for(unsigned int i = 0; i < target_name.size(); i++) {
 		if(!IsUserInList(target_name[i])) {
 			context.stringResult = target_name[i];

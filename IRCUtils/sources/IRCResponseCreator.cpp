@@ -20,7 +20,7 @@ std::string IRCResponseCreator::MakeResponse(IRCContext& context)
 	if (context.command == UNKNOWN)
 		command = context.rawMessage;
 	else
-		command = IRCRequestParser::ConvertComToStr(context.command);
+		command = IRC_request_parser::ConvertComToStr(context.command);
 	std::string clientNickname = context.client->GetNickname();
 	std::stringstream result;
 

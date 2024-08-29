@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <algorithm>
 
 #include "IRCTypes.hpp"
 #include "IRCRequestParser.hpp"
@@ -82,7 +83,13 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
-	IRCRequestParser::AddNewLineToBuffer(message);
+
+  // handle short count
+  if (std::find(message.begin(), message.end(), '\r') == message.end()
+    && std::find(message.begin(), message.end(), '\n') == message.end())
+    return;
+
+	IRC_request_parser::AddNewLineToBuffer(&message);
 
 	# ifdef DEBUG
 	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
@@ -104,8 +111,8 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		// TODO 417 ERR_INPUTTOLONG
 		IRCCommand _command;
 		IRCParams _params;
-		if (!IRCRequestParser::ParseMessage(message, _command, _params))
-			return ;
+		if (!IRC_request_parser::ParseMessage(&message, &_command, &_params))
+      throw IRCError::UnknownCommand();  // TODO(kyungjle) dont use exception
 		context.command = _command;
 		context.params = _params;
 
@@ -131,7 +138,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	{
 		// create error response
 		message = conn->ReadRecvBuffer();
-		IRCRequestParser::AddNewLineToBuffer(message);
+		IRC_request_parser::AddNewLineToBuffer(&message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
 		context.rawMessage = std::string(message.begin(), it);
 		// send error response

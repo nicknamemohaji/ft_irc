@@ -30,10 +30,10 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		IRCResponseCreator::ErrorSender(context,461);
 		return;
 	}
-	IRCParams channel_names_ = IRCRequestParser::SeparateParam(context.params[0] , ",");
+	IRCParams channel_names_ = IRC_request_parser::SeparateParam(context.params[0] , ",");
 	IRCParams channel_passwords_;
 	if(context.params.size() > 1)
-		channel_passwords_ = IRCRequestParser::SeparateParam(context.params[1] , ",");
+		channel_passwords_ = IRC_request_parser::SeparateParam(context.params[1] , ",");
 	# ifdef COMMAND
 		for(unsigned int i = 0; i < context.params.size(); ++i)
 		{
@@ -44,7 +44,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 		}
 	# endif
 	for(unsigned int i = 0; i < channel_names_.size();++i){
-		std::string channel_name = IRCRequestParser::AddChanPrefixToParam(channel_names_[i]);
+		std::string channel_name = IRC_request_parser::AddChanPrefixToParam(channel_names_[i]);
 		// channel name vaild check
 		if(!IRCChannel::isValidChannelName(channel_name)){
 			// throw IRCError::BadChannelName(); //476

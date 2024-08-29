@@ -27,11 +27,11 @@ void IRCServer::ActionNAMES(IRCContext& context){
 		IRCResponseCreator::ErrorSender(context, 461);
 		return;
 	}
-	IRCParams channel_names = IRCRequestParser::SeparateParam(context.params[0], ",");
+	IRCParams channel_names = IRC_request_parser::SeparateParam(context.params[0], ",");
 	for(unsigned int i = 0; i < channel_names.size(); ++i){
 	if(channel_names[i] == "")
 		continue;
-	std::string channel_name = IRCRequestParser::AddChanPrefixToParam(channel_names[i]);
+	std::string channel_name = IRC_request_parser::AddChanPrefixToParam(channel_names[i]);
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif

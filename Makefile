@@ -16,7 +16,8 @@ SRCS := $(SRCS_TCPSERVER) $(SRCS_IRCSERVER) server.cpp
 
 OBJS := $(SRCS:.cpp=.o)
 
-INCLUDES :=	-I TCPServer/includes \
+INCLUDES :=	-I . \
+			-I TCPServer/includes \
 			-I IRCServer/includes \
 			-I IRCUtils/includes
 
