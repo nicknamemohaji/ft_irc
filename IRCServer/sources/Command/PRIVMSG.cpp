@@ -3,13 +3,30 @@
 #include <sstream>
 #include <deque>
 #include <algorithm>
+#include <ctime>
 
 #include "IRCServer.hpp"
 #include "IRCChannel.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
+std::string GetCurrentTimeString() {
+    time_t now = time(0);
+    struct tm *ltm = localtime(&now);
 
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", ltm);
+
+    return std::string(buffer);
+}
+
+bool IsBotCommand(std::string &msg){
+	if(msg.size() > 2 && msg == "!시간"){
+		msg = "현재 서버시간은 " + GetCurrentTimeString() + " 입니다.";
+		return true;
+	}
+	return false;
+}
 void IRCServer::ActionPRIVMSG(IRCContext& context){
 		//  param size =1 channel left;
 		# ifdef PCOMMAND
@@ -27,7 +44,6 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			throw IRCError::MissingParams();
 		target = context.params[0];
 		msg = context.params[1];
-
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult  = "PRIVMSG " + target +" :" + msg;
@@ -55,8 +71,12 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				context.stringResult = target;
 				throw IRCError::CanNotSendToChan();
 			}
-
-			SendMessageToChannel(context, send_mode);
+		if(IsBotCommand(msg)){
+			send_mode = SendToAll;
+			context.createSource = false;
+			context.stringResult  = "PRIVMSG " + target +" :" + msg;
+		}
+		SendMessageToChannel(context, send_mode);
 		}
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);

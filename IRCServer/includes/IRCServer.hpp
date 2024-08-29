@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include <map>
+#include <ctime>
 
 #include "TCPServer.hpp"
 #include "IRCClient.hpp"
