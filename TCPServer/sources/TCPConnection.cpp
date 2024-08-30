@@ -97,7 +97,7 @@ void TCPConnection::Recv(void)
 		throw TCPErrors::SocketClosed();
 	
 
-	uint8_t buf[512];
+	uint8_t buf[1024];
 	std::memset(buf, 0, sizeof(buf));
 
 	int err = recv(
@@ -177,7 +177,7 @@ void TCPConnection::SendBuffer(void)
 	int err = send(
 		_clientSocket,		// sockfd
 		_sendBuf.data(),	// msg
-		_sendBuf.size() > 512 ? 512 : _sendBuf.size(),	// len
+		_sendBuf.size() > 1024 ? 1024 : _sendBuf.size(),	// len
 		0					// flags: 0
 							// (MSG_NOSIGNAL is not available in mac)
 	);

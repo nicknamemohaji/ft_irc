@@ -36,3 +36,6 @@
 
 # ircserv
 ircserv
+
+# tests
+__pycache__/*

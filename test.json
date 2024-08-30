@@ -1,0 +1,101 @@
+[
+  {
+    "name": "Basic registration",
+    "tests": [
+      {
+        "input": "PASS 1234\r\n",
+        "expected": null
+      },
+      {
+        "input": "USER testuser 0 * :real name\r\n",
+        "expected": null
+      },
+      {
+        "input": "NICK testuser\r\n",
+        "expected": [
+          [
+            "ft_irc",
+            "001",
+            null
+          ],
+          [
+            "ft_irc",
+            "002",
+            null
+          ],
+          [
+            "ft_irc",
+            "003",
+            null
+          ],
+          [
+            "ft_irc",
+            "004",
+            null
+          ],
+          [
+            "ft_irc",
+            "005",
+            null
+          ],
+          [
+            "ft_irc",
+            "375",
+            null
+          ],
+          [
+            "ft_irc",
+            "372",
+            null
+          ],
+          [
+            "ft_irc",
+            "372",
+            null
+          ],
+          [
+            "ft_irc",
+            "376",
+            null
+          ]
+        ]
+      },
+      {
+        "input": "PING hello\r\n",
+        "expected": [
+          [
+            null,
+            "PONG",
+            [
+              "ft_irc",
+              "hello"
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Double USER registration",
+    "tests": [
+      {
+        "input": "PASS 1234\r\n",
+        "expected": null
+      },
+      {
+        "input": "USER testuser 0 * :real name\r\n",
+        "expected": null
+      },
+      {
+        "input": "USER testuser 0 * :real name\r\n",
+        "expected": [
+          [
+            null,
+            "462",
+            null
+          ]
+        ]
+      }
+    ]
+  }
+]
