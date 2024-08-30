@@ -41,6 +41,6 @@ void IRCServer::ActionQUIT(IRCContext& context)
   context.server = this;
 	context.stringResult = "ERROR :Closing connection";
 	client->Send(IRC_response_creator::MakeResponse(context));
-	context.FDsPendingWrite.insert(client->GetFD());
+	context.pending_fds->insert(client->GetFD());
 	client->SetStatus(PENDING_QUIT);
 }

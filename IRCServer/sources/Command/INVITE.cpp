@@ -51,7 +51,7 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		context.createSource = false;
 		context.stringResult = result.str();
 		context.client->Send(IRC_response_creator::MakeResponse(context));
-		context.FDsPendingWrite.insert(context.client->GetFD());
+		context.pending_fds->insert(context.client->GetFD());
 	}
 	// send INVITE message to invitee
 	{
@@ -62,7 +62,7 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		context.numericResult = -1;
 		context.stringResult = result.str();
 		_invitee->Send(IRC_response_creator::MakeResponse(context));
-		context.FDsPendingWrite.insert(_invitee->GetFD());
+		context.pending_fds->insert(_invitee->GetFD());
 	}
 	context.client->AddInviteChannel(_channel_name); // 유저의 초대채널리스트에 추가
 }

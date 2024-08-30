@@ -40,7 +40,7 @@ void IRCServer::SendMessageToChannel(
         if (target != kChanSendModeToAll && _userPtr == context.client)
             continue;
         _userPtr->Send(_message);
-        context.FDsPendingWrite.insert(_userPtr->GetFD());
+        context.pending_fds->insert(_userPtr->GetFD());
     }
 }
 

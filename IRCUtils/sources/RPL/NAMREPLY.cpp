@@ -28,7 +28,7 @@ void IRC_response_creator::RPL_NAMREPLY(IRCContext& context){
 		context.numericResult = 353;
 		context.stringResult = result.str();
 		context.client->Send(IRC_response_creator::MakeResponse(context));
-		context.FDsPendingWrite.insert(context.client->GetFD());
+		context.pending_fds->insert(context.client->GetFD());
 		names.clear();
 	}
 	IRC_response_creator::RPL_ENDOFNAMES(context);

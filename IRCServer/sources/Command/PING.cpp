@@ -21,5 +21,5 @@ void IRCServer::ActionPING(IRCContext& context)
 	ss << "PONG " << _serverName << " :" << context.params[0];
 	context.stringResult = ss.str();
 	context.client->Send(IRC_response_creator::MakeResponse(context));
-	context.FDsPendingWrite.insert(context.client->GetFD());
+	context.pending_fds->insert(context.client->GetFD());
 }

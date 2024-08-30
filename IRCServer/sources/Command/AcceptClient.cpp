@@ -76,7 +76,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			context.numericResult = -1;
 			context.stringResult = new_name;
 			context.client->Send(IRC_response_creator::MakeResponse(context));
-			context.FDsPendingWrite.insert(context.client->GetFD());
+			context.pending_fds->insert(context.client->GetFD());
 			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
 			IRCClientJoinedChannels channels = context.client->ListChannels();
 			for (IRCClientJoinedChannels::iterator it = channels.begin(); it != channels.end(); it++)
@@ -162,7 +162,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// send MOTD
 	ActionMOTD(context);
 
-	context.FDsPendingWrite.insert(context.client->GetFD());
+	context.pending_fds->insert(context.client->GetFD());
 }
 
 /**************/
@@ -196,5 +196,5 @@ void IRCServer::ActionMOTD(IRCContext& context)
 	context.numericResult = 376;
 	context.client->Send(IRC_response_creator::MakeResponse(context));
 
-	context.FDsPendingWrite.insert(context.client->GetFD());
+	context.pending_fds->insert(context.client->GetFD());
 }

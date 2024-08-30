@@ -99,7 +99,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		return ;
 	}
 
-  IRCContext context(shouldWriteFDs);
+  IRCContext context(&shouldWriteFDs);
   context.server = this;
   context.client = conn;
 
@@ -108,7 +108,6 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
   {
     IRCCommand _command;
     IRCParams _params;
-    std::cout << "1" << std::endl;
     if (!IRC_request_parser::ParseMessage(&message, &_command, &_params))
       throw IRCError::UnknownCommand();  // TODO(kyungjle) dont use exception
     context.command = _command;
@@ -127,7 +126,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 
 		ex) 
 		context.client->Send(MakeResponse(context));
-		context.FDsPendingWrite.insert(context.client->GetFD());
+		context.pending_fds->insert(context.client->GetFD());
 		*/
 		(this->*(Actions[context.command]))(context);
 	}
@@ -187,7 +186,7 @@ void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWrit
 		return ;
 	}
 
-	IRCContext context(shouldWriteFDs);
+	IRCContext context(&shouldWriteFDs);
   context.command = QUIT;
 	context.client = conn;
 	context.params.push_back("Client quited unexpectidly");

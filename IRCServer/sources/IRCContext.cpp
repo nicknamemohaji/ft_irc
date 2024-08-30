@@ -1,24 +1,19 @@
-#include <string>
+#include "IRCServer/includes/IRCContext.hpp"
+
 #include <deque>
 #include <iostream>
-#include <vector>
+#include <string>
 
-#include "IRCContext.hpp"
-#include "IRCErrors.hpp"
-
-IRCContext::IRCContext(std::set<int>& FDset):
-	FDsPendingWrite(FDset)
-{
-	command = UNKNOWN;
-	params.clear();
-	createSource = false;
-
-	server = NULL;
-	channel = NULL;
-	client = NULL;
-
-	numericResult = -1;
-	stringResult.clear();
+IRCContext::IRCContext(std::set<int>* fdset)
+    : createSource(false),
+      command(UNKNOWN),
+      server(NULL),
+      channel(NULL),
+      client(NULL),
+      pending_fds(fdset),
+      numericResult(-1),
+      stringResult("") {
+  params.clear();
 }
 
 std::ostream& operator<< (std::ostream& ostream, const IRCContext& context)

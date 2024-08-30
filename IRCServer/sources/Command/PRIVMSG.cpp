@@ -65,7 +65,7 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			if(!user_target)
 				throw IRCError::NoSuchNick();
 			user_target->Send(IRC_response_creator::MakeResponse(context));
-			context.FDsPendingWrite.insert(user_target->GetFD());
+			context.pending_fds->insert(user_target->GetFD());
 		}
 		else{
 			context.stringResult = target;

@@ -1,44 +1,43 @@
-#ifndef IRCCONTEXT_HPP
-#define IRCCONTEXT_HPP
+#ifndef IRCSERVER_INCLUDES_IRCCONTEXT_HPP_
+#define IRCSERVER_INCLUDES_IRCCONTEXT_HPP_
 
-#include "IRCTypes.hpp"
-
-#include <string>
 #include <deque>
-#include <set>
 #include <iostream>
+#include <set>
+#include <string>
 #include <vector>
+
+#include "IRCServer/includes/IRCTypes.hpp"
 
 class IRCServer;
 class IRCChannel;
 class IRCClient;
 
-// typedef std::vector<std::vector<std::string> > StringMatrix;
-struct IRCContext
-{
-	public:
-		// request
-		bool createSource;
-		enum IRCCommand command;
-		std::deque<std::string> params;
+struct IRCContext {
+ public:
+  // request
+  bool createSource;
+  enum IRCCommand command;
+  std::deque<std::string> params;
 
-		// context
-		IRCServer* server;
-		IRCChannel* channel;
-		IRCClient* client;
-		std::set<int>& FDsPendingWrite;
+  // context
+  IRCServer* server;
+  IRCChannel* channel;
+  IRCClient* client;
+  std::set<int>* pending_fds;
 
-		// result
-		int numericResult;
-		std::string stringResult;
-		
-		// initialize struct... 
-		IRCContext(std::set<int>& FDset);
-	private:
-		IRCContext(void);
+  // result
+  int numericResult;
+  std::string stringResult;
+
+  // initialize struct...
+  explicit IRCContext(std::set<int>* FDset);
+
+ private:
+  IRCContext(void);
 };
 
 // for debug
-std::ostream& operator<< (std::ostream& ostream, const IRCContext& context);
+std::ostream& operator<<(std::ostream& ostream, const IRCContext& context);
 
-#endif
+#endif  // IRCSERVER_INCLUDES_IRCCONTEXT_HPP_
