@@ -19,13 +19,13 @@ class TCPServer
 
 		// actions
 		virtual TCPConnection* AcceptConnection
-			(bool& shouldRead, bool& shouldWrite) = 0;
+			(bool* shouldRead, bool* shouldWrite) = 0;
 		virtual void ReadEvent(TCPConnection* conn,
-			bool& shouldEndRead, std::set<int> &shouldWriteFDs) = 0;
+			bool* shouldEndRead, std::set<int>* shouldWriteFDs) = 0;
 		virtual void WriteEvent(TCPConnection* conn,
-			bool& shouldRead, bool& shouldEndWrite) = 0;
+			bool* shouldRead, bool* shouldEndWrite) = 0;
 		virtual void RemoveConnection(
-			TCPConnection* conn, std::set<int> &shouldWriteFDs) = 0;
+			TCPConnection* conn, std::set<int>* shouldWriteFDs) = 0;
 
 		// getters
 		int GetFD(void) const;

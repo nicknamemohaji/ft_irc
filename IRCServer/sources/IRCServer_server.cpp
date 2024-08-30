@@ -54,7 +54,7 @@ IRCServer::~IRCServer(void)
 
 /******************/
 
-IRCClient* IRCServer::AcceptConnection(bool& shouldRead, bool& shouldWrite)
+IRCClient* IRCServer::AcceptConnection(bool* shouldRead, bool* shouldWrite)
 {
 	if (_finished)
 		throw TCPErrors::SocketClosed();
@@ -73,13 +73,13 @@ IRCClient* IRCServer::AcceptConnection(bool& shouldRead, bool& shouldWrite)
 	)
 		throw TCPErrors::SystemCallError("accept(2)");
 
-	shouldRead = true;
-	shouldWrite = false;
+	*shouldRead = true;
+	*shouldWrite = false;
 	// new client is registered on _client after registration is complete
 	return new IRCClient(connSock);
 }
 
-void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<int> &shouldWriteFDs)
+void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<int> *shouldWriteFDs)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
@@ -99,7 +99,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		return ;
 	}
 
-  IRCContext context(&shouldWriteFDs);
+  IRCContext context(shouldWriteFDs);
   context.server = this;
   context.client = conn;
 
@@ -141,16 +141,16 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		context.numericResult = e.code();
     context.createSource = false;
 		conn->Send(IRC_response_creator::MakeResponse(context));
-		shouldWriteFDs.insert(conn->GetFD());
+		shouldWriteFDs->insert(conn->GetFD());
 
 		message.erase(message.begin(), it + 2);
 	}
 
 	conn->OverwriteRecvBuffer(message);
-	shouldEndRead = false;
+  *shouldEndRead = false;
 }
 
-void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldEndWrite)
+void IRCServer::WriteEvent(TCPConnection* _conn, bool* shouldRead, bool* shouldEndWrite)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 
@@ -161,21 +161,21 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 		{
 			_clients.erase(_clients.find(conn->GetNickname()));
 			conn->Close();
-			shouldRead = false;
-			shouldEndWrite = true;
+			*shouldRead = false;
+			*shouldEndWrite = true;
 			return ;
 		}
-		shouldRead = true;
-		shouldEndWrite = true;
+		*shouldRead = true;
+		*shouldEndWrite = true;
 	}
 	else
 	{
-		shouldRead = false;
-		shouldEndWrite = false;
+		*shouldRead = false;
+		*shouldEndWrite = false;
 	}
 }
 
-void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWriteFDs)
+void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> *shouldWriteFDs)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 
@@ -186,7 +186,7 @@ void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWrit
 		return ;
 	}
 
-	IRCContext context(&shouldWriteFDs);
+	IRCContext context(shouldWriteFDs);
   context.command = QUIT;
 	context.client = conn;
 	context.params.push_back("Client quited unexpectidly");
