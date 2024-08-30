@@ -52,7 +52,9 @@ void IRCServer::ActionTOPIC(IRCContext &context)
 		if (context.channel->GetChannelInfo(kTopicInfo).size() == 0)
 			IRC_response_creator::RPL_NOTOPIC(context);
 		else
+    {
 			IRC_response_creator::RPL_TOPIC(context);
-		IRC_response_creator::RPL_TOPICWHOTIME(context);
+		  IRC_response_creator::RPL_TOPICWHOTIME(context);
+    }
 	}
 }
