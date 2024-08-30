@@ -152,6 +152,14 @@ void IRC_request_parser::AddNewLineToBuffer(Buffer* buffer) {
   }
 }
 
+/**
+ * @brief 파라미터를 구분자 기준으로 분리합니다
+ * 
+ * @param[in] param 자를 문자열
+ * @param[out] delim 구분자
+ * 
+ * @return 자른 리스트
+*/
 IRCParams IRC_request_parser::SeparateParam(const std::string& param,
                                             const std::string& delim) {
     IRCParams ret;
@@ -169,6 +177,13 @@ IRCParams IRC_request_parser::SeparateParam(const std::string& param,
     return ret;
 }
 
+/**
+ * @brief 파라미터에 채널 접두사(`#`)를 붙입니다
+ * 
+ * @param[in] param 접두사를 붙일 문자열
+ * 
+ * @return 채널 접두사가 빠져있으면 추가한 문자열
+*/
 std::string IRC_request_parser::AddChanPrefixToParam(const std::string& param) {
   if (param.size() < 1 || param[0] == '#')
     return param;
@@ -183,7 +198,15 @@ std::string IRC_request_parser::DelChanPrefixFromParam(
   return ret;
 }
 
-
+/**
+ * @brief 문자열로 들어온 IRC 커맨드를 enum IRCCommand로 변환합니다
+ * 
+ * @param[in] com 변환할 문자열
+ * 
+ * @return 유효한 명령어면 IRCCommand 값, 유효하지 않은 명령은 UNKNOWN
+ * 
+ * @see IRC_request_parser::ConvertComToStr
+*/
 enum IRCCommand IRC_request_parser::ConvertStrToCom(const std::string& comm) {
   if (comm == "CAP")
     return CAP;
@@ -223,6 +246,15 @@ enum IRCCommand IRC_request_parser::ConvertStrToCom(const std::string& comm) {
     return UNKNOWN;
 }
 
+/**
+ * @brief enum IRCCommand를 문자열로 변환합니다
+ * 
+ * @param[in] comm 변환할 IRCCommand
+ * 
+ * @return 유효한 명령어면 해당하는 문자열, 유효하지 않은 명령은 빈 문자열
+ * 
+ * @see IRC_request_parser::ConvertStrToCom
+*/
 std::string IRC_request_parser::ConvertComToStr(enum IRCCommand comm) {
   if (comm == CAP)
     return "CAP";
