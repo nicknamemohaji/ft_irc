@@ -11,7 +11,6 @@ IRCContext::IRCContext(std::set<int>& FDset):
 {
 	command = UNKNOWN;
 	params.clear();
-	rawMessage.clear();
 	createSource = false;
 
 	server = NULL;

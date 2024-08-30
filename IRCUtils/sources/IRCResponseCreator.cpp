@@ -1,160 +1,188 @@
-#include "IRCResponseCreator.hpp"
-#include "IRCContext.hpp"
+#include "IRCUtils/includes/IRCResponseCreator.hpp"
 
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
+#include <string>
 
-#include "IRCTypes.hpp"
-#include "IRCRequestParser.hpp"
-#include "IRCChannel.hpp"
-#include "IRCClient.hpp"
-#include "IRCServer.hpp"
-#include "IRCErrors.hpp"
+#include "IRCServer/includes/IRCChannel.hpp"
+#include "IRCServer/includes/IRCClient.hpp"
+#include "IRCServer/includes/IRCContext.hpp"
+#include "IRCServer/includes/IRCServer.hpp"
+#include "IRCServer/includes/IRCTypes.hpp"
+#include "IRCUtils/includes/IRCRequestParser.hpp"
 
-std::string IRCResponseCreator::MakeResponse(IRCContext& context)
-{
-	std::string command;
-	if (context.command == UNKNOWN)
-		command = context.rawMessage;
-	else
-		command = IRC_request_parser::ConvertComToStr(context.command);
-	std::string clientNickname = context.client->GetNickname();
-	std::stringstream result;
+/**
+ * @brief IRCContext로부터 완전한 메시지를 생성합니다
+ * 
+ * @param[in] context 메시지를 생성하기 위한 정보
+ * 
+ * @return source-command-parameter로 구성된 IRC 메시지
+ * 
+ * @warning context에는 client, server 포인터가 설정돼 있어야 합니다
+ * 
+ * @note context.createSource가 true이면 source에 클라이언트 정보를,
+ * false이면 서버 정보를 사용합니다
+ * 
+ * @note context.numericResult가 -1이면 커맨드를 문자열로 변환한 값을,
+ * -1이 아니면 numericResult에 주어진 값을 사용합니다
+*/
+std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
+  std::stringstream result;
 
-	// error response
-	if (400 <= context.numericResult && context.numericResult < 600)
-	{
-		result << ":" + context.server->GetServerName() + " "  << std::setw(3) << std::setfill('0') 
-			<< context.numericResult << " ";
-		switch (context.numericResult)
-		{
-			// ERR_NOSUCHNICK
-			case 401:
-				result << clientNickname << " " << context.stringResult << " :No such nick/channel";
-				break;
-			// ERR_NOSUCHSERVER
-			case 402:
-				result << clientNickname << " " << context.stringResult << " :No such server";
-				break;
-			// ERR_NOSUCHCHANNEL
-			case 403:
-				result << clientNickname << " " << context.stringResult << " :No such channel";
-				break ;
-			// ERR_CANNOTSENDTOCHAN
-			case 404:
-				result << clientNickname << " " << context.stringResult << " :Cannot send to channel or user";
-				break;
-			// ERR_TOOMANYCHANNELS
-			case 405:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You have joined too many channels";
-				break ;
-			// ERR_NONICKNAMEGIVEN
-			case 431:
-				result << clientNickname << " :No nickname given";
-				break ;
-			// ERR_ERRONEUSNICKNAME
-			case 432:
-				result << clientNickname << " :Erroneus nickname";
-				break ;
-			// ERR_NICKNAMEINUSE
-			case 433:
-				result << clientNickname << " :Nickname is already in use";
-				break ;
-			//ERR_USERNOTINCHANNEL
-			case 441:
-				result << clientNickname << " " << context.stringResult << " :They aren't on that channel";
-				break ;
-			// ERR_NOTONCHANNEL (442) 채널에 유저가 존재하지 않음
-			case 442:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not on that channel"; 
-				// "<client> <channel> :You're not on that channel"
-				break;
-			// ERR_USERONCHANNEL
-			case 443:
-				result << clientNickname << " " << context.stringResult << " " << context.channel->GetChannelInfo(kChannelName) << " :is already on channel";
-				break;
-			// ERR_NOTREGISTERED
-			case 451:
-				result << clientNickname << " :You have not registered";
-				break ;
-			// ERR_NEEDMOREPARAMS
-			case 461:
-				result << clientNickname << " " << command << " :Not enough parameters";
-				break ;
-			// ERR_ALREADYREGISTERED
-			case 462:
-				result << clientNickname << " :You may not reregister";
-				break ;
-			// ERR_PASSWDMISMATCH
-			case 464:
-				result << clientNickname << " :Password incorrect";
-				break ;
-			// *ERR_CHANNELISFULL* (471) 채널 포화상태
-			case 471:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+l)";
-				break ;
-			// *ERR_INVITEONLYCHAN* (473) 인바이트 전용채널, 인바이트 안된상태
-			case 472:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :is unknown mode char to me";
-				break ;
-			// *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
-			case 473:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+i) - you must be invited";
-				break ;
-			//ERR_BADCHANNELKEY* (475) 비밀번호 다름
-			case 475:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :Cannot join channel (+k)";
-				break ;
-			// *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
-			case 476:
-				result << context.stringResult << " :Bad Channel Mask";
-				break ;
-			// ERR_CHANOPRIVSNEEDED
-			case 482:
-				result << clientNickname << " " << context.channel->GetChannelInfo(kChannelName) << " :You're not a channel operator";
-				break ;
+  // 1. [':' <source> SPACE]
+  // source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
+  if (context.createSource) {
+    result << ":" << context.client->GetNickname()
+            << "!" << context.client->GetUserName()
+            << "@" << context.client->GetIP()
+            << " ";
+  }  else {
+    result << ":" << context.server->GetServerName() << " ";
+  }
 
-			// ERR_UNKNOWNCOMMAND
-			case 421:
-				// FALLTHROUGH
-			default:
-				result << clientNickname << " " << command << " :Unknown command";
-				break ;
-		}
-	}
-	// normal result
-	else
-	{
-		// source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
-		// can omit username and hostname for client source
-		if (context.createSource)
-			result << ":" << context.client->GetNickname()
-				<< "!" << context.client->GetUserName()
-				<< "@" << context.client->GetIP() << " ";		
-		else
-			result << ":" << context.server->GetServerName() << " ";
-		
-		/*
-		notes on IRCContext, IRCServer::MakeResponse
+  // 2. <command>
+  // command ::=  letter* / 3digit
+  if (context.numericResult == -1)
+    result << IRC_request_parser::ConvertComToStr(context.command) << " ";
+  else
+    result << std::setw(3) << std::setfill('0') << context.numericResult << " ";
 
-		MakeResponse를 호출하는 메소드는 IRCContext의 stringResult 필드에 
-		올바른 응답 메시지를 모두 작성해놔야 합니다. (예외상황 제외)
-		*/ 
-		if (context.numericResult > 0)
-			result << std::setw(3) << std::setfill('0') << context.numericResult << " ";
-		result << context.stringResult;
-	}
+  // 3. <parameters>
+  // TODO(kyungjle): move error response creator to caller
+  if (400 <= context.numericResult && context.numericResult < 600) {
+    // error response
+    std::string command = IRC_request_parser::ConvertComToStr(context.command);
+    std::string clientNickname = context.client->GetNickname();
+    switch (context.numericResult) {
+      // ERR_NOSUCHNICK
+      case 401:
+        result << clientNickname << " " << context.stringResult
+               << " :No such nick/channel";
+        break;
+      // ERR_NOSUCHSERVER
+      case 402:
+        result << clientNickname << " " << context.stringResult
+               << " :No such server";
+        break;
+      // ERR_NOSUCHCHANNEL
+      case 403:
+        result << clientNickname << " " << context.stringResult
+               << " :No such channel";
+        break;
+      // ERR_CANNOTSENDTOCHAN
+      case 404:
+        result << clientNickname << " " << context.stringResult
+               << " :Cannot send to channel or user";
+        break;
+      // ERR_TOOMANYCHANNELS
+      case 405:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :You have joined too many channels";
+        break;
+      // ERR_NONICKNAMEGIVEN
+      case 431:
+        result << clientNickname << " :No nickname given";
+        break;
+      // ERR_ERRONEUSNICKNAME
+      case 432:
+        result << clientNickname << " :Erroneus nickname";
+        break;
+      // ERR_NICKNAMEINUSE
+      case 433:
+        result << clientNickname << " :Nickname is already in use";
+        break;
+      // ERR_USERNOTINCHANNEL
+      case 441:
+        result << clientNickname << " " << context.stringResult
+               << " :They aren't on that channel";
+        break;
+      // ERR_NOTONCHANNEL (442) 채널에 유저가 존재하지 않음
+      case 442:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :You're not on that channel";
+        // "<client> <channel> :You're not on that channel"
+        break;
+      // ERR_USERONCHANNEL
+      case 443:
+        result << clientNickname << " " << context.stringResult << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :is already on channel";
+        break;
+      // ERR_NOTREGISTERED
+      case 451:
+        result << clientNickname << " :You have not registered";
+        break;
+      // ERR_NEEDMOREPARAMS
+      case 461:
+        result << clientNickname << " " << command << " :Not enough parameters";
+        break;
+      // ERR_ALREADYREGISTERED
+      case 462:
+        result << clientNickname << " :You may not reregister";
+        break;
+      // ERR_PASSWDMISMATCH
+      case 464:
+        result << clientNickname << " :Password incorrect";
+        break;
+      // *ERR_CHANNELISFULL* (471) 채널 포화상태
+      case 471:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :Cannot join channel (+l)";
+        break;
+      // *ERR_INVITEONLYCHAN* (473) 인바이트 전용채널, 인바이트 안된상태
+      case 472:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :is unknown mode char to me";
+        break;
+      // *ERR_UNKNOWNMODE* (472) 서버에서 인식할 수 없는 모드문자 사용
+      case 473:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :Cannot join channel (+i) - you must be invited";
+        break;
+      // ERR_BADCHANNELKEY* (475) 비밀번호 다름
+      case 475:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :Cannot join channel (+k)";
+        break;
+      // *ERR_BADCHANMASK* (476) 채널이름이 유효하지 않음
+      case 476:
+        result << context.stringResult << " :Bad Channel Mask";
+        break;
+      // ERR_CHANOPRIVSNEEDED
+      case 482:
+        result << clientNickname << " "
+               << context.channel->GetChannelInfo(kChannelName)
+               << " :You're not a channel operator";
+        break;
 
-	result << "\r\n";
-	return result.str();
+      // ERR_UNKNOWNCOMMAND
+      case 421:
+        // FALLTHROUGH
+      default:
+        result << clientNickname << " " << context.stringResult << " :Unknown command";
+        break;
+    }
+  } else {
+    // normal response
+    result << context.stringResult;
+  }
+
+  // 4. <crlf>
+  result << "\r\n";
+  return result.str();
 }
 
-
-void IRCResponseCreator::ErrorSender(IRCContext context, unsigned int errornum){
-	context.numericResult = errornum;
-	context.client->Send(IRCResponseCreator::MakeResponse(context));	
-	context.FDsPendingWrite.insert(context.client->GetFD());
+void IRC_response_creator::ErrorSender(IRCContext context,
+                                       unsigned int errornum) {
+  context.numericResult = errornum;
+  context.createSource = false;
+  context.client->Send(IRC_response_creator::MakeResponse(context));
+  context.FDsPendingWrite.insert(context.client->GetFD());
 }

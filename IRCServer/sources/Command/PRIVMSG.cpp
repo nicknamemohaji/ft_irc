@@ -32,7 +32,7 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult  = "PRIVMSG " + target +" :" + msg;
+		context.stringResult  = target +" :" + msg;
 
 		if (IsChannelInList(target) || 
 			(target.size() > 1 && target[0] == '@' && IsChannelInList(target.substr(1)))
@@ -64,7 +64,7 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
 				throw IRCError::NoSuchNick();
-			user_target->Send(IRCResponseCreator::MakeResponse(context));
+			user_target->Send(IRC_response_creator::MakeResponse(context));
 			context.FDsPendingWrite.insert(user_target->GetFD());
 		}
 		else{

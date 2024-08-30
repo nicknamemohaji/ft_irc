@@ -24,7 +24,7 @@ IRCServer_common.cpp
 */
 void IRCServer::SendMessageToChannel(
     enum ChannelSendMode target, IRCContext& context) {
-    std::string _message = IRCResponseCreator::MakeResponse(context);
+    std::string _message = IRC_response_creator::MakeResponse(context);
     ChannelUsers _users = context.channel->GetChannelUsersWithPrefixes();
 
     for (

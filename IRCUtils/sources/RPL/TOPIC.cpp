@@ -6,13 +6,13 @@
 
 #include "IRCClient.hpp"
 
-void IRCResponseCreator::RPL_TOPIC(IRCContext& context){
+void IRC_response_creator::RPL_TOPIC(IRCContext& context){
 	std::stringstream result;
 	result << context.client->GetNickname()
 		<< " "<< context.channel->GetChannelInfo(kChannelName) << " :" << context.channel->GetChannelInfo(kTopicInfo);
 	
 	context.numericResult = 332;
 	context.stringResult = result.str();
-	context.client->Send(IRCResponseCreator::MakeResponse(context));	
+	context.client->Send(IRC_response_creator::MakeResponse(context));	
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }

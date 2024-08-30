@@ -7,7 +7,7 @@
 #include "IRCClient.hpp"
 #include "IRCChannel.hpp"
 
-void IRCResponseCreator::RPL_CHANNELMODEIS(IRCContext& context){
+void IRC_response_creator::RPL_CHANNELMODEIS(IRCContext& context){
 	std::stringstream result;
 
 	result << context.client->GetNickname()
@@ -19,6 +19,6 @@ void IRCResponseCreator::RPL_CHANNELMODEIS(IRCContext& context){
 	
 	context.numericResult = 324;
 	context.stringResult = result.str();
-	context.client->Send(IRCResponseCreator::MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 	context.FDsPendingWrite.insert(context.client->GetFD());
 }

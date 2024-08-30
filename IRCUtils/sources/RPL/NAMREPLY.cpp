@@ -8,7 +8,7 @@
 #include "IRCClient.hpp"
 
 
-void IRCResponseCreator::RPL_NAMREPLY(IRCContext& context){
+void IRC_response_creator::RPL_NAMREPLY(IRCContext& context){
 	std::deque<std::string> channel_names = context.channel->GetChannelUsersWithPrefixes();
 	std::string names;
 	while(!channel_names.empty())
@@ -27,9 +27,9 @@ void IRCResponseCreator::RPL_NAMREPLY(IRCContext& context){
 			<< " = "<< context.channel->GetChannelInfo(kChannelName) << " :" << names;
 		context.numericResult = 353;
 		context.stringResult = result.str();
-		context.client->Send(IRCResponseCreator::MakeResponse(context));
+		context.client->Send(IRC_response_creator::MakeResponse(context));
 		context.FDsPendingWrite.insert(context.client->GetFD());
 		names.clear();
 	}
-	IRCResponseCreator::RPL_ENDOFNAMES(context);
+	IRC_response_creator::RPL_ENDOFNAMES(context);
 }

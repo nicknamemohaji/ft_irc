@@ -85,16 +85,13 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	Buffer message = conn->ReadRecvBuffer();
 
   // handle short count
+  // TODO(kyungjle) raise ERR_LINETOOLONG(417) for big chunks
   if (std::find(message.begin(), message.end(), '\r') == message.end()
     && std::find(message.begin(), message.end(), '\n') == message.end())
     return;
 
-	IRC_request_parser::AddNewLineToBuffer(&message);
-
-	# ifdef DEBUG
-	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
-	# endif
-
+  // match CRLF set and ignore empty message
+  IRC_request_parser::AddNewLineToBuffer(&message);
 	if (*(message.begin()) == '\r')
 	{
 		message.erase(message.begin(), message.begin() + 2);
@@ -102,25 +99,25 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		return ;
 	}
 
-	IRCContext context(shouldWriteFDs);
-	context.server = this;
-	context.client = conn;
+  IRCContext context(shouldWriteFDs);
+  context.server = this;
+  context.client = conn;
 
-	try
-	{
-		// TODO 417 ERR_INPUTTOLONG
-		IRCCommand _command;
-		IRCParams _params;
-		if (!IRC_request_parser::ParseMessage(&message, &_command, &_params))
+
+  try
+  {
+    IRCCommand _command;
+    IRCParams _params;
+    std::cout << "1" << std::endl;
+    if (!IRC_request_parser::ParseMessage(&message, &_command, &_params))
       throw IRCError::UnknownCommand();  // TODO(kyungjle) dont use exception
-		context.command = _command;
-		context.params = _params;
+    context.command = _command;
+    context.params = _params;
 
-		// check registration status
-		if (conn->GetStatus() != REGISTERED && context.command > NICK)
-			throw IRCError::NotRegistered();
-		
-		/*
+    // check registration status
+    if (conn->GetStatus() != REGISTERED && context.command > NICK)
+        throw IRCError::NotRegistered();
+  /*
 		notes on IRCServer::Actions:
 
 		Actions는 멤버 함수 배열입니다. Actions에 저장되는 순서는 enum IRCCommand를 사용합니다.
@@ -140,10 +137,11 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 		message = conn->ReadRecvBuffer();
 		IRC_request_parser::AddNewLineToBuffer(&message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
-		context.rawMessage = std::string(message.begin(), it);
+		context.stringResult = std::string(message.begin(), it);
 		// send error response
 		context.numericResult = e.code();
-		conn->Send(IRCResponseCreator::MakeResponse(context));
+    context.createSource = false;
+		conn->Send(IRC_response_creator::MakeResponse(context));
 		shouldWriteFDs.insert(conn->GetFD());
 
 		message.erase(message.begin(), it + 2);

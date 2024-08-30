@@ -18,7 +18,7 @@ void IRCServer::ActionPART(IRCContext& context){
 		//  param size =1 channel left;
 			std::cout << " PRAT param size = " << context.params.size() <<std::endl;
 		if(!(context.params.size() == 1 || context.params.size() == 2)){
-			IRCResponseCreator::ErrorSender(context, 461);
+			IRC_response_creator::ErrorSender(context, 461);
 			return;
 		}
 		# ifdef COMMAND
@@ -43,18 +43,18 @@ void IRCServer::ActionPART(IRCContext& context){
 				std::cout<< "channel error no channel" << channel_names[i] << std::endl;
 				#endif	
 				context.stringResult = channel_names[i];
-				IRCResponseCreator::ErrorSender(context,403);
+				IRC_response_creator::ErrorSender(context,403);
 				continue;
 			}
 			std::string channel_name = context.channel->GetChannelInfo(kChannelName);
 			if(!context.channel->IsInChannel(context.client->GetNickname())){
 				//채널에 유저 없음
-				IRCResponseCreator::ErrorSender(context,442);
+				IRC_response_creator::ErrorSender(context,442);
 				continue;
 			}
 			context.numericResult = -1;
 			context.createSource = true;
-			context.stringResult = " PART " + context.channel->GetChannelInfo(kChannelName);
+			context.stringResult = context.channel->GetChannelInfo(kChannelName);
 			if(!reason.empty())
 				context.stringResult = context.stringResult + " :" + reason;
 			SendMessageToChannel(kChanSendModeToAll, context);

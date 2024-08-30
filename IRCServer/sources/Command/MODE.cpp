@@ -30,8 +30,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
-			IRCResponseCreator::RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
-			IRCResponseCreator::RPL_CREATIONTIME(context); //CREATIONTIME 329
+			IRC_response_creator::RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
+			IRC_response_creator::RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
 		if(!channel->IsUserAuthorized(user_name, kOperator))
@@ -98,12 +98,12 @@ void IRCServer::ActionMODE(IRCContext& context)
 				std::string target_name = context.params[idx++];
 				if(!IsUserInList(target_name)) {
 					context.stringResult = target_name;
-					IRCResponseCreator::ErrorSender(context,401);
+					IRC_response_creator::ErrorSender(context,401);
 					continue;
 				}
 				if(!channel->IsInChannel(target_name)){
 					context.stringResult = target_name;
-					IRCResponseCreator::ErrorSender(context,441);
+					IRC_response_creator::ErrorSender(context,441);
 					continue;
 				}
 				mode_result += "o";
@@ -144,7 +144,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult = " MODE " + context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
+		context.stringResult = context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
 		SendMessageToChannel(kChanSendModeToAll, context);
 	}
 }

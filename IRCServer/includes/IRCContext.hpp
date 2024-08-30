@@ -21,7 +21,6 @@ struct IRCContext
 		bool createSource;
 		enum IRCCommand command;
 		std::deque<std::string> params;
-		std::string rawMessage;
 
 		// context
 		IRCServer* server;

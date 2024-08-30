@@ -17,7 +17,7 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	context.createSource = true;
 	context.numericResult = -1;
 	std::stringstream ss;
-	ss << "QUIT :";
+	ss << ":Quit: ";
 	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
 		ss << *it << " ";
 	context.stringResult = ss.str();
