@@ -188,6 +188,7 @@ void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWrit
 	}
 
 	IRCContext context(shouldWriteFDs);
+  context.command = QUIT;
 	context.client = conn;
 	context.params.push_back("Client quited unexpectidly");
 	ActionQUIT(context);
