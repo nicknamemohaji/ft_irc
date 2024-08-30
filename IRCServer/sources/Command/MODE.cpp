@@ -10,7 +10,7 @@
 
 #include "IRCTypes.hpp"
 #include "IRCRequestParser.hpp"
-#include "IRCResponseCreator.hpp"
+#include "IRCUtils/includes/IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -18,9 +18,10 @@
 void IRCServer::ActionMODE(IRCContext& context)
 {	
 	IRCChannel *channel;
-	if(context.params.size() <= 0)
-		throw IRCError::MissingParams(); // 461
-	else {
+  if (context.params.size() <= 0) {
+    return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+  } else {
 		std::string channel_name = context.params[0];
 		channel = this->GetChannel(IRC_request_parser::AddChanPrefixToParam(channel_name));
 		context.channel = channel;

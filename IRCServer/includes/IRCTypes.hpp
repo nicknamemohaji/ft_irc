@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <set>
 #include <string>
 #include <deque>
 #include <vector>
@@ -31,5 +32,6 @@ enum IRCCommand {
 
 typedef std::vector<uint8_t> Buffer;
 typedef std::deque<std::string> IRCParams;
+typedef std::set<int> FDSet;
 
 #endif  // IRCSERVER_INCLUDES_IRCTYPES_HPP_

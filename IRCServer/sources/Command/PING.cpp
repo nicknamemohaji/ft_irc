@@ -10,8 +10,10 @@
 
 void IRCServer::ActionPING(IRCContext& context)
 {
-	if (context.params.size() != 1)
-		throw IRCError::MissingParams();
+  if (context.params.size() != 1) {
+    return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+  }
 	
 	context.createSource = false;
   // PING의 응답은 PONG이므로 ConvertComToStr의 결과를 사용하지 않고 커맨드를 직접 작성

@@ -114,8 +114,10 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
     context.params = _params;
 
     // check registration status
-    if (conn->GetStatus() != REGISTERED && context.command > NICK)
-        throw IRCError::NotRegistered();
+    if (conn->GetStatus() != REGISTERED && context.command > NICK) {
+      return IRC_response_creator::ERR_NOTREGISTERED(context.client, _serverName,
+                                                     context.pending_fds);
+    }
   /*
 		notes on IRCServer::Actions:
 

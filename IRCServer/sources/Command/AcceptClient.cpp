@@ -29,10 +29,11 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// requires password before registering
 	if (context.client->GetStatus() == REGISTER_PENDING)
 	{
-		if (context.command != PASS)
-			throw IRCError::WrongPassword();
-		if (context.params.size() != 1 || context.params[0] != _serverPass)
-			throw IRCError::WrongPassword();
+    if (context.command != PASS ||
+        !(context.params.size() == 1 && context.params[0] == _serverPass)) {
+      return IRC_response_creator::ERR_PASSWDMISMATCH(
+          context.client, _serverName, context.pending_fds);
+    }
 		context.client->SetStatus(REGISTER_PASS);
 		return ;
 	}
@@ -40,30 +41,43 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// dont accept PASS message after correct password
 	if (context.command == PASS)
 	{
-		if (context.client->GetStatus() != REGISTER_PENDING)
-			throw IRCError::NotRegistered();
-		else
-			throw IRCError::AlreadyRegistered();
+    if (context.client->GetStatus() != REGISTER_PENDING) {
+      return IRC_response_creator::ERR_NOTREGISTERED(
+          context.client, _serverName, context.pending_fds);
+    } else {
+      return IRC_response_creator::ERR_ALREADYREGISTERED(
+          context.client, _serverName, context.pending_fds);
+    }
 	}
 	
 	if (context.command == NICK)
 	{
 		// validate parameter
-		if (context.params.size() == 0)
-			throw IRCError::NoNickname();
-		else if (context.params.size() > 1)
-			throw IRCError::WrongNickname();
+    if (context.params.size() == 0) {
+      return IRC_response_creator::ERR_NONICKNAMEGIVEN(
+          context.client, _serverName, context.pending_fds);
+    } else if (context.params.size() > 1) {
+      return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+          context.client, _serverName, context.pending_fds);
+    }
 		std::string new_name = context.params[0];
 		if (GetClient(new_name) != NULL)
-			throw IRCError::ExitstingNickname();
+    {
+       return IRC_response_creator::ERR_NICKNAMEINUSE(
+          context.client, _serverName, context.pending_fds);
+    }
 		// validate nickname
 		// TODO set RPL_ISUPPORT for nickname rules
-		if (!(2 <= new_name.size() && new_name.size() <= 30))
-			throw IRCError::WrongNickname();
+		if (!(2 <= new_name.size() && new_name.size() <= 30)){
+      return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+          context.client, _serverName, context.pending_fds);
+    }
 		for (unsigned int i = 0; i < new_name.size(); i++)
 		{
-			if (!std::isalnum(static_cast<unsigned char>(new_name[i])))
-				throw IRCError::WrongNickname();
+      if (!std::isalnum(static_cast<unsigned char>(new_name[i]))) {
+        return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+            context.client, _serverName, context.pending_fds);
+      }
 		}
 	
 		// good to go!
@@ -101,10 +115,15 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	}
 	if (context.command == USER)
 	{
-		if (context.params.size() != 4)
-			throw IRCError::MissingParams();
+    if (context.params.size() != 4) {
+      return IRC_response_creator::ERR_NEEDMOREPARAMS(
+          context.client, _serverName, context.pending_fds, context.command);
+    }
 		
-		context.client->SetUserName(context.params[0]);
+    if (!context.client->SetUserName(context.params[0])) {
+      return IRC_response_creator::ERR_ALREADYREGISTERED(
+        context.client, _serverName, context.pending_fds);
+    }
 		return ;
 	}
 
@@ -173,9 +192,10 @@ void IRCServer::ActionMOTD(IRCContext& context)
 	{
 		for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
 		{
-			context.stringResult = *it;
-			if (*it != _serverName)
-				throw IRCError::NoSuchServer();
+      if (*it != _serverName) {
+        return IRC_response_creator::ERR_NOSUCHSERVER(
+            context.client, _serverName, context.pending_fds, *it);
+      }
 		}
 	}
 	std::string clientNickname = context.client->GetNickname();

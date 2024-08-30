@@ -13,6 +13,10 @@
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionPRIVMSG(IRCContext& context){
+    if (context.params.size() != 2) {
+      return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+    }
 		//  param size =1 channel left;
 		# ifdef PCOMMAND
 			std::cout << " privmsg param size = " << context.params.size() <<std::endl;
@@ -25,8 +29,6 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 		std::string target;
 		std::string msg;
 		IRCChannel *channel;
-		if(context.params.size() != 2)
-			throw IRCError::MissingParams();
 		target = context.params[0];
 		msg = context.params[1];
 

@@ -14,30 +14,29 @@
 
 /**
  * @brief IRCContext로부터 완전한 메시지를 생성합니다
- * 
+ *
  * @param[in] context 메시지를 생성하기 위한 정보
- * 
+ *
  * @return source-command-parameter로 구성된 IRC 메시지
- * 
+ *
  * @warning context에는 client, server 포인터가 설정돼 있어야 합니다
- * 
+ *
  * @note context.createSource가 true이면 source에 클라이언트 정보를,
  * false이면 서버 정보를 사용합니다
- * 
+ *
  * @note context.numericResult가 -1이면 커맨드를 문자열로 변환한 값을,
  * -1이 아니면 numericResult에 주어진 값을 사용합니다
-*/
+ */
 std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
   std::stringstream result;
 
   // 1. [':' <source> SPACE]
   // source ::=  <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
   if (context.createSource) {
-    result << ":" << context.client->GetNickname()
-            << "!" << context.client->GetUserName()
-            << "@" << context.client->GetIP()
-            << " ";
-  }  else {
+    result << ":" << context.client->GetNickname() << "!"
+           << context.client->GetUserName() << "@" << context.client->GetIP()
+           << " ";
+  } else {
     result << ":" << context.server->GetServerName() << " ";
   }
 
@@ -60,11 +59,6 @@ std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
         result << clientNickname << " " << context.stringResult
                << " :No such nick/channel";
         break;
-      // ERR_NOSUCHSERVER
-      case 402:
-        result << clientNickname << " " << context.stringResult
-               << " :No such server";
-        break;
       // ERR_NOSUCHCHANNEL
       case 403:
         result << clientNickname << " " << context.stringResult
@@ -80,18 +74,6 @@ std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
         result << clientNickname << " "
                << context.channel->GetChannelInfo(kChannelName)
                << " :You have joined too many channels";
-        break;
-      // ERR_NONICKNAMEGIVEN
-      case 431:
-        result << clientNickname << " :No nickname given";
-        break;
-      // ERR_ERRONEUSNICKNAME
-      case 432:
-        result << clientNickname << " :Erroneus nickname";
-        break;
-      // ERR_NICKNAMEINUSE
-      case 433:
-        result << clientNickname << " :Nickname is already in use";
         break;
       // ERR_USERNOTINCHANNEL
       case 441:
@@ -110,22 +92,6 @@ std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
         result << clientNickname << " " << context.stringResult << " "
                << context.channel->GetChannelInfo(kChannelName)
                << " :is already on channel";
-        break;
-      // ERR_NOTREGISTERED
-      case 451:
-        result << clientNickname << " :You have not registered";
-        break;
-      // ERR_NEEDMOREPARAMS
-      case 461:
-        result << clientNickname << " " << command << " :Not enough parameters";
-        break;
-      // ERR_ALREADYREGISTERED
-      case 462:
-        result << clientNickname << " :You may not reregister";
-        break;
-      // ERR_PASSWDMISMATCH
-      case 464:
-        result << clientNickname << " :Password incorrect";
         break;
       // *ERR_CHANNELISFULL* (471) 채널 포화상태
       case 471:
@@ -166,7 +132,8 @@ std::string IRC_response_creator::MakeResponse(const IRCContext& context) {
       case 421:
         // FALLTHROUGH
       default:
-        result << clientNickname << " " << context.stringResult << " :Unknown command";
+        result << clientNickname << " " << context.stringResult
+               << " :Unknown command";
         break;
     }
   } else {
@@ -184,5 +151,120 @@ void IRC_response_creator::ErrorSender(IRCContext context,
   context.numericResult = errornum;
   context.createSource = false;
   context.client->Send(IRC_response_creator::MakeResponse(context));
-  context.FDsPendingWrite.insert(context.client->GetFD());
+  context.pending_fds->insert(context.client->GetFD());
+}
+
+/**
+ * @brief ERR_NOSUCHSERVER (402) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_NOSUCHSERVER(IRCClient* client,
+                                            const std::string& server_name,
+                                            FDSet* pending_fds,
+                                            const std::string& param) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 402 " << client->GetNickname() << " "
+              << param << " :No such server\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_NONICKNAMEGIVEN (431) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_NONICKNAMEGIVEN(IRCClient* client,
+                                               const std::string& server_name,
+                                               FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 432 " << client->GetNickname()
+              << " :No nickname given\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_ERRONEUSNICKNAME (432) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_ERRONEUSNICKNAME(IRCClient* client,
+                                                const std::string& server_name,
+                                                FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 432 " << client->GetNickname()
+              << " :Erroneus nickname\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_NICKNAMEINUSE (433) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_NICKNAMEINUSE(IRCClient* client,
+                                             const std::string& server_name,
+                                             FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 433 " << client->GetNickname()
+              << " :Nickname is already in use\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_NOTREGISTERED (451) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_NOTREGISTERED(IRCClient* client,
+                                             const std::string& server_name,
+                                             FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 451 " << client->GetNickname()
+              << " :You have not registered\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_NEEDMOREPARAMS(461) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_NEEDMOREPARAMS(IRCClient* client,
+                                              const std::string& server_name,
+                                              FDSet* pending_fds,
+                                              enum IRCCommand command) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 461 " << client->GetNickname()
+              << IRC_request_parser::ConvertComToStr(command)
+              << " :Not enough parameters\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_ALREADYREGISTERED (462) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_ALREADYREGISTERED(IRCClient* client,
+                                                 const std::string& server_name,
+                                                 FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 462 " << client->GetNickname()
+              << " :You may not reregister\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
+}
+
+/**
+ * @brief ERR_PASSWDMISMATCH(464) 에러를 전송합니다
+ */
+void IRC_response_creator::ERR_PASSWDMISMATCH(IRCClient* client,
+                                              const std::string& server_name,
+                                              FDSet* pending_fds) {
+  std::stringstream err_message;
+  err_message << ":" << server_name << " 464" << client->GetNickname()
+              << " :Password incorrect\r\n";
+
+  client->Send(err_message.str());
+  pending_fds->insert(client->GetFD());
 }
