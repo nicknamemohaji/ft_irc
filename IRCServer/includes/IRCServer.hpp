@@ -23,7 +23,7 @@ class IRCServer: public TCPServer
 
 		// event callback
 		IRCClient* AcceptConnection(bool* shouldRead, bool* shouldWrite);
-		void ReadEvent(TCPConnection* conn,
+		bool ReadEvent(TCPConnection* conn,
 			bool* shouldEndRead, std::set<int> *shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
 			bool* shouldRead, bool* shouldEndWrite);

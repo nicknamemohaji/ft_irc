@@ -270,6 +270,8 @@ std::string IRC_request_parser::ConvertComToStr(enum IRCCommand comm) {
     return "QUIT";
   else if (comm == MOTD)
     return "MOTD";
+  else if (comm == PING)
+    return "PING";
   else if (comm == JOIN)
     return "JOIN";
   else if (comm == NAMES)

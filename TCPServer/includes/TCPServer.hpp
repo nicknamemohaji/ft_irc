@@ -20,7 +20,7 @@ class TCPServer
 		// actions
 		virtual TCPConnection* AcceptConnection
 			(bool* shouldRead, bool* shouldWrite) = 0;
-		virtual void ReadEvent(TCPConnection* conn,
+		virtual bool ReadEvent(TCPConnection* conn,
 			bool* shouldEndRead, std::set<int>* shouldWriteFDs) = 0;
 		virtual void WriteEvent(TCPConnection* conn,
 			bool* shouldRead, bool* shouldEndWrite) = 0;

@@ -79,7 +79,7 @@ IRCClient* IRCServer::AcceptConnection(bool* shouldRead, bool* shouldWrite)
 	return new IRCClient(connSock);
 }
 
-void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<int> *shouldWriteFDs)
+bool IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<int> *shouldWriteFDs)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
@@ -88,7 +88,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
   // TODO(kyungjle) raise ERR_LINETOOLONG(417) for big chunks
   if (std::find(message.begin(), message.end(), '\r') == message.end()
     && std::find(message.begin(), message.end(), '\n') == message.end())
-    return;
+    return false;
 
   // match CRLF set and ignore empty message
   IRC_request_parser::AddNewLineToBuffer(&message);
@@ -96,7 +96,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
 	{
 		message.erase(message.begin(), message.begin() + 2);
 		conn->OverwriteRecvBuffer(message);
-		return ;
+		return conn->GetRecvBufferSize() != 0;
 	}
 
   IRCContext context(shouldWriteFDs);
@@ -115,8 +115,10 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
 
     // check registration status
     if (conn->GetStatus() != REGISTERED && context.command > NICK) {
-      return IRC_response_creator::ERR_NOTREGISTERED(context.client, _serverName,
-                                                     context.pending_fds);
+      IRC_response_creator::ERR_NOTREGISTERED(context.client, _serverName,
+                                              context.pending_fds);
+      conn->OverwriteRecvBuffer(message);
+		  return conn->GetRecvBufferSize() != 0;
     }
   /*
 		notes on IRCServer::Actions:
@@ -150,6 +152,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
 
 	conn->OverwriteRecvBuffer(message);
   *shouldEndRead = false;
+  return conn->GetRecvBufferSize() != 0;
 }
 
 void IRCServer::WriteEvent(TCPConnection* _conn, bool* shouldRead, bool* shouldEndWrite)

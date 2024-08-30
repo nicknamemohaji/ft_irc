@@ -234,7 +234,7 @@ void IRC_response_creator::ERR_NEEDMOREPARAMS(IRCClient* client,
                                               enum IRCCommand command) {
   std::stringstream err_message;
   err_message << ":" << server_name << " 461 " << client->GetNickname()
-              << IRC_request_parser::ConvertComToStr(command)
+              << IRC_request_parser::ConvertComToStr(command) << " "
               << " :Not enough parameters\r\n";
 
   client->Send(err_message.str());
