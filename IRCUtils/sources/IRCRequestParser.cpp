@@ -93,6 +93,8 @@ bool IRC_request_parser::ParseMessage(
     return false;
   BufferRemoveSpace(message);
   *command = IRC_request_parser::ConvertStrToCom(_raw_command);
+  if (*command == UNKNOWN)
+    return false;
 
   // 4. <parameters>
   while (*(message->begin()) != '\r') {
@@ -113,7 +115,7 @@ bool IRC_request_parser::ParseMessage(
       // middle parameter
       _param = BufferParseUntilSpace(message, &_valid_command);
       if (!_valid_command)
-        return true;
+        return false;
     }
 
     params->push_back(_param);
