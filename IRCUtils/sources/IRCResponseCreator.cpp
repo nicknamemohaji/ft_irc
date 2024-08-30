@@ -262,7 +262,7 @@ void IRC_response_creator::ERR_PASSWDMISMATCH(IRCClient* client,
                                               const std::string& server_name,
                                               FDSet* pending_fds) {
   std::stringstream err_message;
-  err_message << ":" << server_name << " 464" << client->GetNickname()
+  err_message << ":" << server_name << " 464 " << client->GetNickname()
               << " :Password incorrect\r\n";
 
   client->Send(err_message.str());
