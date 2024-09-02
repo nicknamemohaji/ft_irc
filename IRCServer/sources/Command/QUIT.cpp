@@ -23,10 +23,10 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	context.stringResult = ss.str();
 	
 	// broadcast leave
-	IRCClientJoinedChannels _channels = client->ListChannels();
-	for (IRCClientJoinedChannels::iterator _it = _channels.begin(); _it != _channels.end(); _it++)
+	IRCClientChannels _channels = client->ListChannels();
+	for (IRCClientChannels::iterator _it = _channels.begin(); _it != _channels.end(); _it++)
 	{
-		std::string _channel_name = _it->first;
+		std::string _channel_name = *_it;
 		context.channel = GetChannel(_channel_name);
 		SendMessageToChannel(kChanSendModeToExceptMe, context);
 	}
