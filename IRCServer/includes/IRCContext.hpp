@@ -1,70 +1,43 @@
-#ifndef IRCCONTEXT_HPP
-#define IRCCONTEXT_HPP
+#ifndef IRCSERVER_INCLUDES_IRCCONTEXT_HPP_
+#define IRCSERVER_INCLUDES_IRCCONTEXT_HPP_
 
-#include <string>
 #include <deque>
-#include <set>
 #include <iostream>
+#include <set>
+#include <string>
 #include <vector>
+
+#include "IRCServer/includes/IRCTypes.hpp"
 
 class IRCServer;
 class IRCChannel;
 class IRCClient;
 
-enum IRCCommand
-{
-	UNKNOWN = -1,
-	// registration
-	CAP,
-	PASS,
-	USER,
-	NICK,
-	QUIT,
-	// server informatin
-	MOTD,
-	PING,
-	JOIN,
-	NAMES,
-	MODE,
-	PART,
-	TOPIC,
-	KICK,
-	PRIVMSG,
-	INVITE,
-};
+struct IRCContext {
+ public:
+  // request
+  bool createSource;
+  enum IRCCommand command;
+  std::deque<std::string> params;
 
-// typedef std::vector<std::vector<std::string> > StringMatrix;
-struct IRCContext
-{
-	public:
-		// request
-		bool createSource;
-		enum IRCCommand command;
-		std::deque<std::string> params;
-		std::string rawMessage;
+  // context
+  IRCServer* server;
+  IRCChannel* channel;
+  IRCClient* client;
+  std::set<int>* pending_fds;
 
-		// context
-		IRCServer* server;
-		IRCChannel* channel;
-		IRCClient* client;
-		std::set<int>& FDsPendingWrite;
+  // result
+  int numericResult;
+  std::string stringResult;
 
-		// result
-		int numericResult;
-		std::string stringResult;
-		
-		// initialize struct... 
-		IRCContext(std::set<int>& FDset);
+  // initialize struct...
+  explicit IRCContext(std::set<int>* FDset);
 
-		// converter
-		static std::string ConvertCommandToStr(enum IRCCommand command);
-		static enum IRCCommand ConvertStrToCommand(const std::string& command);
-		// StringMatrix parseStringMatrix(std::deque<std::string> &param);
-	private:
-		IRCContext(void);
+ private:
+  IRCContext(void);
 };
 
 // for debug
-std::ostream& operator<< (std::ostream& ostream, const IRCContext& context);
+std::ostream& operator<<(std::ostream& ostream, const IRCContext& context);
 
-#endif
+#endif  // IRCSERVER_INCLUDES_IRCCONTEXT_HPP_

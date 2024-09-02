@@ -1,3 +1,6 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -5,9 +8,8 @@
 #include <algorithm>
 #include <ctime>
 
-#include "IRCServer.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCChannel.hpp"
-#include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 std::string GetCurrentTimeString() {
@@ -28,6 +30,10 @@ bool IsBotCommand(std::string &msg){
 	return false;
 }
 void IRCServer::ActionPRIVMSG(IRCContext& context){
+    if (context.params.size() != 2) {
+      return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+    }
 		//  param size =1 channel left;
 		# ifdef PCOMMAND
 			std::cout << " privmsg param size = " << context.params.size() <<std::endl;
@@ -40,13 +46,11 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 		std::string target;
 		std::string msg;
 		IRCChannel *channel;
-		if(context.params.size() != 2)
-			throw IRCError::MissingParams();
 		target = context.params[0];
 		msg = context.params[1];
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult  = "PRIVMSG " + target +" :" + msg;
+		context.stringResult  = target +" :" + msg;
 
 		if (IsChannelInList(target) || 
 			(target.size() > 1 && target[0] == '@' && IsChannelInList(target.substr(1)))
@@ -56,13 +60,13 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				std::cout << "send to channel" << std::endl;
 			# endif
 
-			enum ChannelSendMode send_mode = SendToAllExceptMe;
+			enum ChannelSendMode send_mode = kChanSendModeToExceptMe;
 			channel = GetChannel(target);
 			if (channel == NULL)
 			{
 				target = target.substr(1);
 				channel = GetChannel(target);
-				send_mode = SendToOper;
+				send_mode = kChanSendModeToOper;
 			}
 			context.channel = channel;
 			
@@ -71,27 +75,17 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				context.stringResult = target;
 				throw IRCError::CanNotSendToChan();
 			}
-		if(IsBotCommand(msg)){
-			send_mode = SendToAll;
-			context.createSource = false;
-			context.stringResult  = "PRIVMSG " + target +" :" + msg;
-		}
-		SendMessageToChannel(context, send_mode);
+
+			SendMessageToChannel(send_mode, context);
 		}
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
 				throw IRCError::NoSuchNick();
-			# ifdef PCOMMAND
-				std::cout << "send to user " << user_target->GetNickname() <<std::endl;
-			# endif
-			user_target->Send(MakeResponse(context));
-			context.FDsPendingWrite.insert(user_target->GetFD());
+			user_target->Send(IRC_response_creator::MakeResponse(context));
+			context.pending_fds->insert(user_target->GetFD());
 		}
 		else{
-			# ifdef PCOMMAND
-				std::cout << "error can't send anyone !!!! " <<std::endl;
-			# endif
 			context.stringResult = target;
 			throw IRCError::CanNotSendToChan();
 		}

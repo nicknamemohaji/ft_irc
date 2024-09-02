@@ -1,14 +1,17 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
-#include "IRCClient.hpp"
+#include "IRCTypes.hpp"
 #include "IRCContext.hpp"
+#include "IRCChannel.hpp"
 #include "IRCErrors.hpp"
+#include "IRCResponseCreator.hpp"
 
 # ifndef VERSION
 # define VERSION "42.42"
@@ -26,10 +29,11 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// requires password before registering
 	if (context.client->GetStatus() == REGISTER_PENDING)
 	{
-		if (context.command != PASS)
-			throw IRCError::WrongPassword();
-		if (context.params.size() != 1 || context.params[0] != _serverPass)
-			throw IRCError::WrongPassword();
+    if (context.command != PASS ||
+        !(context.params.size() == 1 && context.params[0] == _serverPass)) {
+      return IRC_response_creator::ERR_PASSWDMISMATCH(
+          context.client, _serverName, context.pending_fds);
+    }
 		context.client->SetStatus(REGISTER_PASS);
 		return ;
 	}
@@ -37,30 +41,43 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	// dont accept PASS message after correct password
 	if (context.command == PASS)
 	{
-		if (context.client->GetStatus() != REGISTER_PENDING)
-			throw IRCError::NotRegistered();
-		else
-			throw IRCError::AlreadyRegistered();
+    if (context.client->GetStatus() != REGISTER_PENDING) {
+      return IRC_response_creator::ERR_NOTREGISTERED(
+          context.client, _serverName, context.pending_fds);
+    } else {
+      return IRC_response_creator::ERR_ALREADYREGISTERED(
+          context.client, _serverName, context.pending_fds);
+    }
 	}
 	
 	if (context.command == NICK)
 	{
 		// validate parameter
-		if (context.params.size() == 0)
-			throw IRCError::NoNickname();
-		else if (context.params.size() > 1)
-			throw IRCError::WrongNickname();
+    if (context.params.size() == 0) {
+      return IRC_response_creator::ERR_NONICKNAMEGIVEN(
+          context.client, _serverName, context.pending_fds);
+    } else if (context.params.size() > 1) {
+      return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+          context.client, _serverName, context.pending_fds);
+    }
 		std::string new_name = context.params[0];
 		if (GetClient(new_name) != NULL)
-			throw IRCError::ExitstingNickname();
+    {
+       return IRC_response_creator::ERR_NICKNAMEINUSE(
+          context.client, _serverName, context.pending_fds);
+    }
 		// validate nickname
 		// TODO set RPL_ISUPPORT for nickname rules
-		if (!(2 <= new_name.size() && new_name.size() <= 30))
-			throw IRCError::WrongNickname();
+		if (!(2 <= new_name.size() && new_name.size() <= 30)){
+      return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+          context.client, _serverName, context.pending_fds);
+    }
 		for (unsigned int i = 0; i < new_name.size(); i++)
 		{
-			if (!std::isalnum(static_cast<unsigned char>(new_name[i])))
-				throw IRCError::WrongNickname();
+      if (!std::isalnum(static_cast<unsigned char>(new_name[i]))) {
+        return IRC_response_creator::ERR_ERRONEUSNICKNAME(
+            context.client, _serverName, context.pending_fds);
+      }
 		}
 	
 		// good to go!
@@ -71,16 +88,16 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			// send acknowledgement to user
 			context.createSource = true;
 			context.numericResult = -1;
-			context.stringResult = "NICK " + new_name;
-			context.client->Send(MakeResponse(context));
-			context.FDsPendingWrite.insert(context.client->GetFD());
+			context.stringResult = new_name;
+			context.client->Send(IRC_response_creator::MakeResponse(context));
+			context.pending_fds->insert(context.client->GetFD());
 			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
 			IRCClientJoinedChannels channels = context.client->ListChannels();
 			for (IRCClientJoinedChannels::iterator it = channels.begin(); it != channels.end(); it++)
 			{
 				// broadcast
 				context.channel = it->second;
-				SendMessageToChannel(context, SendToAllExceptMe);
+				SendMessageToChannel(kChanSendModeToExceptMe, context);
 				// change name from channel
 				context.channel->DelChannelUser(prev_name);
 				context.channel->AddChannelUser(new_name);
@@ -98,10 +115,15 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	}
 	if (context.command == USER)
 	{
-		if (context.params.size() != 4)
-			throw IRCError::MissingParams();
+    if (context.params.size() != 4) {
+      return IRC_response_creator::ERR_NEEDMOREPARAMS(
+          context.client, _serverName, context.pending_fds, context.command);
+    }
 		
-		context.client->SetUserName(context.params[0]);
+    if (!context.client->SetUserName(context.params[0])) {
+      return IRC_response_creator::ERR_ALREADYREGISTERED(
+        context.client, _serverName, context.pending_fds);
+    }
 		return ;
 	}
 
@@ -117,7 +139,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :Welcome to the "<< _serverName << " Network, " << clientNickname << "!";
 	context.numericResult = 1;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	// send RPL_YOURHOST
 	strstream.str("");
@@ -126,7 +148,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :Your host is "<< _serverName << ", running version " << VERSION;
 	context.numericResult = 2;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	// send RPL_CREATED
 	strstream.str("");
@@ -135,7 +157,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< " :This server was created "<< _startDate;
 	context.numericResult = 3;
 	context.stringResult = strstream.str();
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	// send RPL_MYINFO
 	// TODO set RPL_MYINFO
@@ -144,7 +166,7 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 	strstream << clientNickname << " " << _serverName << " " << VERSION << " r oitlk";
 	context.stringResult = strstream.str();
 	context.numericResult = 4;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	// send RPL_ISUPPORT
 	// TODO set RPL_ISUPPORT
@@ -154,12 +176,12 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 		<< "PREFIX=(o)@ NICKLEN=30 :are supported by this server";
 	context.stringResult = strstream.str();
 	context.numericResult = 5;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	// send MOTD
 	ActionMOTD(context);
 
-	context.FDsPendingWrite.insert(context.client->GetFD());
+	context.pending_fds->insert(context.client->GetFD());
 }
 
 /**************/
@@ -170,28 +192,29 @@ void IRCServer::ActionMOTD(IRCContext& context)
 	{
 		for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
 		{
-			context.stringResult = *it;
-			if (*it != _serverName)
-				throw IRCError::NoSuchServer();
+      if (*it != _serverName) {
+        return IRC_response_creator::ERR_NOSUCHSERVER(
+            context.client, _serverName, context.pending_fds, *it);
+      }
 		}
 	}
 	std::string clientNickname = context.client->GetNickname();
 	
 	context.stringResult = clientNickname + " : -- Welcome to " + _serverName + "--";
 	context.numericResult = 375;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 	
 	context.stringResult = clientNickname + " :Mesasge of the day:";
 	context.numericResult = 372;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 	
 	context.stringResult = clientNickname + " :WeLOve42Seoul";
 	context.numericResult = 372;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
 	context.stringResult = clientNickname + " :end of MOTD";
 	context.numericResult = 376;
-	context.client->Send(MakeResponse(context));
+	context.client->Send(IRC_response_creator::MakeResponse(context));
 
-	context.FDsPendingWrite.insert(context.client->GetFD());
+	context.pending_fds->insert(context.client->GetFD());
 }

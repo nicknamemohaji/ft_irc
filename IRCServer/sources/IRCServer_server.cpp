@@ -1,10 +1,15 @@
+#include "IRCServer.hpp"
+#include "IRCClient.hpp"
+
 #include <sys/socket.h>
 
 #include <iostream>
 #include <ctime>
+#include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCClient.hpp"
+#include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCErrors.hpp"
 #include "TCPErrors.hpp"
 
@@ -49,7 +54,7 @@ IRCServer::~IRCServer(void)
 
 /******************/
 
-IRCClient* IRCServer::AcceptConnection(bool& shouldRead, bool& shouldWrite)
+IRCClient* IRCServer::AcceptConnection(bool* shouldRead, bool* shouldWrite)
 {
 	if (_finished)
 		throw TCPErrors::SocketClosed();
@@ -68,43 +73,54 @@ IRCClient* IRCServer::AcceptConnection(bool& shouldRead, bool& shouldWrite)
 	)
 		throw TCPErrors::SystemCallError("accept(2)");
 
-	shouldRead = true;
-	shouldWrite = false;
+	*shouldRead = true;
+	*shouldWrite = false;
 	// new client is registered on _client after registration is complete
 	return new IRCClient(connSock);
 }
 
-void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<int> &shouldWriteFDs)
+bool IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<int> *shouldWriteFDs)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 	Buffer message = conn->ReadRecvBuffer();
-	AddNewLineToBuffer(message);
 
-	# ifdef DEBUG
-	std::cout << "[DEBUG] IRCServer: ReadEvent: dump (" << message << ")" << std::endl;
-	# endif
+  // handle short count
+  // TODO(kyungjle) raise ERR_LINETOOLONG(417) for big chunks
+  if (std::find(message.begin(), message.end(), '\r') == message.end()
+    && std::find(message.begin(), message.end(), '\n') == message.end())
+    return false;
 
+  // match CRLF set and ignore empty message
+  IRC_request_parser::AddNewLineToBuffer(&message);
 	if (*(message.begin()) == '\r')
 	{
 		message.erase(message.begin(), message.begin() + 2);
 		conn->OverwriteRecvBuffer(message);
-		return ;
+		return conn->GetRecvBufferSize() != 0;
 	}
 
-	IRCContext context(shouldWriteFDs);
-	context.server = this;
-	context.client = conn;
+  IRCContext context(shouldWriteFDs);
+  context.server = this;
+  context.client = conn;
 
-	try
-	{
-		// TODO 417 ERR_INPUTTOLONG
-		if (!RequestParser(message, context))
-			return ;
-		// check registration status
-		if (conn->GetStatus() != REGISTERED && context.command > NICK)
-			throw IRCError::NotRegistered();
-		
-		/*
+
+  try
+  {
+    IRCCommand _command;
+    IRCParams _params;
+    if (!IRC_request_parser::ParseMessage(&message, &_command, &_params))
+      throw IRCError::UnknownCommand();  // TODO(kyungjle) dont use exception
+    context.command = _command;
+    context.params = _params;
+
+    // check registration status
+    if (conn->GetStatus() != REGISTERED && context.command > NICK) {
+      IRC_response_creator::ERR_NOTREGISTERED(context.client, _serverName,
+                                              context.pending_fds);
+      conn->OverwriteRecvBuffer(message);
+		  return conn->GetRecvBufferSize() != 0;
+    }
+  /*
 		notes on IRCServer::Actions:
 
 		Actions는 멤버 함수 배열입니다. Actions에 저장되는 순서는 enum IRCCommand를 사용합니다.
@@ -114,7 +130,7 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 
 		ex) 
 		context.client->Send(MakeResponse(context));
-		context.FDsPendingWrite.insert(context.client->GetFD());
+		context.pending_fds->insert(context.client->GetFD());
 		*/
 		(this->*(Actions[context.command]))(context);
 	}
@@ -122,22 +138,24 @@ void IRCServer::ReadEvent(TCPConnection* _conn, bool& shouldEndRead, std::set<in
 	{
 		// create error response
 		message = conn->ReadRecvBuffer();
-		AddNewLineToBuffer(message);
+		IRC_request_parser::AddNewLineToBuffer(&message);
 		Buffer::iterator it = std::find(message.begin(), message.end(), '\r');
-		context.rawMessage = std::string(message.begin(), it);
+		context.stringResult = std::string(message.begin(), it);
 		// send error response
 		context.numericResult = e.code();
-		conn->Send(MakeResponse(context));
-		shouldWriteFDs.insert(conn->GetFD());
+    context.createSource = false;
+		conn->Send(IRC_response_creator::MakeResponse(context));
+		shouldWriteFDs->insert(conn->GetFD());
 
 		message.erase(message.begin(), it + 2);
 	}
 
 	conn->OverwriteRecvBuffer(message);
-	shouldEndRead = false;
+  *shouldEndRead = false;
+  return conn->GetRecvBufferSize() != 0;
 }
 
-void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldEndWrite)
+void IRCServer::WriteEvent(TCPConnection* _conn, bool* shouldRead, bool* shouldEndWrite)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 
@@ -148,21 +166,21 @@ void IRCServer::WriteEvent(TCPConnection* _conn, bool& shouldRead, bool& shouldE
 		{
 			_clients.erase(_clients.find(conn->GetNickname()));
 			conn->Close();
-			shouldRead = false;
-			shouldEndWrite = true;
+			*shouldRead = false;
+			*shouldEndWrite = true;
 			return ;
 		}
-		shouldRead = true;
-		shouldEndWrite = true;
+		*shouldRead = true;
+		*shouldEndWrite = true;
 	}
 	else
 	{
-		shouldRead = false;
-		shouldEndWrite = false;
+		*shouldRead = false;
+		*shouldEndWrite = false;
 	}
 }
 
-void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWriteFDs)
+void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> *shouldWriteFDs)
 {
 	IRCClient* conn = static_cast<IRCClient*>(_conn);
 
@@ -174,9 +192,10 @@ void IRCServer::RemoveConnection(TCPConnection* _conn, std::set<int> &shouldWrit
 	}
 
 	IRCContext context(shouldWriteFDs);
-	context.stringResult = "QUIT: Client quited unexpectidly";
+  context.command = QUIT;
 	context.client = conn;
-	RemoveClientFromChannel(context);
+	context.params.push_back("Client quited unexpectidly");
+	ActionQUIT(context);
 
 	_clients.erase(_clients.find(conn->GetNickname()));
 	conn->Close();
@@ -223,52 +242,6 @@ bool IRCServer::IsUserInList(const std::string& user_name) const{
 	return _clients.find(user_name) != _clients.end();
 }
 
-bool IRCServer::isValidChannelName(const std::string &name) const {
-	if(name.size() > 10 || name.size() < 1)
-		return false;
-	if(name[0] != '#')
-		return false;
-	if(std::string::npos != name.find('#',1))
-		return false;
-	for(unsigned int i = 1; i < name.size(); ++i)
-	{
-		if(!std::isalnum(static_cast<unsigned char>(name[i])))
-			return false;
-	}
-	return true;
-}
-
-std::vector<std::string> IRCServer::ParserSep(const std::string& str, const std::string& sep)
-{
-    std::vector<std::string> param;
-    size_t start = 0;
-    size_t end = str.find(sep);
-    
-    while (end != std::string::npos)
-    {
-        param.push_back(str.substr(start, end - start));
-        start = end + sep.length();
-        end = str.find(sep, start);
-    }
-    
-    // 마지막 요소 추가
-    param.push_back(str.substr(start));
-    
-    return param;
-}
-
-std::string IRCServer::AddPrefixToChannelName(const std::string& name){
-	if(name.size() < 1 || name[0] == '#')
-		return name;
-	return "#" + name;
-}
-
-std::string IRCServer::DelPrefixToChannelName(const std::string& name){
-	if(name.size() < 1 || name[0] != '#')
-		return name;
-	return name.substr(1);
-}
-
 IRCClient* IRCServer::GetClient(const std::string& user_name){
 	# ifdef COMMAND
 		std::cout << "client size in server  " << _clients.size() <<std::endl;
@@ -277,4 +250,9 @@ IRCClient* IRCServer::GetClient(const std::string& user_name){
 	if(it == _clients.end())
 		return NULL;
 	return it->second;
+}
+
+std::string IRCServer::GetServerName(void) const
+{
+	return _serverName;
 }

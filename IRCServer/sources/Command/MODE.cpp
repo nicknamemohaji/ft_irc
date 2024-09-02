@@ -1,3 +1,6 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -5,28 +8,22 @@
 #include <algorithm>
 #include <queue>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
+#include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCUtils/includes/IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionMODE(IRCContext& context)
-{
-	# ifdef COMMAND
-	std::cout << "*MODE command start*" << std::endl;
-	std::cout << "context.params.size = " << context.params.size() << std::endl;
-
-	for(unsigned long i = 0; i < context.params.size(); i++)
-		std::cout << context.params[i] << std::endl;
-	# endif
-	
+{	
 	IRCChannel *channel;
-	if(context.params.size() <= 0)
-		throw IRCError::MissingParams(); // 461
-	else {
+  if (context.params.size() <= 0) {
+    return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+  } else {
 		std::string channel_name = context.params[0];
-		channel = this->GetChannel(AddPrefixToChannelName(channel_name));
+		channel = this->GetChannel(IRC_request_parser::AddChanPrefixToParam(channel_name));
 		context.channel = channel;
 		if(!channel){
 			context.stringResult = channel_name; 
@@ -34,8 +31,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
-			RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
-			RPL_CREATIONTIME(context); //CREATIONTIME 329
+			IRC_response_creator::RPL_CHANNELMODEIS(context); //CHANNELMODEIS 324 
+			IRC_response_creator::RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
 		if(!channel->IsUserAuthorized(user_name, kOperator))
@@ -102,12 +99,12 @@ void IRCServer::ActionMODE(IRCContext& context)
 				std::string target_name = context.params[idx++];
 				if(!IsUserInList(target_name)) {
 					context.stringResult = target_name;
-					ErrorSender(context,401);
+					IRC_response_creator::ErrorSender(context,401);
 					continue;
 				}
 				if(!channel->IsInChannel(target_name)){
 					context.stringResult = target_name;
-					ErrorSender(context,441);
+					IRC_response_creator::ErrorSender(context,441);
 					continue;
 				}
 				mode_result += "o";
@@ -148,7 +145,7 @@ void IRCServer::ActionMODE(IRCContext& context)
 		}
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult = " MODE " + context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
-		SendMessageToChannel(context, SendToAll);
+		context.stringResult = context.channel->GetChannelInfo(kChannelName) + " :" + mode_result;
+		SendMessageToChannel(kChanSendModeToAll, context);
 	}
 }

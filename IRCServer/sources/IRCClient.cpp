@@ -39,12 +39,13 @@ void IRCClient::SetStatus(enum IRCClientActiveStatus newStatus)
 	_activeStatus = newStatus;
 }
 
-void IRCClient::SetUserName(const std::string& name)
-{
-	if (_username.size() == 0)
-		_username = name;
-	else
-		throw IRCError::AlreadyRegistered();
+bool IRCClient::SetUserName(const std::string& name) {
+  if (_username.size() == 0) {
+    _username = name;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void IRCClient::SetNickName(const std::string& name)

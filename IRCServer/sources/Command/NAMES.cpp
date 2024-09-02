@@ -1,11 +1,15 @@
+#include "IRCServer.hpp"
+#include "IRCChannel.hpp"
+
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <deque>
 #include <algorithm>
 
-#include "IRCServer.hpp"
-#include "IRCChannel.hpp"
+#include "IRCTypes.hpp"
+#include "IRCRequestParser.hpp"
+#include "IRCResponseCreator.hpp"
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
@@ -20,21 +24,21 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	//파싱오류 많은 파라미터
 	if(context.params.size() != 1){
 		// throw IRCError::MissingParams(); // 461
-		ErrorSender(context, 461);
+		IRC_response_creator::ErrorSender(context, 461);
 		return;
 	}
-	std::vector<std::string> channel_names = ParserSep(context.params[0], ",");
+	IRCParams channel_names = IRC_request_parser::SeparateParam(context.params[0], ",");
 	for(unsigned int i = 0; i < channel_names.size(); ++i){
 	if(channel_names[i] == "")
 		continue;
-	std::string channel_name = AddPrefixToChannelName(channel_names[i]);
+	std::string channel_name = IRC_request_parser::AddChanPrefixToParam(channel_names[i]);
 	# ifdef COMMAND
 		std::cout << "channel name " << channel_name <<std::endl;
 	# endif
-	if(this->isValidChannelName(channel_name)){
+	if(!IRCChannel::isValidChannelName(channel_name)){
 		// throw IRCError::BadChannelName(); //476
 		context.stringResult = channel_name;
-		ErrorSender(context, 476);
+		IRC_response_creator::ErrorSender(context, 476);
 		return;
 	}
 	channel = this->GetChannel(channel_name);
@@ -45,13 +49,13 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	{
 		context.stringResult = channel_name;{
 		// throw IRCError::NoSuchChannel(); //403
-		ErrorSender(context, 403);
+		IRC_response_creator::ErrorSender(context, 403);
 		return;
 		}
 	}
 	context.channel = channel;
 	if(!channel->IsInChannel(context.client->GetNickname())){
-		this->RPL_ENDOFNAMES(context);
+		IRC_response_creator::RPL_ENDOFNAMES(context);
 		# ifdef COMMAND
 		std::cout << "channel name command only endof name rpl " <<std::endl;
 		# endif
@@ -60,7 +64,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# ifdef COMMAND
 		std::cout << "channel name command do well process " << channel->IsInChannel(context.client->GetNickname())<<std::endl;
 	# endif
-	this->RPL_NAMREPLY(context);
+	IRC_response_creator::RPL_NAMREPLY(context);
 	}
 }
 /*

@@ -37,7 +37,7 @@ class IRCClient: public TCPConnection
 		// setters
 		void SetStatus(enum IRCClientActiveStatus newStatus);
 		void SetNickName(const std::string& name);
-		void SetUserName(const std::string& name);
+		bool SetUserName(const std::string& name);
 
 		//channel add, del, isinchannel
 		void AddChannel(const std::string &channel_name, IRCChannel *channel);
