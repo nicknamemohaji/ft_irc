@@ -12,22 +12,19 @@
 #include "IRCChannel.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
-std::string GetCurrentTimeString() {
-    time_t now = time(0);
+
+void BotCommand(IRCContext& context, const std::string& target){
+	time_t now = time(0);
     struct tm *ltm = localtime(&now);
 
     char buffer[20];
     std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", ltm);
 
-    return std::string(buffer);
-}
-
-bool IsBotCommand(std::string &msg){
-	if(msg.size() > 2 && msg == "!시간"){
-		msg = "현재 서버시간은 " + GetCurrentTimeString() + " 입니다.";
-		return true;
-	}
-	return false;
+	context.stringResult  = target +" :" + "현재 서버시간은 " + std::string(buffer) + " 입니다.";	
+	context.numericResult = -1;
+	context.createSource = false;
+	context.client->Send(IRC_response_creator::MakeResponse(context));
+	context.pending_fds->insert(context.client->GetFD());
 }
 void IRCServer::ActionPRIVMSG(IRCContext& context){
     if (context.params.size() != 2) {
@@ -75,7 +72,8 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 				context.stringResult = target;
 				throw IRCError::CanNotSendToChan();
 			}
-
+			if(msg.size() == 7 && msg == "!시간")
+				return BotCommand(context, target);
 			SendMessageToChannel(send_mode, context);
 		}
 		else if(IsUserInList(target)){
