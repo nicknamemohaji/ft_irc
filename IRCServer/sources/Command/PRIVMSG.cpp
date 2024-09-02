@@ -70,7 +70,7 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			if((channel->CheckChannelMode(kPassword) || channel->CheckChannelMode(kInvite)) && !channel->IsInChannel(context.client->GetNickname()))
 			{
 				context.stringResult = target;
-				throw IRCError::CanNotSendToChan();
+				return IRC_response_creator::ErrorSender(context, 404);
 			}
 			if(msg.size() == 7 && msg == "!시간")
 				return BotCommand(context, target);
@@ -79,13 +79,13 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
-				throw IRCError::NoSuchNick();
+				return IRC_response_creator::ErrorSender(context, 401);
 			user_target->Send(IRC_response_creator::MakeResponse(context));
 			context.pending_fds->insert(user_target->GetFD());
 		}
 		else{
 			context.stringResult = target;
-			throw IRCError::CanNotSendToChan();
+			return IRC_response_creator::ErrorSender(context, 404);
 		}
 }
 
