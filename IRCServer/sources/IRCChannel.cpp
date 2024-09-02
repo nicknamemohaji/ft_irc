@@ -166,9 +166,7 @@ std::string IRCChannel::GetChannelMode() const {
 		m += ' ' + m_info.front();
 		m_info.pop();
 	}
-	if(m.size() > 1)
-		return "+" + m;
-	return m;
+	return "+" + m;
 }
 
 bool IRCChannel::isValidChannelName(const std::string &name) {
