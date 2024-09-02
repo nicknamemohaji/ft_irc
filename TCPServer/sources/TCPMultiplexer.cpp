@@ -137,7 +137,7 @@ void TCPMultiplexer::AddConnection(TCPConnection* connection, TCPServer* server)
 	AddKevent(connection->GetFD(), EVFILT_READ);
 }
 
-void TCPMultiplexer::RemoveConnection(Client client, std::set<int> &shouldWriteFDs)
+void TCPMultiplexer::RemoveConnection(Client client, std::set<int>* shouldWriteFDs)
 {
 	TCPServer* server = client.first;
 	TCPConnection* connection = client.second;
@@ -228,9 +228,9 @@ void TCPMultiplexer::WaitEvent(void)
 				throw TCPErrors::SocketClosed();
 			}
 
-			bool shouldRead;
-			bool shouldWrite;
-			TCPConnection* conn = server->AcceptConnection(shouldRead, shouldWrite);
+			bool shouldRead = false;
+			bool shouldWrite = false;
+			TCPConnection* conn = server->AcceptConnection(&shouldRead, &shouldWrite);
 			AddConnection(conn, server);
 			if (shouldRead)
 				AddKevent(conn->GetFD(), EVFILT_READ);
@@ -252,7 +252,7 @@ void TCPMultiplexer::WaitEvent(void)
 			# endif
 
 			std::set<int> shouldWriteFDs;
-			RemoveConnection(client, shouldWriteFDs);
+			RemoveConnection(client, &shouldWriteFDs);
 			for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)
 					AddKevent(*it, EVFILT_WRITE);
 			continue ;
@@ -265,9 +265,9 @@ void TCPMultiplexer::WaitEvent(void)
 			if (connection->CheckRecvEnd())
 			{
 				std::set<int> shouldWriteFDs;
-				bool shouldEndRead;
-				while (connection->GetRecvBufferSize() > 0)
-					server->ReadEvent(connection, shouldEndRead, shouldWriteFDs);
+				bool shouldEndRead = false;
+        while (server->ReadEvent(connection, &shouldEndRead, &shouldWriteFDs))
+          ;
 				if (shouldEndRead)
 					RemoveKevent(connection->GetFD(), EVFILT_READ);
 				for (std::set<int>::iterator it = shouldWriteFDs.begin(); it != shouldWriteFDs.end(); it++)
@@ -276,10 +276,10 @@ void TCPMultiplexer::WaitEvent(void)
 		}
 		else
 		{
-			bool shouldRead;
-			bool shouldEndWrite;
+			bool shouldRead = false;
+			bool shouldEndWrite = false;
 			// client socket, write
-			server->WriteEvent(connection, shouldRead, shouldEndWrite);
+			server->WriteEvent(connection, &shouldRead, &shouldEndWrite);
 			if (shouldRead)
 				AddKevent(connection->GetFD(), EVFILT_READ);
 			if (shouldEndWrite)

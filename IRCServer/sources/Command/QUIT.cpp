@@ -17,7 +17,7 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	context.createSource = true;
 	context.numericResult = -1;
 	std::stringstream ss;
-	ss << "QUIT :";
+	ss << ":Quit: ";
 	for (std::deque<std::string>::iterator it = context.params.begin(); it != context.params.end(); it++)
 		ss << *it << " ";
 	context.stringResult = ss.str();
@@ -34,11 +34,13 @@ void IRCServer::ActionQUIT(IRCContext& context)
 	// delete from channels
 	RmClientFromChanJoined(client);
 	RmClientFromChanInvited(client);
-	client->Send(IRCResponseCreator::MakeResponse(context));
 
 	// acknoledgement to client
-	context.stringResult = "ERROR: Quit connection";
-	client->Send(IRCResponseCreator::MakeResponse(context));
-	context.FDsPendingWrite.insert(client->GetFD());
+  context.command = UNKNOWN;
+  context.createSource = false;
+  context.server = this;
+	context.stringResult = "ERROR :Closing connection";
+	client->Send(IRC_response_creator::MakeResponse(context));
+	context.pending_fds->insert(client->GetFD());
 	client->SetStatus(PENDING_QUIT);
 }
