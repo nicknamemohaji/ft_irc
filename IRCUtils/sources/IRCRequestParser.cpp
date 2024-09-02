@@ -252,5 +252,5 @@ std::string IRCRequestParser::ConvertComToStr(enum IRCCommand command)
 	else if (command == INVITE)
 		return "INVITE";
 	else
-		throw IRCError::UnknownCommand();
+		return "";
 }
