@@ -12,6 +12,7 @@
 #include "IRCClient.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
+#include "IRCUtils/includes/IRCResponseCreator.hpp"
 
 void IRCServer::ActionKICK(IRCContext& context)
 {
@@ -23,11 +24,13 @@ void IRCServer::ActionKICK(IRCContext& context)
 		std::cout << context.params[i] << std::endl;
 	# endif
 
-	if(context.params.size() <= 1)
-		throw IRCError::MissingParams(); // 461
+  if (context.params.size() <= 1) {
+    return IRC_response_creator::ERR_NEEDMOREPARAMS(
+      context.client, _serverName, context.pending_fds, context.command);
+  }
 
 	std::string channel_name = context.params[0];
-	IRCChannel *channel = GetChannel(IRCRequestParser::AddChanPrefixToParam(channel_name));
+	IRCChannel *channel = GetChannel(IRC_request_parser::AddChanPrefixToParam(channel_name));
 	if(!channel){
 		context.stringResult = channel_name; 
 		throw IRCError::NoSuchChannel(); //403 채널존재 체크
@@ -38,7 +41,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		throw IRCError::NotOnChannel(); //ERR_NOTONCHANNEL 442
 	if(!channel->IsUserAuthorized(user_name, kOperator))
 		throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
-	IRCParams target_name = IRCRequestParser::SeparateParam(context.params[1] , ",");
+	IRCParams target_name = IRC_request_parser::SeparateParam(context.params[1] , ",");
 	for(unsigned int i = 0; i < target_name.size(); i++) {
 		if(!IsUserInList(target_name[i])) {
 			context.stringResult = target_name[i];
@@ -64,7 +67,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 		}
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult = " KICK " + context.channel->GetChannelInfo(kChannelName) + " " + kick_result + " :" + add_result;
+		context.stringResult = context.channel->GetChannelInfo(kChannelName) + " " + kick_result + " :" + add_result;
 		SendMessageToChannel(kChanSendModeToAll, context);
 		channel->DelChannelUser(target_name[0]);
 		IRCClient *target_user = GetClient(target_name[i]);

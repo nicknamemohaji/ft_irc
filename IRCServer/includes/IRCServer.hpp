@@ -22,12 +22,12 @@ class IRCServer: public TCPServer
 		~IRCServer(void);
 
 		// event callback
-		IRCClient* AcceptConnection(bool& shouldRead, bool& shouldWrite);
-		void ReadEvent(TCPConnection* conn,
-			bool& shouldEndRead, std::set<int> &shouldWriteFDs);
+		IRCClient* AcceptConnection(bool* shouldRead, bool* shouldWrite);
+		bool ReadEvent(TCPConnection* conn,
+			bool* shouldEndRead, std::set<int> *shouldWriteFDs);
 		void WriteEvent(TCPConnection* conn,
-			bool& shouldRead, bool& shouldEndWrite);
-		void RemoveConnection(TCPConnection* conn, std::set<int> &shouldWriteFDs);
+			bool* shouldRead, bool* shouldEndWrite);
+		void RemoveConnection(TCPConnection* conn, std::set<int> *shouldWriteFDs);
 
 		// public getter
 		std::string GetServerName(void) const;

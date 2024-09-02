@@ -49,7 +49,7 @@ class TCPMultiplexer
 		// ==== methods ====
 		// manage registered connections
 		void AddConnection(TCPConnection* connection, TCPServer* server);
-		void RemoveConnection(Client client, std::set<int>& shouldWriteFDs);
+		void RemoveConnection(Client client, std::set<int>* shouldWriteFDs);
 
 		// kqueue helper
 		void AddKevent(int ident, int filter);

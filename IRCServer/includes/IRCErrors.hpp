@@ -7,20 +7,12 @@
 namespace IRCError
 {
 	class NoSuchNick;			// 401
-	class NoSuchServer;			// 402
 	class NoSuchChannel;		// 403
 	class CanNotSendToChan;		// 404
 	class TooManyChannel;		// 405
 	class UnknownCommand;		// 421
-	class NoNickname;			// 431
-	class WrongNickname;		// 432
-	class ExitstingNickname;	// 433
 	class UserNotInChannel;		// 441
 	class NotOnChannel;			// 442
-	class NotRegistered;		// 451
-	class MissingParams;		// 461
-	class AlreadyRegistered;	// 462
-	class WrongPassword;		// 464
 	class ChannelIsFull;		// 471
 	class UnknownModeChar;		// 472
 	class InviteOnly;			// 473
@@ -57,16 +49,6 @@ class IRCError::NoSuchNick: public IRCNumeric
 	public:
 		NoSuchNick(void):
 			IRCNumeric(401)
-		{
-		}
-};
-
-// ERR_NOSUCHSERVER
-class IRCError::NoSuchServer: public IRCNumeric
-{
-	public:
-		NoSuchServer(void):
-			IRCNumeric(402)
 		{
 		}
 };
@@ -110,36 +92,6 @@ class IRCError::UnknownCommand: public IRCNumeric
 		}
 };
 
-// ERR_NONICKNAMEGIVEN
-class IRCError::NoNickname: public IRCNumeric
-{
-	public:
-		NoNickname(void):
-			IRCNumeric(431)
-		{
-		}
-};
-
-// ERR_ERRONEUSNICKNAME
-class IRCError::WrongNickname: public IRCNumeric
-{
-	public:
-		WrongNickname(void):
-			IRCNumeric(432)
-		{
-		}
-};
-
-// ERR_NICKNAMEINUSE
-class IRCError::ExitstingNickname: public IRCNumeric
-{
-	public:
-		ExitstingNickname(void):
-			IRCNumeric(433)
-		{
-		}
-};
-
 // ERR_USERNOTINCHANNEL
 class IRCError::UserNotInChannel: public IRCNumeric
 {
@@ -156,46 +108,6 @@ class IRCError::NotOnChannel: public IRCNumeric
 	public:
 		NotOnChannel(void):
 			IRCNumeric(442)
-		{
-		}
-};
-
-// ERR_NOTREGISTERED
-class IRCError::NotRegistered: public IRCNumeric
-{
-	public:
-		NotRegistered(void):
-			IRCNumeric(451)
-		{
-		}
-};
-
-// ERR_NEEDMOREPARAMS
-class IRCError::MissingParams: public IRCNumeric
-{
-	public:
-		MissingParams(void):
-			IRCNumeric(461)
-		{
-		}
-};
-
-// ERR_ALREADYREGISTERED
-class IRCError::AlreadyRegistered: public IRCNumeric
-{
-	public:
-		AlreadyRegistered(void):
-			IRCNumeric(462)
-		{
-		}
-};
-
-// ERR_PASSWDMISMATCH
-class IRCError::WrongPassword: public IRCNumeric
-{
-	public:
-		WrongPassword(void):
-			IRCNumeric(464)
 		{
 		}
 };

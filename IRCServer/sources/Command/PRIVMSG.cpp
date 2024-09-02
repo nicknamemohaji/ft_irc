@@ -13,6 +13,10 @@
 #include "IRCErrors.hpp"
 
 void IRCServer::ActionPRIVMSG(IRCContext& context){
+    if (context.params.size() != 2) {
+      return IRC_response_creator::ERR_NEEDMOREPARAMS(
+        context.client, _serverName, context.pending_fds, context.command);
+    }
 		//  param size =1 channel left;
 		# ifdef PCOMMAND
 			std::cout << " privmsg param size = " << context.params.size() <<std::endl;
@@ -25,14 +29,12 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 		std::string target;
 		std::string msg;
 		IRCChannel *channel;
-		if(context.params.size() != 2)
-			throw IRCError::MissingParams();
 		target = context.params[0];
 		msg = context.params[1];
 
 		context.numericResult = -1;
 		context.createSource = true;
-		context.stringResult  = "PRIVMSG " + target +" :" + msg;
+		context.stringResult  = target +" :" + msg;
 
 		if (IsChannelInList(target) || 
 			(target.size() > 1 && target[0] == '@' && IsChannelInList(target.substr(1)))
@@ -64,8 +66,8 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
 				throw IRCError::NoSuchNick();
-			user_target->Send(IRCResponseCreator::MakeResponse(context));
-			context.FDsPendingWrite.insert(user_target->GetFD());
+			user_target->Send(IRC_response_creator::MakeResponse(context));
+			context.pending_fds->insert(user_target->GetFD());
 		}
 		else{
 			context.stringResult = target;
