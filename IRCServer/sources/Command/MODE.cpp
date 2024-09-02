@@ -27,7 +27,8 @@ void IRCServer::ActionMODE(IRCContext& context)
 		context.channel = channel;
 		if(!channel){
 			context.stringResult = channel_name; 
-			throw IRCError::NoSuchChannel(); //403
+			IRC_response_creator::ErrorSender(context, 403);
+			return;
 		}
 		std::string user_name = context.client->GetNickname();
 		if(context.params.size() == 1) {
@@ -35,13 +36,16 @@ void IRCServer::ActionMODE(IRCContext& context)
 			IRC_response_creator::RPL_CREATIONTIME(context); //CREATIONTIME 329
 			return;
 		}
-		if(!channel->IsUserAuthorized(user_name, kOperator))
-			throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
+		if(!channel->IsUserAuthorized(user_name, kOperator)) {
+			IRC_response_creator::ErrorSender(context, 482);
+			return;
+		}
 		std::string mode_str = "-+itlko";
 		for(unsigned int i = 0; i < context.params[1].size(); i++)
 			if(mode_str.find(context.params[1][i]) == std::string::npos) {
 				context.stringResult = context.params[1][i];
-				throw IRCError::UnknownModeChar(); //UNKNOWNMODE 472
+				IRC_response_creator::ErrorSender(context, 472);
+				return;
 			}
 	}
 
