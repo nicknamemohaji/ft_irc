@@ -28,8 +28,8 @@ IRCClient::~IRCClient(void) {}
  * @param[in] newbuffer 덮어쓸 메시지
 */
 void IRCClient::OverwriteRecvBuffer(Buffer newbuffer) {
-  _recvBuf.clear();
-  _recvBuf = newbuffer;
+  buf_recv_.clear();
+  buf_recv_ = newbuffer;
 }
 
 /**
