@@ -6,12 +6,26 @@
 #include <sstream>
 #include <deque>
 #include <algorithm>
+#include <ctime>
 
 #include "IRCResponseCreator.hpp"
 #include "IRCChannel.hpp"
 #include "IRCContext.hpp"
 #include "IRCErrors.hpp"
 
+void BotCommand(IRCContext& context, const std::string& target){
+	time_t now = time(0);
+    struct tm *ltm = localtime(&now);
+
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", ltm);
+
+	context.stringResult  = target +" :" + "현재 서버시간은 " + std::string(buffer) + " 입니다.";	
+	context.numericResult = -1;
+	context.createSource = false;
+	context.client->Send(IRC_response_creator::MakeResponse(context));
+	context.pending_fds->insert(context.client->GetFD());
+}
 void IRCServer::ActionPRIVMSG(IRCContext& context){
     if (context.params.size() != 2) {
       return IRC_response_creator::ERR_NEEDMOREPARAMS(
@@ -31,7 +45,6 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 		IRCChannel *channel;
 		target = context.params[0];
 		msg = context.params[1];
-
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult  = target +" :" + msg;
@@ -57,21 +70,22 @@ void IRCServer::ActionPRIVMSG(IRCContext& context){
 			if((channel->CheckChannelMode(kPassword) || channel->CheckChannelMode(kInvite)) && !channel->IsInChannel(context.client->GetNickname()))
 			{
 				context.stringResult = target;
-				throw IRCError::CanNotSendToChan();
+				return IRC_response_creator::ErrorSender(context, 404);
 			}
-
+			if(msg.size() == 7 && msg == "!시간")
+				return BotCommand(context, target);
 			SendMessageToChannel(send_mode, context);
 		}
 		else if(IsUserInList(target)){
 			IRCClient *user_target = GetClient(target);
 			if(!user_target)
-				throw IRCError::NoSuchNick();
+				return IRC_response_creator::ErrorSender(context, 401);
 			user_target->Send(IRC_response_creator::MakeResponse(context));
 			context.pending_fds->insert(user_target->GetFD());
 		}
 		else{
 			context.stringResult = target;
-			throw IRCError::CanNotSendToChan();
+			return IRC_response_creator::ErrorSender(context, 404);
 		}
 }
 

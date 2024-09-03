@@ -1,9 +1,9 @@
 NAME := ircserv
 
-SRCS_TCPSERVER := 	TCPServer/sources/TCPMultiplexer.cpp \
-					TCPServer/sources/TCPConnection.cpp \
-					TCPServer/sources/TCPErrors.cpp \
-					TCPServer/sources/TCPServer.cpp
+SRCS_TCPSERVER :=		TCPServer/sources/TCPMultiplexer.cpp \
+										TCPServer/sources/TCPConnection.cpp \
+										TCPServer/sources/TCPErrors.cpp \
+										TCPServer/sources/TCPServer.cpp
 
 # TODO: add sources directrly
 SRCS_IRCSERVER :=	$(wildcard IRCServer/sources/*.cpp)\
@@ -22,7 +22,7 @@ INCLUDES :=	-I . \
 			-I IRCUtils/includes
 
 C++ := c++
-CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -D PCOMMAND -D DEBUG #-fsanitize=address 
+CXXFLAGS := -Wall -Werror -Wextra -std=c++98 $(INCLUDES) -g -fsanitize=address 
 
 all: $(NAME)
 

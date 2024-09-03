@@ -52,14 +52,11 @@ void IRCServer::SendMessageToChannel(
 void IRCServer::RmClientFromChanJoined(IRCClient* client) {
     std::string _nickname = client->GetNickname();
 
-    // TODO(kyungjle) method will return std::vector<std::string> in the future
-    IRCClientJoinedChannels _joinedChannels = client->ListChannels();
+    IRCClientChannels _joinedChannels = client->ListChannels();
     for (
-        IRCClientJoinedChannels::iterator _it = _joinedChannels.begin();
-        _it != _joinedChannels.end();
-        _it++
-        ) {
-        std::string _chan_name = _it->first;
+        IRCClientChannels::iterator _it = _joinedChannels.begin();
+        _it != _joinedChannels.end(); _it++) {
+        std::string _chan_name = *_it;
         IRCChannel* _channel = GetChannel(_chan_name);
         if (_channel == NULL)
             continue;
@@ -67,9 +64,9 @@ void IRCServer::RmClientFromChanJoined(IRCClient* client) {
         // delete user from channel list
         _channel->DelChannelUser(_nickname);
         if (_channel->GetChannelUserSize() == 0)
-            DelChannel(_channel->GetChannelInfo(kChannelName));
+            DelChannel(_chan_name);
         // delete channel from user list
-        client->DelInviteChannel(_chan_name);
+        client->DelInvitedChannel(_chan_name);
     }
 }
 
@@ -95,6 +92,6 @@ void IRCServer::RmClientFromChanInvited(IRCClient* client) {
         // delete user from channel list
         channel->DelInvitedUser(_nickname);
         // delete channel from user list
-        client->DelInviteChannel(_chan_name);
+        client->DelInvitedChannel(_chan_name);
     }
 }

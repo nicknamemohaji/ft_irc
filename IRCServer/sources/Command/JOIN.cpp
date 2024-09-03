@@ -71,7 +71,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				# endif	
 				channel = AddChannel(context.client->GetNickname(),channel_name,"");
 			}
-			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
+			context.client->AddChannel(channel->GetChannelInfo(kChannelName));
 			context.channel = channel;
 			# ifdef JCOMMAND
 			std::cout << "New channel create check done;" << i <<std::endl;
@@ -129,14 +129,14 @@ void IRCServer::ActionJOIN(IRCContext& context)
 				continue;
 			}
 			//channel add at client and channel add client
-			context.client->AddChannel(channel->GetChannelInfo(kChannelName),channel);
+			context.client->AddChannel(channel->GetChannelInfo(kChannelName));
 			channel->AddChannelUser(context.client->GetNickname());
 			# ifdef JCOMMAND
 			std::cout << "exsit channel join check done;" << i <<std::endl;
 			# endif
 		}
 		channel->DelInvitedUser(context.client->GetNickname());//채널의 초대리스트에서 제거
-		context.client->DelInviteChannel(channel_name); // 유저의 초대 채널리스트에서 제거
+		context.client->DelInvitedChannel(channel_name); // 유저의 초대 채널리스트에서 제거
 		context.numericResult = -1;
 		context.createSource = true;
 		context.stringResult = context.channel->GetChannelInfo(kChannelName);

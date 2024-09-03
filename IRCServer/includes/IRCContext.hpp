@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "IRCServer/includes/IRCTypes.hpp"
+#include "IRCTypes.hpp"
 
 class IRCServer;
 class IRCChannel;

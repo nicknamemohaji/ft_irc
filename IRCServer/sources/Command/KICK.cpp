@@ -33,23 +33,30 @@ void IRCServer::ActionKICK(IRCContext& context)
 	IRCChannel *channel = GetChannel(IRC_request_parser::AddChanPrefixToParam(channel_name));
 	if(!channel){
 		context.stringResult = channel_name; 
-		throw IRCError::NoSuchChannel(); //403 채널존재 체크
+		IRC_response_creator::ErrorSender(context, 403);
+		return;
 	}
 	context.channel = channel;
 	std::string user_name = context.client->GetNickname();
-	if(!channel->IsInChannel(user_name))
-		throw IRCError::NotOnChannel(); //ERR_NOTONCHANNEL 442
-	if(!channel->IsUserAuthorized(user_name, kOperator))
-		throw IRCError::ChangeNoPrivesneed(); //CHANOPRIVSNEEDED 482
+	if(!channel->IsInChannel(user_name)) {
+		IRC_response_creator::ErrorSender(context, 442);
+		return;
+	}
+	if(!channel->IsUserAuthorized(user_name, kOperator)) {
+		IRC_response_creator::ErrorSender(context, 482);
+		return;
+	}
 	IRCParams target_name = IRC_request_parser::SeparateParam(context.params[1] , ",");
 	for(unsigned int i = 0; i < target_name.size(); i++) {
 		if(!IsUserInList(target_name[i])) {
 			context.stringResult = target_name[i];
-			throw IRCError::NoSuchNick(); // ERR_NOSUCHNICK 401
+			IRC_response_creator::ErrorSender(context, 401);
+			return;
 		}
 		if(!channel->IsInChannel(target_name[i])) {
 			context.stringResult = target_name[i];
-			throw IRCError::UserNotInChannel(); //ERR_USERNOTINCHANNEL 441
+   			IRC_response_creator::ErrorSender(context, 441);
+			return;
 		}
 		std::string kick_result;
 		kick_result = target_name[i];
