@@ -16,7 +16,6 @@
 
 void IRCServer::ActionPART(IRCContext& context){
 		//  param size =1 channel left;
-			std::cout << " PRAT param size = " << context.params.size() <<std::endl;
 		if(!(context.params.size() == 1 || context.params.size() == 2)){
 			IRC_response_creator::ErrorSender(context, 461);
 			return;

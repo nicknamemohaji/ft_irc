@@ -124,7 +124,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "channel limit !!!" << i << "channel limit = " << channel->GetChannelInfo(kChannelUserLimit) <<std::endl;
 					std::cout << "channel limit !!!" << i << "channel user number = " << channel->GetChannelUserSize() <<std::endl;
 				# endif
-			if(channel->CheckChannelMode(kLimit) && static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) >= channel->GetChannelUserSize()){
+			if(channel->CheckChannelMode(kLimit) && static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) <= channel->GetChannelUserSize()){
 				IRC_response_creator::ErrorSender(context, 471); //471 채널 포화
 				continue;
 			}
