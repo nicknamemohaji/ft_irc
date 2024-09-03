@@ -63,8 +63,8 @@ void IRCServer::ActionINVITE(IRCContext &context){
 		context.stringResult = result.str();
 		_invitee->Send(IRC_response_creator::MakeResponse(context));
 		context.pending_fds->insert(_invitee->GetFD());
+	  _invitee->AddInvitedChannel(_channel_name); // 유저의 초대채널리스트에 추가
 	}
-	context.client->AddInvitedChannel(_channel_name); // 유저의 초대채널리스트에 추가
 }
 
 // :dan-!d@localhost INVITE Wiz #test    ; dan- has invited Wiz
