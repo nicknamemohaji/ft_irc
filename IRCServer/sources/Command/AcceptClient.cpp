@@ -91,12 +91,11 @@ void IRCServer::ActionAcceptClient(IRCContext& context)
 			context.stringResult = new_name;
 			context.client->Send(IRC_response_creator::MakeResponse(context));
 			context.pending_fds->insert(context.client->GetFD());
-			// TODO IRCClient::GetChannels will return std::vector<std::string> in the future
-			IRCClientJoinedChannels channels = context.client->ListChannels();
-			for (IRCClientJoinedChannels::iterator it = channels.begin(); it != channels.end(); it++)
+			IRCClientChannels channels = context.client->ListChannels();
+			for (IRCClientChannels::iterator it = channels.begin(); it != channels.end(); it++)
 			{
 				// broadcast
-				context.channel = it->second;
+				context.channel = GetChannel(*it);
 				SendMessageToChannel(kChanSendModeToExceptMe, context);
 				// change name from channel
 				context.channel->DelChannelUser(prev_name);
