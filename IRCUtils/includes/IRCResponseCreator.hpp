@@ -19,6 +19,7 @@ void ErrorSender(IRCContext context, unsigned int errornum);
 
 // numeric response - RPL
 
+void RPL_ACCEPT(const IRCContext& context);
 void RPL_NOTOPIC(IRCContext& context);
 void RPL_TOPIC(IRCContext& context);
 void RPL_TOPICWHOTIME(IRCContext& context);

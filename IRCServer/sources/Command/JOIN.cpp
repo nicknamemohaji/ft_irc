@@ -26,9 +26,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 
 	std::stringstream result;
 	if(!(context.params.size() > 0 && context.params.size() < 3)){
-		//throw IRCError::MissingParams(); // 461
-		IRC_response_creator::ErrorSender(context,461);
-		return;
+		return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 	}
 	IRCParams channel_names_ = IRC_request_parser::SeparateParam(context.params[0] , ",");
 	IRCParams channel_passwords_;
@@ -124,7 +122,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 					std::cout << "channel limit !!!" << i << "channel limit = " << channel->GetChannelInfo(kChannelUserLimit) <<std::endl;
 					std::cout << "channel limit !!!" << i << "channel user number = " << channel->GetChannelUserSize() <<std::endl;
 				# endif
-			if(channel->CheckChannelMode(kLimit) && static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) >= channel->GetChannelUserSize()){
+			if(channel->CheckChannelMode(kLimit) && static_cast<unsigned int>(std::atoi(channel->GetChannelInfo(kChannelUserLimit).c_str())) <= channel->GetChannelUserSize()){
 				IRC_response_creator::ErrorSender(context, 471); //471 채널 포화
 				continue;
 			}

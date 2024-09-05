@@ -26,7 +26,7 @@ void IRCServer::ActionKICK(IRCContext& context)
 
   if (context.params.size() <= 1) {
     return IRC_response_creator::ERR_NEEDMOREPARAMS(
-      context.client, _serverName, context.pending_fds, context.command);
+      context.client, server_name_, context.pending_fds, context.command);
   }
 
 	std::string channel_name = context.params[0];

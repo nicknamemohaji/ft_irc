@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "IRCTypes.hpp"
+#include "IRCServer/includes/IRCTypes.hpp"
 
 class IRCServer;
 class IRCChannel;
@@ -32,6 +32,7 @@ struct IRCContext {
 
   // initialize struct...
   explicit IRCContext(std::set<int>* FDset);
+  IRCContext(const IRCContext& other);
 
  private:
   IRCContext(void);

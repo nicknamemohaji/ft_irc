@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+#ifndef VERSION
+#define VERSION "42.42"
+#endif
+
 enum IRCCommand {
   UNKNOWN = -1,
   // registration

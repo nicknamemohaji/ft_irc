@@ -17,8 +17,7 @@
 void IRCServer::ActionTOPIC(IRCContext &context)
 {
 	if(!(context.params.size() == 1 || context.params.size() == 2)){
-		IRC_response_creator::ErrorSender(context, 461);
-		return;
+		return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 	}
 
 	IRCChannel *channel = this->GetChannel(IRC_request_parser::AddChanPrefixToParam(context.params[0]));

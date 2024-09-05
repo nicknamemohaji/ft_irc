@@ -16,7 +16,7 @@
 IRCServer::IRCServer(const std::string& port,
 	const std::string& servername, const std::string& password):
 	TCPServer(port),
-	_serverName(servername),
+	server_name_(servername),
 	_serverPass(password)
 {
 	std::time_t time = std::time(nullptr);
@@ -26,10 +26,10 @@ IRCServer::IRCServer(const std::string& port,
 	);
 	_startDate = std::string(timeString);
 
-	this->Actions[CAP] = &IRCServer::ActionAcceptClient;
-	this->Actions[PASS] = &IRCServer::ActionAcceptClient;
-	this->Actions[USER] = &IRCServer::ActionAcceptClient;
-	this->Actions[NICK] = &IRCServer::ActionAcceptClient;
+	this->Actions[CAP] = &IRCServer::ActionCAP;
+	this->Actions[PASS] = &IRCServer::ActionPASS;
+	this->Actions[USER] = &IRCServer::ActionUSER;
+	this->Actions[NICK] = &IRCServer::ActionNICK;
 	this->Actions[MOTD] = &IRCServer::ActionMOTD;
 	this->Actions[PING] = &IRCServer::ActionPING;
 	this->Actions[QUIT] = &IRCServer::ActionQUIT;
@@ -115,7 +115,7 @@ bool IRCServer::ReadEvent(TCPConnection* _conn, bool* shouldEndRead, std::set<in
 
     // check registration status
     if (conn->GetStatus() != REGISTERED && context.command > NICK) {
-      IRC_response_creator::ERR_NOTREGISTERED(context.client, _serverName,
+      IRC_response_creator::ERR_NOTREGISTERED(context.client, server_name_,
                                               context.pending_fds);
       conn->OverwriteRecvBuffer(message);
 		  return conn->GetRecvBufferSize() != 0;
@@ -252,7 +252,10 @@ IRCClient* IRCServer::GetClient(const std::string& user_name){
 	return it->second;
 }
 
-std::string IRCServer::GetServerName(void) const
-{
-	return _serverName;
+std::string IRCServer::GetServerName(void) const{
+  return server_name_;
+}
+
+std::string IRCServer::GetServerStartDate(void) const {
+  return _startDate;
 }

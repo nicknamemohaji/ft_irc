@@ -23,9 +23,7 @@ void IRCServer::ActionNAMES(IRCContext& context){
 	# endif
 	//파싱오류 많은 파라미터
 	if(context.params.size() != 1){
-		// throw IRCError::MissingParams(); // 461
-		IRC_response_creator::ErrorSender(context, 461);
-		return;
+		return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 	}
 	IRCParams channel_names = IRC_request_parser::SeparateParam(context.params[0], ",");
 	for(unsigned int i = 0; i < channel_names.size(); ++i){

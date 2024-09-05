@@ -32,13 +32,14 @@ class IRCServer: public TCPServer
 
 		// public getter
 		std::string GetServerName(void) const;
+		std::string GetServerStartDate(void) const;
 		
 	protected:
 
 	private:
 		// ==== attribute ====
 		// server settings
-		std::string _serverName;
+		std::string server_name_;
 		std::string _serverPass;
 		std::string _startDate;
 		// channels
@@ -52,7 +53,11 @@ class IRCServer: public TCPServer
 		// 1. array of method pointers
 		void (IRCServer::*Actions[16])(IRCContext& context);
 		// 2. action methods
-		void ActionAcceptClient(IRCContext& context);
+    // TODO(kyungjle): change reference to const reference
+    void ActionCAP(IRCContext& context);
+    void ActionPASS(IRCContext& context);
+    void ActionNICK(IRCContext& context);
+    void ActionUSER(IRCContext& context);
 		void ActionMOTD(IRCContext& context);
 		void ActionPING(IRCContext& context);
 		void ActionQUIT(IRCContext& context);

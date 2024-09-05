@@ -37,6 +37,8 @@ void IRCServer::SendMessageToChannel(
         if (_user_name[0] == '@')
             _user_name = _user_name.substr(1);
         IRCClient* _userPtr = GetClient(_user_name);
+        if (_userPtr == NULL)
+          continue;
         if (target != kChanSendModeToAll && _userPtr == context.client)
             continue;
         _userPtr->Send(_message);
