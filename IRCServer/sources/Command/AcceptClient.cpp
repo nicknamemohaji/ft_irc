@@ -72,6 +72,7 @@ void IRCServer::ActionNICK(IRCContext& context) {
     // (2) initial register
     // set status
     _client->SetStatus(REGISTERED);
+    _client->SetNickName(_new_name);
     // send accept RPLs
     IRC_response_creator::RPL_ACCEPT(context);
     ActionMOTD(context);
@@ -82,27 +83,25 @@ void IRCServer::ActionNICK(IRCContext& context) {
     _context.createSource = true;
     _context.numericResult = -1;
     _context.stringResult = _new_name;
-    _client->Send(IRC_response_creator::MakeResponse(context));
+    _client->Send(IRC_response_creator::MakeResponse(_context));
     // make change in joined servers
     IRCClientChannels _joined_channels = _client->ListChannels();
     for (IRCClientChannels::iterator _it = _joined_channels.begin();
          _it != _joined_channels.end(); _it++) {
-      // broadcast
       IRCChannel* _joined_channel = GetChannel(*_it);
-      _context.channel = _joined_channel;
-      SendMessageToChannel(kChanSendModeToExceptMe, context);
-      // change name from channel
       _joined_channel->DelChannelUser(_prev_name);
+      _context.channel = _joined_channel;
+      SendMessageToChannel(kChanSendModeToAll, _context);
       _joined_channel->AddChannelUser(_new_name);
     }
     // make change in invited servers
     IRCClientChannels _invited_channels = _client->ListInvitedChannels();
-    for (IRCClientChannels::iterator _it = _joined_channels.begin();
-         _it != _joined_channels.end(); _it++) {
+    for (IRCClientChannels::iterator _it = _invited_channels.begin();
+         _it != _invited_channels.end(); _it++) {
       IRCChannel* _invited_channel = GetChannel(*_it);
       // change name from channel
       _invited_channel->DelInvitedUser(_prev_name);
-      _invited_channel->DelInvitedUser(_new_name);
+      _invited_channel->AddInvitedUser(_new_name);
     }
 
     // remove previous nickname
