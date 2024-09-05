@@ -26,9 +26,7 @@ void IRCServer::ActionJOIN(IRCContext& context)
 
 	std::stringstream result;
 	if(!(context.params.size() > 0 && context.params.size() < 3)){
-		//throw IRCError::MissingParams(); // 461
-		IRC_response_creator::ErrorSender(context,461);
-		return;
+		return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 	}
 	IRCParams channel_names_ = IRC_request_parser::SeparateParam(context.params[0] , ",");
 	IRCParams channel_passwords_;

@@ -16,8 +16,7 @@
 
 void IRCServer::ActionINVITE(IRCContext &context){
 	if(context.params.size() != 2 ){
-		IRC_response_creator::ErrorSender(context, 461); // 파라미터 에러.
-		return;
+		return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 	}
 	std::string _nickname = context.params[0];
 	std::string _channel_name = IRC_request_parser::AddChanPrefixToParam(context.params[1]);

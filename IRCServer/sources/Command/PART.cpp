@@ -17,8 +17,7 @@
 void IRCServer::ActionPART(IRCContext& context){
 		//  param size =1 channel left;
 		if(!(context.params.size() == 1 || context.params.size() == 2)){
-			IRC_response_creator::ErrorSender(context, 461);
-			return;
+		  return IRC_response_creator::ERR_NEEDMOREPARAMS(context.client, server_name_, context.pending_fds, context.command);
 		}
 		# ifdef COMMAND
 			std::cout << "param 0 =" << context.params[0] <<std::endl;
