@@ -97,6 +97,14 @@ void IRCChannel::AddChannelUser(const std::string& nickname) {
     users_in_channel_[nickname] =  kNormal;
 }
 
+void IRCChannel::ChangeChannelUser(const std::string& prev_name,
+                                   const std::string& new_name) {
+  ChannelPermission _permission = this->users_in_channel_[prev_name];
+  this->DelChannelUser(prev_name);
+  this->AddChannelUser(new_name);
+  this->SetUserAuthorization(new_name, _permission);
+}
+
 void IRCChannel::ManageChannelPermission(const std::string& target_nickname, ChannelPermission option) {
     SetUserAuthorization(target_nickname, option);
 }

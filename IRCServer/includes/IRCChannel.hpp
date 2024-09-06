@@ -70,6 +70,7 @@ public:
     void DelInvitedUser(const std::string& target_nickname);
     void AddChannelUser(const std::string& nickname);
     void DelChannelUser(const std::string& nickname);
+    void ChangeChannelUser(const std::string& prev_name, const std::string& new_name);
 
     // Password verification
     bool MatchPassword(const std::string& password) const;

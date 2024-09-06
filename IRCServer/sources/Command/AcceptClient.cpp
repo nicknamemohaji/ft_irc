@@ -89,10 +89,9 @@ void IRCServer::ActionNICK(IRCContext& context) {
     for (IRCClientChannels::iterator _it = _joined_channels.begin();
          _it != _joined_channels.end(); _it++) {
       IRCChannel* _joined_channel = GetChannel(*_it);
-      _joined_channel->DelChannelUser(_prev_name);
       _context.channel = _joined_channel;
-      SendMessageToChannel(kChanSendModeToAll, _context);
-      _joined_channel->AddChannelUser(_new_name);
+      SendMessageToChannel(kChanSendModeToExceptMe, _context);
+      _joined_channel->ChangeChannelUser(_prev_name, _new_name);
     }
     // make change in invited servers
     IRCClientChannels _invited_channels = _client->ListInvitedChannels();

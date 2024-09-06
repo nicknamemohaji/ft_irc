@@ -50,7 +50,8 @@ TCPServer::TCPServer(const std::string& port):
 	)
 		throw TCPErrors::SystemCallError("socket(2)");
 	// reuse port
-	if (setsockopt(_serverSock, SOL_SOCKET, SO_REUSEADDR, &err, sizeof(err)) != 0)
+  int option = 1;
+	if (setsockopt(_serverSock, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) != 0)
 		throw TCPErrors::SystemCallError("setsockopt(2)");
 	// make socket fd nonblocking (SOCK_NONBLOCK is not available in mac)
 	if (
