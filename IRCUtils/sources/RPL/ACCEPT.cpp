@@ -47,7 +47,7 @@ void IRC_response_creator::RPL_ACCEPT(const IRCContext& context) {
   strstream.str("");
   _context.stringResult.clear();
   strstream << _client_nickname << " " << _server_name << " " << VERSION
-            << " r oitlk";
+            << "o itlk";
   _context.stringResult = strstream.str();
   _context.numericResult = 4;
   _context.client->Send(IRC_response_creator::MakeResponse(_context));
@@ -56,7 +56,7 @@ void IRC_response_creator::RPL_ACCEPT(const IRCContext& context) {
   strstream.str("");
   _context.stringResult.clear();
   strstream << _client_nickname
-            << " CHANTYPES=# CASEMAPPING=ascii CHANMODES=o,kl,,it "
+            << " CHANTYPES=# CASEMAPPING=ascii CHANMODES=,k,l,it "
             << "PREFIX=(o)@ NICKLEN=30 :are supported by this server";
   _context.stringResult = strstream.str();
   _context.numericResult = 5;
